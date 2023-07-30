@@ -15,8 +15,11 @@ namespace DeltaClient.Core.ViewModels
         public GuestBookViewModel()
         {
             AddGuestCommand = new MvxCommand(AddGuest);
+            OpenBinaryTreeViewerCommand = new MvxCommand(AddGuest);
         }
         public IMvxCommand AddGuestCommand { get; set; }
+
+        public IMvxCommand OpenBinaryTreeViewerCommand { get; set; }
 
         public bool CanAddGuest => FirstName?.Length > 0 && LastName?.Length > 0;
 

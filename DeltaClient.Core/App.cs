@@ -11,7 +11,8 @@ namespace DeltaClient.Core
         }
         public override void Initialize()
         {
-            RegisterAppStart<GuestBookViewModel>();
+            //RegisterAppStart<GuestBookViewModel>();
+            RegisterAppStart<BinaryTreeViewModel>();
         }
     }
 
