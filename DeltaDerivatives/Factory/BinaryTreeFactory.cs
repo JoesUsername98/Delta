@@ -15,7 +15,7 @@ namespace DeltaDerivatives.Factory
         foreach (IEnumerable<bool> path in Combinations.Parameters(inputParams))
         {
           bt.Add(new Node<State>(new State(), path.ToArray()));
-        };
+        }
       }
       return bt;
     }
