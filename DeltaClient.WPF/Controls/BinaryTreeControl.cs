@@ -23,22 +23,6 @@ namespace DeltaClient.WPF.Controls
         public double xElementSeparation { get; set; } = 50;
         public double yElementSeparation { get; set; } = 50;
 
-
-        public static readonly DependencyProperty ItemSourceProperty = DependencyProperty.Register("ItemSource",
-        typeof(ObservableCollection<Node<State>>), typeof(DependableNode<State>), new PropertyMetadata(new PropertyChangedCallback(OnChanged)));
-
-        //the wrapper property
-        public ObservableCollection<Node<State>> ItemSource
-        {
-            get { return (ObservableCollection<Node<State>>)GetValue(ItemSourceProperty); }
-            set { SetValue(ItemSourceProperty, value); }
-        }
-
-        private static void OnChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            DependableNode<State> node = (DependableNode<State>)d;
-            //node = node.ItemSource;
-        }
         protected override Size MeasureOverride(Size availableSize)
         {
             //TODO use my binary tree depth function when imported

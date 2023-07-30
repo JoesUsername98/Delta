@@ -47,7 +47,14 @@
 
     <controls:BinaryTreeControl>
       <Grid.Column>1</Grid.Column>
-      <ItemsControl ItemsSource="{Binding Tree}">
+      <ItemsControl ItemsSource="{Binding ItemSource}">
+        <ItemsControl.ItemTemplate>
+          <ItemContainerTemplate>
+            <Ellipse Width="50"
+                     Height="50"
+                     Fill="Wheat" />
+          </ItemContainerTemplate>
+        </ItemsControl.ItemTemplate>
       </ItemsControl>
 
     </controls:BinaryTreeControl>
