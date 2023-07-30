@@ -4,21 +4,14 @@ using System.Runtime.Serialization;
 
 namespace DeltaDerivatives.Objects
 {
-    [DataContract]
-  public class BinaryTree<T> : IBinaryTree<T> where T : IEquatable<T>
+  public class BinaryTree<T> : IBinaryTree<INode<T>,T> where T : IEquatable<T>
   {
-    [DataMember]
     private INode<T> _root;
-    [DataMember]
     public int Count { get; private set; }
-    [DataMember]
     public int Time { get; private set; }
     public bool IsReadOnly => false;
-    [DataMember]
     public double? ConstantUpFactor { get; set; }
-    [DataMember]
     public double? ConstantDownFactor { get; set; }
-    [DataMember]
     public double? ConstantInterestRate { get; set; }
     public BinaryTree()
     {
