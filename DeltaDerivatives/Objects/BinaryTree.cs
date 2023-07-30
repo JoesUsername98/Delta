@@ -4,9 +4,9 @@ using System.Runtime.Serialization;
 
 namespace DeltaDerivatives.Objects
 {
-  public class BinaryTree<T> : IBinaryTree<INode<T>,T> where T : IEquatable<T>
+  public class BinaryTree<N,T> : IBinaryTree<N,T> where T : IEquatable<T> where N : INode<T>
   {
-    private INode<T> _root;
+    private N _root;
     public int Count { get; private set; }
     public int Time { get; private set; }
     public bool IsReadOnly => false;
@@ -15,27 +15,30 @@ namespace DeltaDerivatives.Objects
     public double? ConstantInterestRate { get; set; }
     public BinaryTree()
     {
-      _root = null;
+      _root = default(N);
       Count = 0;
     }
-    public BinaryTree(INode<T> root)
+    public BinaryTree(N root)
     {
       _root = root;
       Count = this.Select(x => x).Count();
     }
     #region IEnumerable
-    public IEnumerator<INode<T>> GetEnumerator()
+    public IEnumerator<N> GetEnumerator()
     {
-      return _root.GetForesightEnumerator();
+        var enumerator = _root.GetForesightEnumerator();
+        while (enumerator.MoveNext())
+        {
+            yield return (N)enumerator.Current;
+        }
     }
-
     IEnumerator IEnumerable.GetEnumerator()
     {
       return GetEnumerator();
     }
     #endregion
     #region ICollection
-    public void Add(INode<T> newItem)
+    public void Add(N newItem)
     {
       if (newItem.Path.Length == 0)
       {
@@ -51,7 +54,7 @@ namespace DeltaDerivatives.Objects
       while (pathStack.Count > 0)
       {
         var nextTossIsHeads = pathStack.Pop();
-        parentNode = nextTossIsHeads ? parentNode.Heads : parentNode.Tails;
+        parentNode = nextTossIsHeads ? (N)parentNode.Heads : (N)parentNode.Tails;
         if (parentNode == null)
         {
           throw new ArgumentException("Could not find a parent node in this path: " + parentNodePath, "newItem.Path");
@@ -62,14 +65,14 @@ namespace DeltaDerivatives.Objects
       Time = newItem.Path.Length > Time ? newItem.Path.Length : Time;
       Count++;
     }
-    public bool Contains(INode<T> item)
+    public bool Contains(N item)
     {
       var pathStack = new Stack<bool>(item.Path.Reverse());
       var currNode = _root;
       while (pathStack.Count > 0)
       {
         var nextTossIsHeads = pathStack.Pop();
-        currNode = nextTossIsHeads ? currNode.Heads : currNode.Tails;
+        currNode = nextTossIsHeads ? (N)currNode.Heads : (N)currNode.Tails;
         if (currNode == null)
         {
           return false;
@@ -78,7 +81,7 @@ namespace DeltaDerivatives.Objects
 
       return currNode.Equals(item);
     }
-    public void CopyTo(INode<T>[] array, int arrayIndex)
+    public void CopyTo(N[] array, int arrayIndex)
     {
       if (array == null)
         throw new ArgumentNullException("array");
@@ -93,18 +96,18 @@ namespace DeltaDerivatives.Objects
         throw new ArgumentException("Not enough elements after arrayIndex in the destination array.");
       //array = array.Skip(arrayIndex - 1).ToArray();
     }
-    bool ICollection<INode<T>>.Remove(INode<T> item)
+    bool ICollection<N>.Remove(N item)
     {
       return this.Remove(item);
     }
-    public bool Remove(INode<T> node)
+    public bool Remove(N node)
     {
       int nodesInSubtree = node.CountSubsequentNodes(node);
       bool doesContain = Contains(node);
 
-      if (node == _root)
+      if ((INode<T>)node == (INode<T>)_root)
       {
-        _root = null;
+        _root = default(N);
         Count = 0;
         Time = -1;
         return doesContain;
@@ -123,16 +126,16 @@ namespace DeltaDerivatives.Objects
     }
     public void Clear()
     {
-      _root = null;
+      _root = default(N);
       Time = 0;
       Count = 0;
     }
     #endregion
     #region ICloneable
-    public object Clone() => new BinaryTree<T>((INode<T>)_root.Clone()) { Count = this.Count, Time = this.Time };
+    public object Clone() => new BinaryTree<N,T>((N)_root.Clone()) { Count = this.Count, Time = this.Time };
     #endregion
     #region IBinaryTree
-    public INode<T> GetAt(bool[] path)
+    public N GetAt(bool[] path)
     {
       var pathStack = new Stack<bool>(path.Reverse());
 
@@ -142,7 +145,7 @@ namespace DeltaDerivatives.Objects
       while (pathStack.Count > 0)
       {
         var nextTossIsHeads = pathStack.Pop();
-        currNode = nextTossIsHeads ? currNode.Heads : currNode.Tails;
+        currNode = nextTossIsHeads ? (N)currNode.Heads : (N)currNode.Tails;
         if (currNode == null)
         {
           throw new ArgumentException("Could not find a node in this path: " + path, "path");

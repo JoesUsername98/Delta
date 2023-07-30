@@ -2,6 +2,6 @@
 {
     public interface IBinaryTreeEnhancer 
   { 
-    void Enhance(BinaryTree<State> subject);
+    void Enhance(BinaryTree<Node<State>,State> subject);
   }
 }

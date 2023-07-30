@@ -9,7 +9,7 @@ namespace DeltaDerivatives.Visitors
     {
 
     }
-    public void Enhance(BinaryTree<State> subject)
+    public void Enhance(BinaryTree<Node<State>, State> subject)
     {
       //Expiration time nodes. 
       foreach (var node in subject.Where(n => n.Time == subject.Time))

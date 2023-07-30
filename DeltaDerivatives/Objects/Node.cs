@@ -47,14 +47,14 @@ namespace DeltaDerivatives.Objects
     {
       if (node is null) return 0;
 
-      var subTree = new BinaryTree<T>(node);
+      var subTree = new BinaryTree<INode<T>, T>(node);
       return subTree.Count;
     }
     public int CountTime(INode<T> node)
     {
       if (node == null) return -1;
 
-      var subTree = new BinaryTree<T>(node);
+      var subTree = new BinaryTree<INode<T>, T>(node);
       return subTree.Time;
     }
     public object Clone()

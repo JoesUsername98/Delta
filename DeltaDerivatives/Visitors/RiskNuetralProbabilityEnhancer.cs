@@ -9,7 +9,7 @@ namespace DeltaDerivatives.Visitors
     {
         
     }
-    public void Enhance(BinaryTree<State> subject)
+    public void Enhance(BinaryTree<Node<State>, State> subject)
     {
       if (!subject.ConstantUpFactor.HasValue)   throw new ArgumentNullException("ConstantUpFactor");
       if (!subject.ConstantDownFactor.HasValue) throw new ArgumentNullException("ConstantDownFactor");

@@ -29,7 +29,7 @@ namespace DeltaDerivatives.Visitors
       _upFactor = upFactor;
       _downFactor = downFactor;
     }
-    public void Enhance(BinaryTree<State> subject)
+    public void Enhance(BinaryTree<Node<State>, State> subject)
     {
       foreach (var node in subject)
       {

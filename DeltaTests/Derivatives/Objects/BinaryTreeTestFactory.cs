@@ -5,10 +5,10 @@ namespace DeltaTests.Derivatives.Objects
 {
   public static class BinaryTreeTestFactory
   {
-    public static BinaryTree<string> GenerateTimeTwoTree()
+    public static BinaryTree<Node<string>, string> GenerateTimeTwoTree()
     {
       //arrange
-      var bt = new BinaryTree<string>();
+      var bt = new BinaryTree<Node<string>, string>();
       bt.Add(new Node<string>("root", new bool[] { }));
       bt.Add(new Node<string>("h", new bool[] { true }));
       bt.Add(new Node<string>("t", new bool[] { false }));
@@ -18,10 +18,10 @@ namespace DeltaTests.Derivatives.Objects
       bt.Add(new Node<string>("th", new bool[] { false, true }));
       return bt;
     }
-    public static BinaryTree<int> GenerateTimeTwoTree(List<int> data)
+    public static BinaryTree<Node<int>, int> GenerateTimeTwoTree(List<int> data)
     {
       //arrange
-      var bt = new BinaryTree<int>();
+      var bt = new BinaryTree<Node<int>, int>();
       bt.Add(new Node<int>(data[0], new bool[] { }));
       bt.Add(new Node<int>(data[1], new bool[] { true }));
       bt.Add(new Node<int>(data[2], new bool[] { false }));
@@ -32,10 +32,10 @@ namespace DeltaTests.Derivatives.Objects
       return bt;
     }
 
-    public static BinaryTree<int> GenerateHeadsOnlyTree(List<int> data)
+    public static BinaryTree<Node<int>, int> GenerateHeadsOnlyTree(List<int> data)
     {
       //arrange
-      var bt = new BinaryTree<int>();
+      var bt = new BinaryTree<Node<int>, int>();
       bt.Add(new Node<int>(data[0], new bool[] { }));
       bt.Add(new Node<int>(data[1], new bool[] { true }));
       bt.Add(new Node<int>(data[2], new bool[] { true, true }));

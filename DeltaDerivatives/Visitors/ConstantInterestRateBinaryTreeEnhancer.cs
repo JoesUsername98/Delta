@@ -10,7 +10,7 @@ namespace DeltaDerivatives.Visitors
     {
       _constantInterestRate = constantInterestRate;
     }
-    public void Enhance(BinaryTree<State> subject)
+    public void Enhance(BinaryTree<Node<State>, State> subject)
     {
       foreach (var node in subject)
       {

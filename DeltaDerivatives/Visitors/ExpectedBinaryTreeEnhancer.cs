@@ -15,7 +15,7 @@ namespace DeltaDerivatives.Visitors
       _property = typeof(State).GetProperty(_propName, BindingFlags.FlattenHierarchy | BindingFlags.Instance |BindingFlags.Public );
       _expectedProperty = typeof(ExpectableState).GetProperty(_propName);
     }
-    public void Enhance(BinaryTree<State> subject)
+    public void Enhance(BinaryTree<Node<State>, State> subject)
     {
       foreach (var node in subject.Where(n => n.Heads != null && n.Tails != null)) 
       {

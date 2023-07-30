@@ -1,4 +1,5 @@
-﻿using DeltaDerivatives.Objects;
+﻿using DeltaDerivatives.Factory;
+using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Interfaces;
 using System;
 using System.Collections;
@@ -28,7 +29,88 @@ namespace DeltaClient.WPF.Adapters
             InitializeComponent();
         }
     }
-       public class DependableNode<T> : DependencyObject, INode<T> where T : IEquatable<T>
+    namespace DeltaDerivatives.Factory
+    {
+        public static partial class BinaryTreeFactory
+        {
+            public static BinaryTree<Node<State>, State> CreateTreeObservable(int time)
+            {
+                if (time < 0) throw new ArgumentException("time cannot be less than 0", "time");
+
+                var bt = new BinaryTree<Node<State>, State>(new Node<State>(new State(), new bool[] { }));
+                for (int currTime = 1; currTime <= time; currTime++)
+                {
+                    var inputParams = Combinations.GenerateParams(new bool[] { true, false }, currTime);
+                    foreach (IEnumerable<bool> path in Combinations.Parameters(inputParams))
+                    {
+                        bt.Add(new Node<State>(new State(), path.ToArray()));
+                    }
+                }
+                return bt;
+            }
+        }
+    }
+
+    public class ObservableBinaryTree<T> : IBinaryTree<DependableNode<T>, T> where T : IEquatable<T>
+    {
+        private INode<T> _root;
+        public double? ConstantUpFactor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public double? ConstantDownFactor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public double? ConstantInterestRate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public int Time => throw new NotImplementedException();
+
+        public int Count => throw new NotImplementedException();
+
+        public bool IsReadOnly => throw new NotImplementedException();
+
+        public void Add(DependableNode<T> item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Clear()
+        {
+            throw new NotImplementedException();
+        }
+
+        public object Clone()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Contains(DependableNode<T> item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CopyTo(DependableNode<T>[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public DependableNode<T> GetAt(bool[] path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerator<DependableNode<T>> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Remove(DependableNode<T> item)
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class DependableNode<T> : DependencyObject, INode<T> where T : IEquatable<T>
     {
         public INode<T> _node;
         public DependableNode(INode<T> node)

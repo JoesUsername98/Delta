@@ -8,7 +8,7 @@ namespace DeltaDerivatives.Visitors
     public DeltaHedgingBinaryTreeEnhancer()
     {
     }
-    public void Enhance(BinaryTree<State> subject)
+    public void Enhance(BinaryTree<Node<State>, State> subject)
     {
       foreach (var node in subject.Where(n => n.Heads != null && n.Tails != null))
       {
