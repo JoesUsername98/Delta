@@ -36,8 +36,6 @@ namespace DeltaClient.WPF.Controls
         protected override Size ArrangeOverride(Size finalSize)
         {
             //TODO use my binary tree depth function when imported
-            int totalDepth = Convert.ToInt16( Math.Ceiling( Math.Log2( Children.Count) ) );
-
             int childI = 1;
             foreach (FrameworkElement child in Children)
             {
@@ -47,9 +45,7 @@ namespace DeltaClient.WPF.Controls
                 double newPosX = (childDepth-1) * xElementSeparation;
                 double newPosY = (this.DesiredSize.Height + child.DesiredSize.Height) / 2 + ((childDepth - 2*downness) * yElementSeparation);
 
-                Point newPos = new Point(newPosX, newPosY);
-                   
-                child.Arrange(new Rect(newPos, child.DesiredSize));
+                child.Arrange(new Rect(new Point(newPosX, newPosY), child.DesiredSize));
 
                 childI++;
             }
