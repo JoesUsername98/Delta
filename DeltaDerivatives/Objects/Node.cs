@@ -1,29 +1,21 @@
 ﻿using DeltaDerivatives.Objects.Interfaces;
 using DeltaDerivatives.Objects.Iterators;
 using System.Collections;
-using System.Runtime.Serialization;
 
 namespace DeltaDerivatives.Objects
 {
-    [DataContract]
-  public class Node<T> : INode<T> where T : IEquatable<T>
+    public class Node<T> : INode<T> where T : IEquatable<T>
   {
     public Node(T data, bool[] path)
     {
       Data = data;
       Path = path;
     }
-    [DataMember]
     public T Data { get; set; }
-    [DataMember]
     public bool[] Path { get; private set; }
-    [DataMember]
     public int Time { get { return Path.Length; } }
-    [DataMember]
     public INode<T> Previous { get; set; }
-    [DataMember]
     public INode<T> Heads { get; set; }
-    [DataMember]
     public INode<T> Tails { get; set; }
     public INode<T> GetNext(bool isHeads)
     {
@@ -83,7 +75,7 @@ namespace DeltaDerivatives.Objects
     /// Returns the node with foresight. For Tree Traversal
     /// </summary>
     /// <returns></returns>
-    public IEnumerator<INode<T>> GetForesightEnumerator() => new NodeInOrderIterator<T>(this);
+    public IEnumerator<INode<T>> GetForesightEnumerator() => new NodeInOrderIterator<INode<T>, T>(this);
 
 
     public bool Equals(INode<T> other)

@@ -31,6 +31,7 @@ namespace DeltaDerivatives.Objects
         {
             yield return (N)enumerator.Current;
         }
+        //return _root.GetForesightEnumerator(); //todo figure out why I need the aboc cast
     }
     IEnumerator IEnumerable.GetEnumerator()
     {

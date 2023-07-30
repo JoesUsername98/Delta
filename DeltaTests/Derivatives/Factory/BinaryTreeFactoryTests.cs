@@ -18,8 +18,8 @@ namespace DeltaTests.Derivatives.Factory
   {
     [Theory]
     [InlineData(3)]
-    //[InlineData(10)]
-    //[InlineData(2)]
+    [InlineData(10)]
+    [InlineData(2)]
     public void GenerateEmptyTree(int N)
     {
       //act and arrange 

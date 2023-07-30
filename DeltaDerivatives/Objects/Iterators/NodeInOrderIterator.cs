@@ -10,8 +10,8 @@ namespace DeltaDerivatives.Objects.Iterators
     /// in order traversal
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class NodeInOrderIterator<T> : IEnumerator<INode<T>>, IEnumerator, IDisposable where T : IEquatable<T>
-  {
+    public class NodeInOrderIterator<N,T> : IEnumerator<N>, IEnumerator, IDisposable where T : IEquatable<T> where N : INode<T>
+    {
     /// <summary>
     /// 1  current is leaf node.
     /// 0  current is yet to be initialised.
@@ -19,17 +19,18 @@ namespace DeltaDerivatives.Objects.Iterators
     /// </summary>
     private NodeIteratorState state; 
 
-    private INode<T> _current;
+    private N _current;
 
-    public INode<T> _thisNode;
+    public N _thisNode;
 
-    private Stack<INode<T>> nodeStack;
+    private Stack<N> nodeStack;
 
-    private INode<T> _nextNode;
+    private N _nextNode;
 
-    INode<T> IEnumerator<INode<T>>.Current 
+    N IEnumerator<N>.Current 
+    {
+      get 
       {
-      get {
         return _current;
       }
     }
@@ -40,7 +41,7 @@ namespace DeltaDerivatives.Objects.Iterators
       }
     }
 
-    public NodeInOrderIterator(INode<T> thisNode)
+    public NodeInOrderIterator(N thisNode)
     {
       _thisNode = thisNode;
       this.state = NodeIteratorState.CurrentIsNotInitialized;
@@ -60,13 +61,13 @@ namespace DeltaDerivatives.Objects.Iterators
           return false;
         }
         state = NodeIteratorState.CurrentIsBranch; // current is branch node
-        _nextNode = _nextNode.Heads;
+        _nextNode = (N)_nextNode.Heads;
       }
       else
       {
         //initiallize iterator
         state = NodeIteratorState.CurrentIsBranch; // current is root note
-        nodeStack = new Stack<INode<T>>();
+        nodeStack = new Stack<N>();
         if (_thisNode is null) return false;
         _nextNode = _thisNode;
       }
@@ -75,7 +76,7 @@ namespace DeltaDerivatives.Objects.Iterators
         if (_nextNode != null)
         {
           nodeStack.Push(_nextNode);
-          _nextNode = _nextNode.Tails;
+          _nextNode = (N)_nextNode.Tails;
           continue;
         }
         _nextNode = nodeStack.Pop();
