@@ -8,7 +8,7 @@ namespace DeltaDerivatives.Objects
   public class BinaryTree<T> : IBinaryTree<T> where T : IEquatable<T>
   {
     [DataMember]
-    private Node<T> _root;
+    private INode<T> _root;
     [DataMember]
     public int Count { get; private set; }
     [DataMember]
@@ -25,13 +25,13 @@ namespace DeltaDerivatives.Objects
       _root = null;
       Count = 0;
     }
-    public BinaryTree(Node<T> root)
+    public BinaryTree(INode<T> root)
     {
       _root = root;
       Count = this.Select(x => x).Count();
     }
     #region IEnumerable
-    public IEnumerator<Node<T>> GetEnumerator()
+    public IEnumerator<INode<T>> GetEnumerator()
     {
       return _root.GetForesightEnumerator();
     }
@@ -42,7 +42,7 @@ namespace DeltaDerivatives.Objects
     }
     #endregion
     #region ICollection
-    public void Add(Node<T> newItem)
+    public void Add(INode<T> newItem)
     {
       if (newItem.Path.Length == 0)
       {
@@ -69,7 +69,7 @@ namespace DeltaDerivatives.Objects
       Time = newItem.Path.Length > Time ? newItem.Path.Length : Time;
       Count++;
     }
-    public bool Contains(Node<T> item)
+    public bool Contains(INode<T> item)
     {
       var pathStack = new Stack<bool>(item.Path.Reverse());
       var currNode = _root;
@@ -85,7 +85,7 @@ namespace DeltaDerivatives.Objects
 
       return currNode.Equals(item);
     }
-    public void CopyTo(Node<T>[] array, int arrayIndex)
+    public void CopyTo(INode<T>[] array, int arrayIndex)
     {
       if (array == null)
         throw new ArgumentNullException("array");
@@ -100,11 +100,11 @@ namespace DeltaDerivatives.Objects
         throw new ArgumentException("Not enough elements after arrayIndex in the destination array.");
       //array = array.Skip(arrayIndex - 1).ToArray();
     }
-    bool ICollection<Node<T>>.Remove(Node<T> item)
+    bool ICollection<INode<T>>.Remove(INode<T> item)
     {
       return this.Remove(item);
     }
-    public bool Remove(Node<T> node)
+    public bool Remove(INode<T> node)
     {
       int nodesInSubtree = node.CountSubsequentNodes(node);
       bool doesContain = Contains(node);
@@ -136,10 +136,10 @@ namespace DeltaDerivatives.Objects
     }
     #endregion
     #region ICloneable
-    public object Clone() => new BinaryTree<T>((Node<T>)_root.Clone()) { Count = this.Count, Time = this.Time };
+    public object Clone() => new BinaryTree<T>((INode<T>)_root.Clone()) { Count = this.Count, Time = this.Time };
     #endregion
     #region IBinaryTree
-    public Node<T> GetAt(bool[] path)
+    public INode<T> GetAt(bool[] path)
     {
       var pathStack = new Stack<bool>(path.Reverse());
 

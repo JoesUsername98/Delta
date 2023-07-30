@@ -1,8 +1,9 @@
-﻿using System.Collections;
+﻿using DeltaDerivatives.Objects.Interfaces;
+using System.Collections;
 
 namespace DeltaDerivatives.Objects.Iterators
 {
-    public class NodeReverseOrderIterator<T> : IEnumerator<Node<T>>, IEnumerator, IDisposable  where T : IEquatable<T>
+    public class NodeReverseOrderIterator<T> : IEnumerator<INode<T>>, IEnumerator, IDisposable  where T : IEquatable<T>
   {
     /// <summary>
     /// 1  current is leaf node.
@@ -11,15 +12,13 @@ namespace DeltaDerivatives.Objects.Iterators
     /// </summary>
     private NodeIteratorState state;
 
-    private Node<T> _current;
+    private INode<T> _current;
 
-    public Node<T> _thisNode;
+    public INode<T> _thisNode;
 
-    private Stack<Node<T>> nodeStack;
+    private INode<T> _nextNode;
 
-    private Node<T> _nextNode;
-
-    Node<T> IEnumerator<Node<T>>.Current {
+    INode<T> IEnumerator<INode<T>>.Current {
       get {
         return _current;
       }
@@ -31,7 +30,7 @@ namespace DeltaDerivatives.Objects.Iterators
       }
     }
 
-    public NodeReverseOrderIterator(Node<T> thisNode)
+    public NodeReverseOrderIterator(INode<T> thisNode)
     {
       _thisNode = thisNode;
       this.state = NodeIteratorState.CurrentIsNotInitialized;

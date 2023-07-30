@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using DeltaDerivatives.Objects.Interfaces;
+using System.Collections;
 
 namespace DeltaDerivatives.Objects.Iterators
 {
@@ -9,7 +10,7 @@ namespace DeltaDerivatives.Objects.Iterators
     /// in order traversal
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class NodeInOrderIterator<T> : IEnumerator<Node<T>>, IEnumerator, IDisposable where T : IEquatable<T>
+    internal class NodeInOrderIterator<T> : IEnumerator<INode<T>>, IEnumerator, IDisposable where T : IEquatable<T>
   {
     /// <summary>
     /// 1  current is leaf node.
@@ -18,15 +19,15 @@ namespace DeltaDerivatives.Objects.Iterators
     /// </summary>
     private NodeIteratorState state; 
 
-    private Node<T> _current;
+    private INode<T> _current;
 
-    public Node<T> _thisNode;
+    public INode<T> _thisNode;
 
-    private Stack<Node<T>> nodeStack;
+    private Stack<INode<T>> nodeStack;
 
-    private Node<T> _nextNode;
+    private INode<T> _nextNode;
 
-    Node<T> IEnumerator<Node<T>>.Current 
+    INode<T> IEnumerator<INode<T>>.Current 
       {
       get {
         return _current;
@@ -39,7 +40,7 @@ namespace DeltaDerivatives.Objects.Iterators
       }
     }
 
-    public NodeInOrderIterator(Node<T> thisNode)
+    public NodeInOrderIterator(INode<T> thisNode)
     {
       _thisNode = thisNode;
       this.state = NodeIteratorState.CurrentIsNotInitialized;
@@ -65,7 +66,7 @@ namespace DeltaDerivatives.Objects.Iterators
       {
         //initiallize iterator
         state = NodeIteratorState.CurrentIsBranch; // current is root note
-        nodeStack = new Stack<Node<T>>();
+        nodeStack = new Stack<INode<T>>();
         if (_thisNode is null) return false;
         _nextNode = _thisNode;
       }

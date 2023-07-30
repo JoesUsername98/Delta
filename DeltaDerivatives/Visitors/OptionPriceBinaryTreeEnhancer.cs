@@ -7,7 +7,7 @@ namespace DeltaDerivatives.Visitors
     public class OptionPriceBinaryTreeEnhancer : IBinaryTreeEnhancer
   {
     private readonly OptionExerciseType _optionType; 
-    private readonly Func<Node<State>, double> _optionPricingStrategy;
+    private readonly Func<INode<State>, double> _optionPricingStrategy;
 
     public OptionPriceBinaryTreeEnhancer(OptionExerciseType optionType)
     {
@@ -33,19 +33,17 @@ namespace DeltaDerivatives.Visitors
       }
     }
 
-    private Func<Node<State>, double> GetOptionPricingStrategy(OptionExerciseType type)
+    private Func<INode<State>, double> GetOptionPricingStrategy(OptionExerciseType type)
     {
       switch (type)
       {
         case OptionExerciseType.European:
           return (x) => Math.Max(x.Data.PayOff, 0);
-          break;
         case OptionExerciseType.American:
           return (x) => Math.Max(x.Data.PayOff, (x.Heads is null || x.Tails is null) ? 0.0 :
                                     x.Data.DiscountRate *
                                   (x.Heads.Data.OptionValue * x.Data.ProbabilityHeads +
                                    x.Tails.Data.OptionValue * x.Data.ProbabilityTails));
-          break;
         default:
           throw new ArgumentException($"No option pricing strategy for type {type}", "type");
       }

@@ -7,9 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeltaClient.Core", "DeltaCl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeltaClient.WPF", "DeltaClient.WPF\DeltaClient.WPF.csproj", "{16D5DB7D-4FC3-444E-9784-0306A942C7F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaTests", "DeltaTests\DeltaTests.csproj", "{914B6423-CCB2-41F7-94E2-483C342854B6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeltaTests", "DeltaTests\DeltaTests.csproj", "{914B6423-CCB2-41F7-94E2-483C342854B6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaDerivatives", "DeltaDerivatives\DeltaDerivatives.csproj", "{A5E71D76-4C8C-4F36-BA8F-C5D10EA9F5AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeltaDerivatives", "DeltaDerivatives\DeltaDerivatives.csproj", "{A5E71D76-4C8C-4F36-BA8F-C5D10EA9F5AA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeltaClient.WPF.Adapters", "DeltaClient.WPF.Adapters\DeltaClient.WPF.Adapters.csproj", "{AB10AAB0-38B9-40DA-BE80-FAB15A0ED9FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{A5E71D76-4C8C-4F36-BA8F-C5D10EA9F5AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5E71D76-4C8C-4F36-BA8F-C5D10EA9F5AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5E71D76-4C8C-4F36-BA8F-C5D10EA9F5AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB10AAB0-38B9-40DA-BE80-FAB15A0ED9FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB10AAB0-38B9-40DA-BE80-FAB15A0ED9FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB10AAB0-38B9-40DA-BE80-FAB15A0ED9FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB10AAB0-38B9-40DA-BE80-FAB15A0ED9FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

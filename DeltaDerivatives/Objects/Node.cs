@@ -20,16 +20,16 @@ namespace DeltaDerivatives.Objects
     [DataMember]
     public int Time { get { return Path.Length; } }
     [DataMember]
-    public Node<T> Previous { get; set; }
+    public INode<T> Previous { get; set; }
     [DataMember]
-    public Node<T> Heads { get; set; }
+    public INode<T> Heads { get; set; }
     [DataMember]
-    public Node<T> Tails { get; set; }
-    public Node<T> GetNext(bool isHeads)
+    public INode<T> Tails { get; set; }
+    public INode<T> GetNext(bool isHeads)
     {
       return isHeads ? Heads : Tails;
     }
-    public void AddNext(Node<T> newNode, bool isNextTossIsHeads)
+    public void AddNext(INode<T> newNode, bool isNextTossIsHeads)
     {
       newNode.Previous = this;
 
@@ -43,14 +43,14 @@ namespace DeltaDerivatives.Objects
       if (Tails != null) throw new ArgumentException("Cannot overwrite an existing tails node");
       Tails = newNode;
     }
-    public int CountSubsequentNodes(Node<T> node)
+    public int CountSubsequentNodes(INode<T> node)
     {
       if (node is null) return 0;
 
       var subTree = new BinaryTree<T>(node);
       return subTree.Count;
     }
-    public int CountTime(Node<T> node)
+    public int CountTime(INode<T> node)
     {
       if (node == null) return -1;
 
@@ -83,7 +83,7 @@ namespace DeltaDerivatives.Objects
     /// Returns the node with foresight. For Tree Traversal
     /// </summary>
     /// <returns></returns>
-    public IEnumerator<Node<T>> GetForesightEnumerator() => new NodeInOrderIterator<T>(this);
+    public IEnumerator<INode<T>> GetForesightEnumerator() => new NodeInOrderIterator<T>(this);
 
 
     public bool Equals(INode<T> other)

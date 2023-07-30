@@ -1,7 +1,9 @@
-﻿namespace DeltaDerivatives.Objects
+﻿using DeltaDerivatives.Objects.Interfaces;
+
+namespace DeltaDerivatives.Objects
 {
     public class State : ExpectableState, IEquatable<State>
-  {
+  { 
     public State()
     {
       Expected = new ExpectableState();
@@ -32,7 +34,7 @@
     /// <summary>
     /// Get the discount rate of this node down to N = 0 (root)
     /// </summary>
-    public static double GetAbsoluteDiscountRate(Node<State> node) =>
+    public static double GetAbsoluteDiscountRate(INode<State> node) =>
       node.
       Skip(1). // this nodes discount rate refers to the rate to get to the next node. skip.
       Select(nn => nn.Data.DiscountRate).
@@ -42,7 +44,7 @@
     /// <summary>
     /// Get the absolute probability of this outcome
     /// </summary>
-    public static double GetAbsoluteProb(Node<State> node)
+    public static double GetAbsoluteProb(INode<State> node)
     {
       var pathStack = new Stack<bool>(node.Path);
       var currNode = node;

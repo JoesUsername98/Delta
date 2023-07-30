@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DeltaDerivatives.Factory;
 using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Enums;
+using DeltaDerivatives.Objects.Interfaces;
 using DeltaDerivatives.Visitors;
 using Xunit;
 
@@ -36,12 +37,12 @@ namespace DeltaTests.Derivatives.OptionPricing
 
         //assert
         //prevent inefficient markets => prevent insider trading
-        Assert.All<Node<State>>(tree, n =>
+        Assert.All<INode<State>>(tree, n =>
           Assert.True(n.Data.OptimalExerciseTime <= n.Time ||
             n.Data.OptimalExerciseTime == int.MaxValue));
 
         //what a optimal pay off is
-        Assert.All<Node<State>>(tree.Where( n => n.Data.OptionValue == n.Data.PayOff), n =>
+        Assert.All<INode<State>>(tree.Where( n => n.Data.OptionValue == n.Data.PayOff), n =>
           Assert.True(n.Time >= n.Data.OptimalExerciseTime));
       }
 
@@ -76,12 +77,12 @@ namespace DeltaTests.Derivatives.OptionPricing
         Assert.Equal(int.MaxValue, tree.GetAt(new bool[] { true,true }).Data.OptimalExerciseTime);
 
         //prevent inefficient markets => prevent insider trading 
-        Assert.All<Node<State>>(tree, n => 
+        Assert.All<INode<State>>(tree, n => 
           Assert.True(n.Data.OptimalExerciseTime <= n.Time || 
             n.Data.OptimalExerciseTime == int.MaxValue));
 
         //what a optimal pay off is
-        Assert.All<Node<State>>(tree.Where(n => n.Data.OptionValue == n.Data.PayOff), n =>
+        Assert.All<INode<State>>(tree.Where(n => n.Data.OptionValue == n.Data.PayOff), n =>
          Assert.True(n.Time >= n.Data.OptimalExerciseTime));
       }
     }

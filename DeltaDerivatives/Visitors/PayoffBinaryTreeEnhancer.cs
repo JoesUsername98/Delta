@@ -6,7 +6,7 @@ namespace DeltaDerivatives.Visitors
 {
     public class PayoffBinaryTreeEnhancer : IBinaryTreeEnhancer
   {
-    private readonly Func<Node<State>, double, double> _payoffMethod;
+    private readonly Func<INode<State>, double, double> _payoffMethod;
     private readonly double _strikePrice;
 
     public PayoffBinaryTreeEnhancer(OptionPayoffType optionType, double strikePrice)
@@ -23,16 +23,14 @@ namespace DeltaDerivatives.Visitors
       }
     }
 
-    private Func<Node<State>, double, double> GetPayoffStrategy(OptionPayoffType type)
+    private Func<INode<State>, double, double> GetPayoffStrategy(OptionPayoffType type)
     {
       switch (type)
       {
         case OptionPayoffType.Call:
           return (x, K) => x.Data.UnderlyingValue - K;
-          break;
         case OptionPayoffType.Put:
           return (x, K) => K - x.Data.UnderlyingValue;
-          break;
         default:
           throw new ArgumentException($"No payoff strategy for type {type}", "type");
       }

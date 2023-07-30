@@ -2,7 +2,7 @@
 
 namespace DeltaDerivatives.Factory
 {
-    public static class BinaryTreeFactory
+  public static class BinaryTreeFactory
   {
     public static BinaryTree<State> CreateTree(int time)
     {

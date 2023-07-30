@@ -9,30 +9,48 @@
                   xmlns:local="clr-namespace:DeltaClient.WPF.Views"
                   mc:Ignorable="d" Background='Aquamarine' 
                   Height="400" Width="800">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition></ColumnDefinition>
+      <ColumnDefinition></ColumnDefinition>
+      <ColumnDefinition></ColumnDefinition>
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+      <RowDefinition></RowDefinition>
+    </Grid.RowDefinitions>
 
-  <controls:BinaryTreeControl>
-    <Ellipse Width="50"
-             Height="50"
-             Fill="Blue" />
-    <Ellipse Width="50"
-             Height="50"
-             Fill="Green" />
-    <Ellipse Width="50"
-             Height="50"
-             Fill="Yellow" />
-    <Ellipse Width="50"
-             Height="50"
-             Fill="Red"/>
-    <Ellipse Width="50"
-             Height="50"
-             Fill="DarkOrange" />
-    <Ellipse Width="50"
-             Height="50"
-             Fill="SaddleBrown"/>
-    <Ellipse Width="50"
-             Height="50"
-             Fill="Wheat"/>
-    
-  </controls:BinaryTreeControl>
-  
+    <controls:BinaryTreeControl>
+      <Grid.Column>0</Grid.Column>
+      <Ellipse Width="50"
+               Height="50"
+               Fill="Blue" />
+      <Ellipse Width="50"
+               Height="50"
+               Fill="Green" />
+      <Ellipse Width="50"
+               Height="50"
+               Fill="Yellow" />
+      <Ellipse Width="50"
+               Height="50"
+               Fill="Red" />
+      <Ellipse Width="50"
+               Height="50"
+               Fill="DarkOrange" />
+      <Ellipse Width="50"
+               Height="50"
+               Fill="SaddleBrown" />
+      <Ellipse Width="50"
+               Height="50"
+               Fill="Wheat" />
+
+    </controls:BinaryTreeControl>
+
+    <controls:BinaryTreeControl>
+      <Grid.Column>1</Grid.Column>
+      <ItemsControl ItemsSource="{Binding Tree}">
+      </ItemsControl>
+
+    </controls:BinaryTreeControl>
+  </Grid>
+
 </views:MvxWpfView>
