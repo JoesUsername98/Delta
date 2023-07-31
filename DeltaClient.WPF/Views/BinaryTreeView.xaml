@@ -44,20 +44,20 @@
                Fill="Wheat" />
 
     </controls:BinaryTreeControl>
+    <ItemsControl ItemsSource="{Binding Tree}"
+                  Grid.Column='1'>
+      <ItemsPanelTemplate>
+        <controls:BinaryTreeControl />
+      </ItemsPanelTemplate>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <Ellipse Width="20"
+                   Height="20"
+                   Fill="Wheat" />
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
 
-    <controls:BinaryTreeControl>
-      <Grid.Column>1</Grid.Column>
-      <ItemsControl ItemsSource="{Binding ItemSource}">
-        <ItemsControl.ItemTemplate>
-          <ItemContainerTemplate>
-            <Ellipse Width="50"
-                     Height="50"
-                     Fill="Wheat" />
-          </ItemContainerTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-
-    </controls:BinaryTreeControl>
   </Grid>
 
 </views:MvxWpfView>
