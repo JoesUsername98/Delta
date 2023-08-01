@@ -16,4 +16,17 @@
     <ProjectReference Include="..\DeltaClient.Core\DeltaClient.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Controls\UINode.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Controls\UINode.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
 </Project>

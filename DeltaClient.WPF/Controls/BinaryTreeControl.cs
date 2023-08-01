@@ -1,10 +1,7 @@
 ﻿using DeltaClient.Core.ViewModels;
-using DeltaClient.WPF.Adapters;
-using DeltaDerivatives.Factory;
 using DeltaDerivatives.Objects;
-using MvvmCross.Platforms.Wpf.Views;
+using DeltaDerivatives.Objects.Interfaces;
 using System;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,7 +11,6 @@ namespace DeltaClient.WPF.Controls
     public class BinaryTreeControl : Panel
     {
         public readonly BinaryTreeViewModel _treeVM;
-
         public BinaryTreeControl()
         {
             _treeVM = new BinaryTreeViewModel();
@@ -26,11 +22,13 @@ namespace DeltaClient.WPF.Controls
         protected override Size MeasureOverride(Size availableSize)
         {
             //TODO use my binary tree depth function when imported
-            uint totalDepth = Convert.ToUInt16( Math.Ceiling( Math.Log2( Children.Count ) ) );
+            //int totalDepth = _tree.Time;
+            int totalDepth = Children.Count == 0 ? 0 : Convert.ToUInt16(Math.Ceiling(Math.Log2(Children.Count)));
 
             double height = totalDepth * yElementSeparation * 2 ;
             double width = totalDepth * xElementSeparation;
 
+            //UINode<State> child
             foreach (FrameworkElement child in Children)
             {
                 child.Measure(availableSize);
@@ -44,15 +42,20 @@ namespace DeltaClient.WPF.Controls
         {
             //TODO use my binary tree depth function when imported
             int childI = 1;
-            foreach (FrameworkElement child in Children)
-            {
-                string binary = Convert.ToString(childI, 2);
-                int childDepth = binary.Length - binary.IndexOf('1'); 
-                int downness = binary.Count(b => b == '1');
-                double newPosX = (childDepth-1) * xElementSeparation;
-                double newPosY = (this.DesiredSize.Height + child.DesiredSize.Height) / 2 + ((childDepth - 2*downness) * yElementSeparation);
 
-                child.Arrange(new Rect(new Point(newPosX, newPosY), child.DesiredSize));
+            //UINode<State> child
+            foreach (var child in Children)
+            {
+                var nodeChild = (INode<State>)child;
+                var UIChild = (FrameworkElement)child;
+                string binary = Convert.ToString(childI, 2);
+                int childDepth = nodeChild.Time; 
+                int downness = nodeChild.Path.Count(t => t == false);
+                double newPosX = (childDepth-1) * xElementSeparation;
+                double newPosY = (this.DesiredSize.Height + UIChild.DesiredSize.Height) / 2 + ((childDepth - 2*downness) * yElementSeparation);
+
+                //UIChild.Arrange(new Rect(new Point(newPosX, newPosY), new Size() { UIChild.DesiredSize }));
+                UIChild.Arrange(new Rect(new Point(200, 200), new Size() { Height = 50, Width = 50 }));
 
                 childI++;
             }

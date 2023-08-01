@@ -9,6 +9,7 @@
                   xmlns:local="clr-namespace:DeltaClient.WPF.Views"
                   mc:Ignorable="d" Background='Aquamarine' 
                   Height="400" Width="800">
+
   <Grid>
     <Grid.ColumnDefinitions>
       <ColumnDefinition></ColumnDefinition>
@@ -19,41 +20,19 @@
       <RowDefinition></RowDefinition>
     </Grid.RowDefinitions>
 
-    <controls:BinaryTreeControl>
-      <Grid.Column>0</Grid.Column>
-      <Ellipse Width="50"
-               Height="50"
-               Fill="Blue" />
-      <Ellipse Width="50"
-               Height="50"
-               Fill="Green" />
-      <Ellipse Width="50"
-               Height="50"
-               Fill="Yellow" />
-      <Ellipse Width="50"
-               Height="50"
-               Fill="Red" />
-      <Ellipse Width="50"
-               Height="50"
-               Fill="DarkOrange" />
-      <Ellipse Width="50"
-               Height="50"
-               Fill="SaddleBrown" />
-      <Ellipse Width="50"
-               Height="50"
-               Fill="Wheat" />
+    <controls:UINode Grid.Column='0' Height='100' Width='100'/>
 
-    </controls:BinaryTreeControl>
-    <ItemsControl ItemsSource="{Binding Tree}"
+    <ItemsControl ItemsSource="{Binding MyBinaryTree}"
                   Grid.Column='1'>
-      <ItemsPanelTemplate>
-        <controls:BinaryTreeControl />
-      </ItemsPanelTemplate>
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <controls:BinaryTreeControl/>
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate>
-          <Ellipse Width="20"
-                   Height="20"
-                   Fill="Wheat" />
+          <controls:UINode Width='50'
+                           Height='50' />
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>

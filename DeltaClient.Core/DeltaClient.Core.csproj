@@ -23,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DeltaClient.WPF.Adapters\DeltaClient.WPF.Adapters.csproj" />
     <ProjectReference Include="..\DeltaDerivatives\DeltaDerivatives.csproj" />
   </ItemGroup>
 
