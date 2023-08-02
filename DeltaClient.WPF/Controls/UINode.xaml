@@ -9,15 +9,15 @@
              mc:Ignorable='d'>
 
 
-  <Canvas MinHeight='30'
-          MinWidth='30'>
+  <Canvas MinHeight='{Binding Diameter}'
+          MinWidth='{Binding Diameter}'>
     <Ellipse HorizontalAlignment='Center'
              VerticalAlignment='Center'
-             Fill='Magenta'
+             Fill='{Binding Fill ,Mode=OneTime}'
              Stroke='Orange'
-             MinHeight='30'
-             MinWidth='30'/>
-    <TextBlock Text="Binding Showtext add curly braces"
+             MinHeight='{Binding Diameter}'
+             MinWidth='{Binding Diameter}'/>
+    <TextBlock Text='{Binding Text}'
                HorizontalAlignment='Center'
                VerticalAlignment='Bottom'
                FontSize='10'/>

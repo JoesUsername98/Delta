@@ -21,6 +21,7 @@
     </Grid.RowDefinitions>
 
     <ItemsControl ItemsSource="{Binding MyBinaryTree}"
+                  VerticalAlignment='Stretch'
                   Margin='30'
                   Grid.Column='0'>
       <ItemsControl.ItemsPanel>
@@ -30,7 +31,7 @@
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate>
-          <controls:UINode Fill='Black' MinWidth='30' MinHeight='30' />
+          <controls:UINode Fill='Chocolate' Diameter='30' Text=''/>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>

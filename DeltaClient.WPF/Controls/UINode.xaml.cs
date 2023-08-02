@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+﻿using System.Windows.Media;
 using System.Windows.Controls;
 
 namespace DeltaClient.WPF.Controls
@@ -8,6 +8,7 @@ namespace DeltaClient.WPF.Controls
         public UINode() 
         {
             InitializeComponent();
+            this.DataContext = this;
         }
 
         private int _diameter = 50;
@@ -17,11 +18,18 @@ namespace DeltaClient.WPF.Controls
             set { _diameter = value; }
         }
 
-        private Color _fill = Color.Wheat;
-        public Color Fill
+        private Brush _fill = Brushes.Chocolate;
+        public Brush Fill
         {
             get { return _fill; }
             set { _fill = value; }
+        }
+
+        private string _text = "No binding";
+        public string Text
+        {
+            get { return _text; }
+            set { _text = value; }
         }
     }
 }

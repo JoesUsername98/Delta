@@ -41,7 +41,7 @@ namespace DeltaClient.WPF.Controls
             foreach (ContentPresenter child in Children)
             {
                 var nodeChild = child.Content as INode<State>;
-                var UIChild = (FrameworkElement)child;
+                var UIChild =   child as FrameworkElement;
                 int childDepth = nodeChild.Time;
                 int downness = nodeChild.Path.Count(t => t == false);
                 double newPosX = (childDepth ) * xElementSeparation;
