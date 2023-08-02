@@ -29,12 +29,13 @@ namespace DeltaClient.WPF.Controls
             double width = totalDepth * xElementSeparation;
 
             //UINode<State> child
-            foreach (FrameworkElement child in Children)
+            foreach (ContentPresenter child in Children)
             {
                 child.Measure(availableSize);
-                height += child.DesiredSize.Height;
-                width += child.DesiredSize.Width;
+                height += Math.Max(child.DesiredSize.Height, child.MinHeight);
+                width += Math.Max(child.DesiredSize.Width, child.MinWidth); //testing
             }
+
             return new Size(width, height);
         }
 
@@ -44,22 +45,21 @@ namespace DeltaClient.WPF.Controls
             int childI = 1;
 
             //UINode<State> child
-            foreach (var child in Children)
+            foreach (ContentPresenter child in Children)
             {
-                var nodeChild = (INode<State>)child;
+                var nodeChild = child.Content as INode<State>;
                 var UIChild = (FrameworkElement)child;
                 string binary = Convert.ToString(childI, 2);
-                int childDepth = nodeChild.Time; 
+                int childDepth = nodeChild.Time;
                 int downness = nodeChild.Path.Count(t => t == false);
-                double newPosX = (childDepth-1) * xElementSeparation;
-                double newPosY = (this.DesiredSize.Height + UIChild.DesiredSize.Height) / 2 + ((childDepth - 2*downness) * yElementSeparation);
+                double newPosX = (childDepth - 1) * xElementSeparation;
+                double newPosY = (this.DesiredSize.Height + UIChild.DesiredSize.Height) / 2 + ((childDepth - 2 * downness) * yElementSeparation);
 
-                //UIChild.Arrange(new Rect(new Point(newPosX, newPosY), new Size() { UIChild.DesiredSize }));
-                UIChild.Arrange(new Rect(new Point(200, 200), new Size() { Height = 50, Width = 50 }));
+                UIChild.Arrange(new Rect(new Point(newPosX, newPosY), new Size() { Height = 50, Width = 50 }));
+                //UIChild.Arrange(new Rect(new Point(200, 200), new Size() { Height = 50, Width = 50 }));
 
                 childI++;
             }
-
             return finalSize;
         }
 

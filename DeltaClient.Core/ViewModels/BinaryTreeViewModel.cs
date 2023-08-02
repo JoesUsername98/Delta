@@ -34,7 +34,7 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _MyBinaryTree = value;
-                //notify?
+                RaisePropertyChanged(() => MyBinaryTree);
             }
         }
     }
