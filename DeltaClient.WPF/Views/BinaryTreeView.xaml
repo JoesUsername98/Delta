@@ -7,7 +7,7 @@
                   xmlns:views="clr-namespace:MvvmCross.Platforms.Wpf.Views;assembly=MvvmCross.Platforms.Wpf"
                   xmlns:controls="clr-namespace:DeltaClient.WPF.Controls"
                   mc:Ignorable="d" Background='Aquamarine' 
-                  Height="400" Width="800"
+                  Height="400" Width="1200"
                   x:Class="DeltaClient.WPF.Views.BinaryTreeView">
 
   <Grid>
@@ -21,31 +21,19 @@
     </Grid.RowDefinitions>
 
     <ItemsControl ItemsSource="{Binding MyBinaryTree}"
-                  HorizontalAlignment='Stretch'
-                  VerticalAlignment='Stretch'>
+                  Margin='30'
+                  Grid.Column='0'>
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
-          <controls:BinaryTreeControl/>
+          <controls:BinaryTreeControl HorizontalAlignment='Stretch'   VerticalAlignment='Stretch' />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate>
-          <Canvas Background='White'
-                  Height='Auto'
-                  Width='Auto'>
-            <Ellipse HorizontalAlignment='Center'
-                     VerticalAlignment='Center'
-                     Width='30'
-                     Height='30'
-                     Fill='Magenta'
-                     Stroke='Orange' />
-            <TextBlock Text="Binding Showtext add curly braces"
-                       HorizontalAlignment='Center'
-                       VerticalAlignment='Center' />
-          </Canvas>
+          <controls:UINode Fill='Black' MinWidth='30' MinHeight='30' />
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
-
+    
   </Grid>
 </views:MvxWpfView>

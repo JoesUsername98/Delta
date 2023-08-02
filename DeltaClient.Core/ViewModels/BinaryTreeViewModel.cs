@@ -18,7 +18,7 @@ namespace DeltaClient.Core.ViewModels
 
         public override void Prepare()
         {
-            _tree = BinaryTreeFactory.CreateTree(3);//TODO Make dynamic size
+            _tree = BinaryTreeFactory.CreateTree(2);//TODO Make dynamic size
             _MyBinaryTree = new ObservableCollection<INode<State>>(_tree);
             base.Prepare();
         }

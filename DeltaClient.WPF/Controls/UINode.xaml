@@ -4,23 +4,22 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:DeltaClient.WPF.Controls"
-             d:DesignHeight="50"
-             d:DesignWidth="50"
-             d:MinHeight='50'
-             d:MinWidth='50'
-             mc:Ignorable="d">
+             xmlns:viewmodels='clr-namespace:DeltaClient.Core.ViewModels;assembly=DeltaClient.Core'
+             x:Name='root'
+             mc:Ignorable='d'>
 
-  <Canvas Background='White'
-          Height='Auto'
-          Width='Auto'>
+
+  <Canvas MinHeight='30'
+          MinWidth='30'>
     <Ellipse HorizontalAlignment='Center'
              VerticalAlignment='Center'
-             Width='30'
-             Height='30'
              Fill='Magenta'
-             Stroke='Orange' />
+             Stroke='Orange'
+             MinHeight='30'
+             MinWidth='30'/>
     <TextBlock Text="Binding Showtext add curly braces"
                HorizontalAlignment='Center'
-               VerticalAlignment='Center' />
+               VerticalAlignment='Bottom'
+               FontSize='10'/>
   </Canvas>
 </UserControl>

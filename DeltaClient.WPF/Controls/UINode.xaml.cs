@@ -5,10 +5,13 @@ namespace DeltaClient.WPF.Controls
 {
     public partial class UINode : UserControl
     {
-        public UINode() { }
+        public UINode() 
+        {
+            InitializeComponent();
+        }
 
-        private double _diameter = 50;
-        public double Diameter
+        private int _diameter = 50;
+        public int Diameter
         {
             get { return _diameter; }
             set { _diameter = value; }
@@ -20,6 +23,5 @@ namespace DeltaClient.WPF.Controls
             get { return _fill; }
             set { _fill = value; }
         }
-
     }
 }
