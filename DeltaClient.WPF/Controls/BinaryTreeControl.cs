@@ -21,17 +21,17 @@ namespace DeltaClient.WPF.Controls
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            int totalDepth = Children.Count == 0 ? 0 : Convert.ToUInt16(Math.Ceiling(Math.Log2(Children.Count)));
+            int totalDepth = 0;
 
-            double height = totalDepth * yElementSeparation * 2 ;
-            double width = totalDepth * xElementSeparation;
-
-            foreach (FrameworkElement child in Children)
+            foreach (ContentPresenter child in Children)
             {
+                var nodeChild = child.Content as INode<State>;
+                totalDepth = Math.Max(nodeChild.Time, totalDepth);
                 child.Measure(availableSize);
-                height += child.DesiredSize.Height;
-                width += child.DesiredSize.Width;
             }
+
+            double height = totalDepth * yElementSeparation;
+            double width = totalDepth * xElementSeparation;
 
             return new Size(width, height);
         }
@@ -45,7 +45,8 @@ namespace DeltaClient.WPF.Controls
                 int childDepth = nodeChild.Time;
                 int downness = nodeChild.Path.Count(t => t == false);
                 double newPosX = (childDepth ) * xElementSeparation;
-                double newPosY = (this.DesiredSize.Height + UIChild.DesiredSize.Height) / 2 + ((childDepth - 2 * downness) * yElementSeparation);
+                //double newPosY = (this.DesiredSize.Height + UIChild.DesiredSize.Height) / 2 + ((childDepth - 2 * downness) * yElementSeparation);
+                double newPosY = finalSize.Height + ((childDepth - 2 * downness) * yElementSeparation);
 
                 UIChild.Arrange(new Rect(new Point(newPosX, newPosY), UIChild.DesiredSize));
             }
