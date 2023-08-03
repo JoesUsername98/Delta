@@ -42,7 +42,7 @@ namespace DeltaClient.WPF.Controls
                 child.Measure(availableSize);
             }
 
-            double height = totalDepth * yElementSeparation;
+            double height = Math.Min(totalDepth * yElementSeparation * 2, 800);
             double width = totalDepth * xElementSeparation;
 
             return new Size(width, height);
@@ -69,7 +69,7 @@ namespace DeltaClient.WPF.Controls
                 child.Measure(availableSize);
             }
 
-            double height = countMaxDepthNodes * yElementSeparation;
+            double height = Math.Min(availableSize.Height, 800);
             double width = totalDepth * xElementSeparation;
 
             return new Size(width, height);
@@ -83,12 +83,12 @@ namespace DeltaClient.WPF.Controls
                 var UIChild = child as FrameworkElement;
                 int childDepth = nodeChild.Time;
                 int downness = nodeChild.Path.Count(t => t == false);
-                
-                double newPosX = (childDepth) * xElementSeparation;
 
                 double yOffset = (childDepth - 2 * downness) * yElementSeparation;
-                double centreLineY = finalSize.Height;
+                double centreLineY = (finalSize.Height - UIChild.DesiredSize.Height) / 2;
                 double newPosY = centreLineY + yOffset ;
+
+                double newPosX = (childDepth) * xElementSeparation;
 
                 UIChild.Arrange(new Rect(new Point(newPosX, newPosY), UIChild.DesiredSize));
             }
@@ -103,13 +103,15 @@ namespace DeltaClient.WPF.Controls
                 var UIChild = child as FrameworkElement;
 
                 double yOffset = 0;
-                int depthCount = 1;
+                int depthCount = 0;
                 foreach (bool hOrT in nodeChild.Path)
-                    yOffset += (hOrT ? 1 : -1) * finalSize.Height / Math.Pow(2, depthCount++);
+                    yOffset += (hOrT ? 1 : -1) * (finalSize.Height/2) / Math.Pow(2, ++depthCount);
 
                 int childDepth = nodeChild.Time;
+                double centreLineY = (finalSize.Height - UIChild.DesiredSize.Height) / 2;
+
+                double newPosY = centreLineY + yOffset;
                 double newPosX = (childDepth) * xElementSeparation;
-                double newPosY = finalSize.Height + yOffset;
 
                 UIChild.Arrange(new Rect(new Point(newPosX, newPosY), UIChild.DesiredSize));
             }

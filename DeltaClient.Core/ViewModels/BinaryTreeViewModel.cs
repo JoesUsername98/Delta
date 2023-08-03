@@ -26,7 +26,7 @@ namespace DeltaClient.Core.ViewModels
             MyBinaryTree = new ObservableCollection<INode<State>>(BinaryTreeFactory.CreateTree(_timePeriods));
         }
 
-        private int _timePeriods = 0;
+        private int _timePeriods = 2;
         public int TimePeriods 
         {
             get
