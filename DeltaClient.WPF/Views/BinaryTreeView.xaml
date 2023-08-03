@@ -13,8 +13,6 @@
   <Grid>
     <Grid.ColumnDefinitions>
       <ColumnDefinition></ColumnDefinition>
-      <ColumnDefinition></ColumnDefinition>
-      <ColumnDefinition></ColumnDefinition>
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
       <RowDefinition></RowDefinition>
@@ -23,7 +21,7 @@
     <StackPanel>
       <Slider HorizontalAlignment='Stretch'
               VerticalAlignment='Top'
-              Maximum='5'
+              Maximum='9'
               Minimum='0'
               Value='{Binding TimePeriods}'/>
       <ItemsControl ItemsSource="{Binding MyBinaryTree, Mode=TwoWay}"
@@ -33,8 +31,9 @@
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <controls:BinaryTreeControl HorizontalAlignment='Stretch'   VerticalAlignment='Center'
-           xElementSeparation ='75'
-           yElementSeparation ='50' />
+           xElementSeparation ='100'
+           yElementSeparation ='50'
+           OverlapNodes='False'/>
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>

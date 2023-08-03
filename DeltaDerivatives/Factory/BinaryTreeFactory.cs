@@ -3,7 +3,7 @@ using DeltaDerivatives.Objects.Interfaces;
 
 namespace DeltaDerivatives.Factory
 {
-  public static partial class BinaryTreeFactory
+  public static class BinaryTreeFactory
   {
     public static BinaryTree<Node<State>,State> CreateTree(int time)
     {
