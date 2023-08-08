@@ -12,11 +12,9 @@ namespace DeltaClient.WPF.Controls
 {
     public class BinaryTreeControl : Panel
     {
-        public readonly BinaryTreeViewModel _treeVM;
         public BinaryTreeControl()
         {
-            _treeVM = new BinaryTreeViewModel();
-            base.DataContext = _treeVM;
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(BinaryTreeControl), new FrameworkPropertyMetadata(typeof(BinaryTreeControl)));
         }
         public double xElementSeparation { get; set; } = 50;
         public double yElementSeparation { get; set; } = 50;
@@ -24,11 +22,11 @@ namespace DeltaClient.WPF.Controls
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            return OverlapNodes ? OverlapMeasure(availableSize) : Measure(availableSize);
+            return OverlapNodes ? OverlapMeasure(availableSize) : NoOverlapMeasure(availableSize);
         }
         protected override Size ArrangeOverride(Size finalSize)
         {
-            return OverlapNodes ? OverlapArrange(finalSize) : Arrange(finalSize);
+            return OverlapNodes ? OverlapArrange(finalSize) : NoOverlapArrange(finalSize);
         }
 
         protected virtual Size OverlapMeasure(Size availableSize)
@@ -48,29 +46,28 @@ namespace DeltaClient.WPF.Controls
             return new Size(width, height);
         }
 
-        protected virtual Size Measure(Size availableSize)
+        protected virtual Size NoOverlapMeasure(Size availableSize)
         {
+            if (availableSize.Height == double.PositiveInfinity)
+                availableSize.Height = 1000;
+
+            if (availableSize.Width == double.PositiveInfinity)
+                availableSize.Width = 1000;
+
             int totalDepth = 0;
-            int countMaxDepthNodes = 0;
 
             foreach (ContentPresenter child in Children)
             {
                 var nodeChild = child.Content as INode<State>;
                 
                 if(nodeChild.Time > totalDepth)
-                {
-                    countMaxDepthNodes = 0;
                     totalDepth = nodeChild.Time;
-                }
-                
-                if (nodeChild.Time == totalDepth)
-                    countMaxDepthNodes++;
 
                 child.Measure(availableSize);
             }
 
-            double height = Math.Min(availableSize.Height, 800);
             double width = totalDepth * xElementSeparation;
+            double height = availableSize.Height;
 
             return new Size(width, height);
         }
@@ -95,7 +92,7 @@ namespace DeltaClient.WPF.Controls
             return finalSize;
         }
 
-        protected virtual Size Arrange(Size finalSize)
+        protected virtual Size NoOverlapArrange(Size finalSize)
         {
             foreach (ContentPresenter child in Children)
             {
@@ -113,8 +110,35 @@ namespace DeltaClient.WPF.Controls
                 double newPosY = centreLineY + yOffset;
                 double newPosX = (childDepth) * xElementSeparation;
 
-                UIChild.Arrange(new Rect(new Point(newPosX, newPosY), UIChild.DesiredSize));
+                var childHeight = Math.Min(
+                    finalSize.Height / Math.Pow(2, nodeChild.Time),
+                    UIChild.DesiredSize.Height);
+                 
+                UIChild.Arrange(
+                    new Rect(new Point(newPosX, newPosY),
+                    new Size() { Height = childHeight, Width = childHeight })
+                    );
             }
+
+            foreach (ContentPresenter child in Children)
+            {
+                var nodeChild = child.Content as INode<State>;
+                var UIChild = child as FrameworkElement;
+
+                if (nodeChild.Previous is null)
+                    continue;
+
+                foreach (ContentPresenter otherChild in Children)
+                {
+                    var other = otherChild.Content as INode<State>;
+                    if (nodeChild.Previous != other)
+                        continue;
+
+                    //Draw line
+
+                }
+            }
+               
             return finalSize;
         }
     }

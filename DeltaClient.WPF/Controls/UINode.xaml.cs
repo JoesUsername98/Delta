@@ -1,5 +1,6 @@
 ﻿using System.Windows.Media;
 using System.Windows.Controls;
+using System.Drawing;
 
 namespace DeltaClient.WPF.Controls
 {
@@ -11,14 +12,19 @@ namespace DeltaClient.WPF.Controls
             this.DataContext = this;
         }
 
-        private int _diameter = 50;
+        private int _diameter = 30;
         public int Diameter
         {
             get { return _diameter; }
-            set { _diameter = value; }
+            set
+            {
+                _diameter = value;
+                Height = _diameter;
+                Width = _diameter;
+            }
         }
 
-        private Brush _fill = Brushes.Chocolate;
+        private Brush _fill = Brushes.Gray;
         public Brush Fill
         {
             get { return _fill; }

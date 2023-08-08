@@ -6,8 +6,10 @@
                   xmlns:local="clr-namespace:DeltaClient.WPF.Views"
                   xmlns:views="clr-namespace:MvvmCross.Platforms.Wpf.Views;assembly=MvvmCross.Platforms.Wpf"
                   xmlns:controls="clr-namespace:DeltaClient.WPF.Controls"
-                  mc:Ignorable="d" Background='Aquamarine' 
-                  Height="1000" Width="1500" MaxHeight='1100'
+                  mc:Ignorable="d"
+                  Background='Aquamarine'
+                  d:DesignWidth='1000'
+                  MaxHeight='1000'
                   x:Class="DeltaClient.WPF.Views.BinaryTreeView">
 
   <Grid>
@@ -15,37 +17,42 @@
       <ColumnDefinition></ColumnDefinition>
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
+      <RowDefinition Height='Auto'></RowDefinition>
       <RowDefinition></RowDefinition>
     </Grid.RowDefinitions>
 
-    <StackPanel>
       <Slider HorizontalAlignment='Stretch'
               VerticalAlignment='Top'
               Maximum='9'
               Minimum='0'
-              Value='{Binding TimePeriods}'/>
-      <ItemsControl ItemsSource="{Binding MyBinaryTree, Mode=TwoWay}"
-                  VerticalAlignment='Stretch'
-                  Margin='30'
-                  Grid.Column='0'
-                    BorderBrush='Black' BorderThickness='10'>
-      <ItemsControl.ItemsPanel>
-        <ItemsPanelTemplate>
-          <controls:BinaryTreeControl HorizontalAlignment='Stretch'   VerticalAlignment='Center'
-           xElementSeparation ='100'
-           yElementSeparation ='50'
-           OverlapNodes='False'/>
-        </ItemsPanelTemplate>
-      </ItemsControl.ItemsPanel>
-      <ItemsControl.ItemTemplate>
-        <DataTemplate>
-          <controls:UINode Fill='Chocolate' Diameter='30' Text=''/>
-        </DataTemplate>
-      </ItemsControl.ItemTemplate>
-    </ItemsControl>
-    </StackPanel>
-
-
+              Value='{Binding TimePeriods}'
+              Grid.Row='0'/>
+       <ItemsControl ItemsSource="{Binding MyBinaryTree, Mode=TwoWay}"
+                    VerticalAlignment='Stretch'
+                    HorizontalAlignment='Stretch'
+                    Margin='30'
+                    Grid.Row='1'
+                    BorderBrush='Black'
+                    BorderThickness='10'>
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <controls:BinaryTreeControl HorizontalAlignment='Stretch'
+                                        VerticalAlignment='Stretch'
+                                        xElementSeparation='100'
+                                        yElementSeparation='50'
+                                        OverlapNodes='False' />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <controls:UINode HorizontalAlignment='Stretch'
+                             VerticalAlignment='Stretch'
+                             Fill='Chocolate'
+                             Diameter='30'
+                             Text='' />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
 
   </Grid>
 </views:MvxWpfView>

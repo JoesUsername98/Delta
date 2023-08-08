@@ -8,17 +8,11 @@ namespace DeltaClient.Core.ViewModels
 {
     //Create UI-friendly wrappers around the raw data objects(i.e.the view-model).
     public class BinaryTreeViewModel : MvxViewModel
-    {
-
+    { 
         public BinaryTreeViewModel()
         {
             this.Initialize();
-        }
-
-        public override void Prepare()
-        {
             UpdateTree();
-            base.Prepare();
         }
 
         private void UpdateTree()
@@ -26,7 +20,7 @@ namespace DeltaClient.Core.ViewModels
             MyBinaryTree = new ObservableCollection<INode<State>>(BinaryTreeFactory.CreateTree(_timePeriods));
         }
 
-        private int _timePeriods = 2;
+        private int _timePeriods = 6;
         public int TimePeriods 
         {
             get

@@ -3,20 +3,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:DeltaClient.WPF.Controls"
-             xmlns:viewmodels='clr-namespace:DeltaClient.Core.ViewModels;assembly=DeltaClient.Core'
-             x:Name='root'
-             mc:Ignorable='d'>
-
-
-  <Canvas MinHeight='{Binding Diameter}'
-          MinWidth='{Binding Diameter}'>
-    <Ellipse HorizontalAlignment='Center'
-             VerticalAlignment='Center'
-             Fill='{Binding Fill ,Mode=OneTime}'
+             x:Name='root' mc:Ignorable='d' d:DesignWidth='30' d:DesignHeight='30'
+             Width='{Binding Diameter, Mode=OneTime}' Height='{Binding Diameter, Mode=OneTime}'
+             MinHeight='20' MinWidth='20'>
+  
+  <Canvas    HorizontalAlignment='Stretch'
+             VerticalAlignment='Stretch'>
+    <Ellipse Fill='{Binding Fill ,Mode=OneTime}'
+             HorizontalAlignment='Stretch'
+             VerticalAlignment='Stretch'
+             Stretch='Uniform'
              Stroke='Orange'
-             MinHeight='{Binding Diameter}'
-             MinWidth='{Binding Diameter}'/>
+             d:DesignWidth='30'
+             d:DesignHeight='30'
+             MinHeight='20'
+             MinWidth='20' />
     <TextBlock Text='{Binding Text}'
                HorizontalAlignment='Center'
                VerticalAlignment='Bottom'
