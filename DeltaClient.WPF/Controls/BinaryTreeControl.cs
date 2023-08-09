@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace DeltaClient.WPF.Controls
 {
@@ -113,11 +115,15 @@ namespace DeltaClient.WPF.Controls
                 var childHeight = Math.Min(
                     finalSize.Height / Math.Pow(2, nodeChild.Time),
                     UIChild.DesiredSize.Height);
-                 
+
                 UIChild.Arrange(
                     new Rect(new Point(newPosX, newPosY),
                     new Size() { Height = childHeight, Width = childHeight })
                     );
+               // UIChild.Arrange(
+               // new Rect(new Point(newPosX, newPosY),
+               //UIChild.DesiredSize)
+               // );
             }
 
             foreach (ContentPresenter child in Children)
@@ -133,9 +139,25 @@ namespace DeltaClient.WPF.Controls
                     var other = otherChild.Content as INode<State>;
                     if (nodeChild.Previous != other)
                         continue;
-
+                    var UIOther = child as FrameworkElement;
                     //Draw line
+                    // Create a Line  
+                    Line redLine = new Line();
+                    redLine.X1 = UIChild.TransformToAncestor(this).Transform(new Point(0, 0)).X;
+                    redLine.Y1 = UIChild.TransformToAncestor(this).Transform(new Point(0, 0)).Y;
+                    redLine.X2 = UIOther.TransformToAncestor(this).Transform(new Point(0, 0)).X;
+                    redLine.Y2 = UIOther.TransformToAncestor(this).Transform(new Point(0, 0)).Y;
 
+                    // Create a red Brush  
+                    SolidColorBrush redBrush = new SolidColorBrush();
+                    redBrush.Color = Colors.Red;
+
+                    // Set Line's width and color  
+                    redLine.StrokeThickness = 4;
+                    redLine.Stroke = redBrush;
+
+                    // Add line to the Grid.  
+                    this.AddVisualChild(redLine);
                 }
             }
                

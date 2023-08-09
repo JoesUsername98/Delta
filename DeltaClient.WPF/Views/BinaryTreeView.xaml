@@ -15,6 +15,7 @@
   <Grid>
     <Grid.ColumnDefinitions>
       <ColumnDefinition></ColumnDefinition>
+      <ColumnDefinition></ColumnDefinition>
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
       <RowDefinition Height='Auto'></RowDefinition>
@@ -36,23 +37,24 @@
                     BorderThickness='10'>
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
-            <controls:BinaryTreeControl HorizontalAlignment='Stretch'
-                                        VerticalAlignment='Stretch'
-                                        xElementSeparation='100'
+            <controls:BinaryTreeControl xElementSeparation='100'
                                         yElementSeparation='50'
                                         OverlapNodes='False' />
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <controls:UINode HorizontalAlignment='Stretch'
-                             VerticalAlignment='Stretch'
-                             Fill='Chocolate'
-                             Diameter='30'
+            <controls:UINode Fill='Chocolate'
                              Text='' />
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
+
+    <controls:UINode
+                     Fill='Chocolate'
+                     Grid.Column='1'
+                     Grid.Row='1'
+                     Text='' />
 
   </Grid>
 </views:MvxWpfView>
