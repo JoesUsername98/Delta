@@ -5,17 +5,23 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              x:Name='root' mc:Ignorable='d' d:DesignWidth='30' d:DesignHeight='30'>
 
-  <UniformGrid Rows='1' Columns='1' MinHeight='20'
-          HorizontalAlignment='Stretch'
-          VerticalAlignment='Stretch'
-          Background='White'>
-    <Ellipse Fill='{Binding Fill ,Mode=OneTime}'
+  <Grid   HorizontalAlignment='Stretch'
+          VerticalAlignment='Stretch'>
+    <Ellipse Grid.Row='0' Grid.Column='0' Fill='{Binding Fill ,Mode=OneTime}'
              Stretch='Uniform'
              Stroke='Orange'/>
-    <TextBlock Text='{Binding Text}'
+    <TextBlock Grid.Row='0'
+               Grid.Column='0'
+               Text='{Binding Text}'
                HorizontalAlignment='Center'
                VerticalAlignment='Bottom'
-               FontSize='10'/>
-    <Line></Line>
-  </UniformGrid>
+               FontSize='10' />
+    <!--<Line Stroke='Black'
+          StrokeThickness='3'
+          X1='{Binding centre}'
+          Y1='{Binding centre}'
+          X2='{Binding parentX}'
+          Y2='{Binding parentY}'>
+    </Line>-->
+  </Grid>
 </UserControl>

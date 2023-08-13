@@ -1,6 +1,7 @@
 ﻿using System.Windows.Media;
 using System.Windows.Controls;
 using System.Drawing;
+using System.Windows;
 
 namespace DeltaClient.WPF.Controls
 {
@@ -34,8 +35,43 @@ namespace DeltaClient.WPF.Controls
         private string _text = "No binding";
         public string Text
         {
-            get { return _text; }
+            get { return $"{parentX} , {parentY}"; }
             set { _text = value; }
+        }
+
+        public double centre
+        {
+            get { return Height == double.NaN ? 0: Height / 2; }
+        }
+
+        public double parentX
+        {
+            get { return -((System.Windows.Point)GetValue(ParentCoordinateProperty)).X; }
+        }
+        public double parentY
+        {
+            get { return -((System.Windows.Point)GetValue(ParentCoordinateProperty)).Y; }
+        }
+
+        public static readonly DependencyProperty ParentCoordinateProperty =
+   DependencyProperty.Register("ParentCoordinate", typeof(System.Windows.Point), typeof(UINode), new
+      PropertyMetadata(new System.Windows.Point() { X=30,Y=5}, new PropertyChangedCallback(OnParentCoordinateChanged)));
+        public System.Windows.Point ParentCoordinate
+        {
+            get { return (System.Windows.Point)GetValue(ParentCoordinateProperty); }
+            set { SetValue(ParentCoordinateProperty, value); }
+        }
+
+        private static void OnParentCoordinateChanged(DependencyObject d,
+   DependencyPropertyChangedEventArgs e)
+        {
+            UINode UserControl1Control = d as UINode;
+            UserControl1Control.OnParentCoordinateChanged(e);
+        }
+
+        private void OnParentCoordinateChanged(DependencyPropertyChangedEventArgs e)
+        {
+            ParentCoordinate = (System.Windows.Point)e.NewValue;
         }
     }
 }

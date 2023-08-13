@@ -104,7 +104,7 @@ namespace DeltaClient.WPF.Controls
                 double yOffset = 0;
                 int depthCount = 0;
                 foreach (bool hOrT in nodeChild.Path)
-                    yOffset += (hOrT ? 1 : -1) * (finalSize.Height/2) / Math.Pow(2, ++depthCount);
+                    yOffset += (hOrT ? 1 : -1) * (finalSize.Height / 2) / Math.Pow(2, ++depthCount);
 
                 int childDepth = nodeChild.Time;
                 double centreLineY = (finalSize.Height - UIChild.DesiredSize.Height) / 2;
@@ -120,47 +120,29 @@ namespace DeltaClient.WPF.Controls
                     new Rect(new Point(newPosX, newPosY),
                     new Size() { Height = childHeight, Width = childHeight })
                     );
-               // UIChild.Arrange(
-               // new Rect(new Point(newPosX, newPosY),
-               //UIChild.DesiredSize)
-               // );
             }
 
             foreach (ContentPresenter child in Children)
             {
-                var nodeChild = child.Content as INode<State>;
-                var UIChild = child as FrameworkElement;
-
-                if (nodeChild.Previous is null)
-                    continue;
-
+                var parentNode = child.Content as INode<State>;
+                var UIParent = child as FrameworkElement;
                 foreach (ContentPresenter otherChild in Children)
                 {
-                    var other = otherChild.Content as INode<State>;
-                    if (nodeChild.Previous != other)
+                    var otherNodeChild = otherChild.Content as INode<State>;
+                    if (otherNodeChild.Previous != parentNode)
                         continue;
-                    var UIOther = child as FrameworkElement;
-                    //Draw line
-                    // Create a Line  
-                    Line redLine = new Line();
-                    redLine.X1 = UIChild.TransformToAncestor(this).Transform(new Point(0, 0)).X;
-                    redLine.Y1 = UIChild.TransformToAncestor(this).Transform(new Point(0, 0)).Y;
-                    redLine.X2 = UIOther.TransformToAncestor(this).Transform(new Point(0, 0)).X;
-                    redLine.Y2 = UIOther.TransformToAncestor(this).Transform(new Point(0, 0)).Y;
 
-                    // Create a red Brush  
-                    SolidColorBrush redBrush = new SolidColorBrush();
-                    redBrush.Color = Colors.Red;
+                    var originalPos = otherChild.GetValue(UINode.ParentCoordinateProperty);
 
-                    // Set Line's width and color  
-                    redLine.StrokeThickness = 4;
-                    redLine.Stroke = redBrush;
+                    var parentCoords =  UIParent.PointToScreen(new Point(0, 0));
+                    otherChild.SetValue( UINode.ParentCoordinateProperty , parentCoords);
 
-                    // Add line to the Grid.  
-                    this.AddVisualChild(redLine);
+                    otherChild.SetCurrentValue( UINode.ParentCoordinateProperty , parentCoords);    
+
+                    var changedPos = otherChild.GetValue(UINode.ParentCoordinateProperty);
                 }
             }
-               
+
             return finalSize;
         }
     }

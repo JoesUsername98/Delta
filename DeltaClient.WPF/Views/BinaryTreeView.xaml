@@ -38,23 +38,22 @@
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <controls:BinaryTreeControl xElementSeparation='100'
-                                        yElementSeparation='50'
                                         OverlapNodes='False' />
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <controls:UINode Fill='Chocolate'
+        <DataTemplate DataType="controls:UINode">
+            <controls:UINode Fill='Chocolate' Height='50'
                              Text='' />
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-    <controls:UINode
-                     Fill='Chocolate'
-                     Grid.Column='1'
-                     Grid.Row='1'
-                     Text='' />
-
+        <controls:UINode HorizontalAlignment='Stretch'
+                         VerticalAlignment='Stretch'
+                         Fill='Chocolate'
+                        Text='Hi'
+                       Grid.Column='1'
+                       Grid.Row='1' />
   </Grid>
 </views:MvxWpfView>
