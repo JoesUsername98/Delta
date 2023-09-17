@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Data;
 
 namespace DeltaClient.WPF.Converters
@@ -7,7 +9,7 @@ namespace DeltaClient.WPF.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            throw new NotImplementedException();
+            return String.Join("",values.Select(v => (bool)v ? "h" : "t")) ;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)

@@ -1,4 +1,5 @@
-﻿using DeltaDerivatives.Factory;
+﻿using DeltaClient.Core.Models;
+using DeltaDerivatives.Factory;
 using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Interfaces;
 using MvvmCross.ViewModels;
@@ -20,7 +21,7 @@ namespace DeltaClient.Core.ViewModels
             MyBinaryTree = new ObservableCollection<INode<State>>(BinaryTreeFactory.CreateTree(_timePeriods));
         }
 
-        private int _timePeriods = 6;
+        private int _timePeriods = 3;
         public int TimePeriods 
         {
             get

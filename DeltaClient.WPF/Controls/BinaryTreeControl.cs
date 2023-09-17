@@ -1,18 +1,13 @@
-﻿using DeltaClient.Core.ViewModels;
-using DeltaDerivatives.Factory;
-using DeltaDerivatives.Objects;
+﻿using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace DeltaClient.WPF.Controls
 {
-    public class BinaryTreeControl : Panel
+    public class BinaryTreeControl : Canvas
     {
         public BinaryTreeControl()
         {
@@ -132,14 +127,16 @@ namespace DeltaClient.WPF.Controls
                     if (otherNodeChild.Previous != parentNode)
                         continue;
 
-                    var originalPos = otherChild.GetValue(UINode.ParentCoordinateProperty);
+                    var uiOtherChild = otherChild as FrameworkElement;
+                    
+                    var originalPos = uiOtherChild.GetValue(UINode.ParentCoordinateProperty); // Check current value for debugging
 
-                    var parentCoords =  UIParent.PointToScreen(new Point(0, 0));
-                    otherChild.SetValue( UINode.ParentCoordinateProperty , parentCoords);
+                    var parentCoords =  UIParent.PointToScreen(new Point(0, 0)); // Get correct value for the line to be drawn to
 
-                    otherChild.SetCurrentValue( UINode.ParentCoordinateProperty , parentCoords);    
+                    otherChild.SetCurrentValue( UINode.ParentCoordinateProperty , parentCoords); // set the value
 
-                    var changedPos = otherChild.GetValue(UINode.ParentCoordinateProperty);
+                    var changedPos = uiOtherChild.GetValue(UINode.ParentCoordinateProperty); // verify in debug that the value has been updated
+
                 }
             }
 

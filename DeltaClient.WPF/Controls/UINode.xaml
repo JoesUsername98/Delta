@@ -7,21 +7,22 @@
 
   <Grid   HorizontalAlignment='Stretch'
           VerticalAlignment='Stretch'>
-    <Ellipse Grid.Row='0' Grid.Column='0' Fill='{Binding Fill ,Mode=OneTime}'
+    <Ellipse Grid.Row='0'
+             Grid.Column='0'
+             Fill='{Binding Fill ,Mode=OneTime}'
              Stretch='Uniform'
-             Stroke='Orange'/>
+             Stroke='Orange' />
     <TextBlock Grid.Row='0'
                Grid.Column='0'
-               Text='{Binding Text}'
+               Text='{Binding Text, Mode=TwoWay}'
                HorizontalAlignment='Center'
                VerticalAlignment='Bottom'
                FontSize='10' />
-    <!--<Line Stroke='Black'
+    <Line Stroke='Black'
           StrokeThickness='3'
           X1='{Binding centre}'
           Y1='{Binding centre}'
-          X2='{Binding parentX}'
-          Y2='{Binding parentY}'>
-    </Line>-->
+          X2='{Binding Path=DataContext.ParentCoordinate.X ,Mode=TwoWay}'
+          Y2='{Binding Path=DataContext.ParentCoordinate.Y ,Mode=TwoWay}' />
   </Grid>
 </UserControl>
