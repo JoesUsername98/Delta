@@ -20,9 +20,10 @@
                FontSize='10' />
     <Line Stroke='Black'
           StrokeThickness='3'
-          X1='{Binding centre}'
-          Y1='{Binding centre}'
-          X2='{Binding Path=DataContext.ParentCoordinate.X ,Mode=TwoWay}'
-          Y2='{Binding Path=DataContext.ParentCoordinate.Y ,Mode=TwoWay}' />
+          X1='{Binding Centre}'
+          Y1='{Binding Centre}'
+          X2='{Binding ParentCoordinate.X }'
+          Y2='{Binding ParentCoordinate.Y}' 
+          />
   </Grid>
 </UserControl>

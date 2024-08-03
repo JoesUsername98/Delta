@@ -54,26 +54,27 @@ namespace DeltaClient.WPF.Controls
         //Used for debugging pupeoses at the moment 
         public string Text
         {
-            get { return $"{ParentCoordinate.X} , {ParentCoordinate.Y}"; }
+            get { return $"Centre: {Centre},{Centre} \n Parent {ParentCoordinate.X},{ParentCoordinate.Y}"; }
             set { _text = value; }
         }
 
         //Where the Child-To-Parent line connects from 
-        public double centre
+        public double Centre
         {
             get { return Height == double.NaN ? 0: Height / 2; }
         }
 
+
         //Where the Child-To-Parent line connects to 
         public static readonly DependencyProperty ParentCoordinateProperty =
    DependencyProperty.Register("ParentCoordinate", typeof(System.Windows.Point), typeof(UINode), new
-      PropertyMetadata(new PropertyChangedCallback(OnParentCoordinatePropertyChangedCallBack))); 
+      PropertyMetadata(new PropertyChangedCallback(OnParentCoordinatePropertyChangedCallBack)));
 
         public System.Windows.Point ParentCoordinate
         {
             get { return (System.Windows.Point)GetValue(ParentCoordinateProperty); }
-            set 
-            { 
+            set
+            {
                 SetValue(ParentCoordinateProperty, value);
                 OnPropertyChanged("Text");
             }
@@ -84,12 +85,13 @@ namespace DeltaClient.WPF.Controls
         {
             UINode UserControl1Control = d as UINode;
             if (UserControl1Control != null)
-                UserControl1Control.OnParentCoordinateChanged(e);   
+                UserControl1Control.OnParentCoordinateChanged(e);
         }
 
         protected virtual void OnParentCoordinateChanged(DependencyPropertyChangedEventArgs e)
         {
-            OnPropertyChanged("ParentCoordinate");
+            ParentCoordinate = (System.Windows.Point)e.NewValue;
+            OnPropertyChanged("ParentCoordinateProperty");
         }
     }
 }

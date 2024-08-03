@@ -116,7 +116,6 @@ namespace DeltaClient.WPF.Controls
                     new Size() { Height = childHeight, Width = childHeight })
                     );
             }
-
             foreach (ContentPresenter child in Children)
             {
                 var parentNode = child.Content as INode<State>;
@@ -128,18 +127,13 @@ namespace DeltaClient.WPF.Controls
                         continue;
 
                     var uiOtherChild = otherChild as FrameworkElement;
-                    
-                    var originalPos = uiOtherChild.GetValue(UINode.ParentCoordinateProperty); // Check current value for debugging
-
+                    var originalPos = uiOtherChild.ReadLocalValue(UINode.ParentCoordinateProperty); // Check current value for debugging
                     var parentCoords =  UIParent.PointToScreen(new Point(0, 0)); // Get correct value for the line to be drawn to
-
-                    otherChild.SetCurrentValue( UINode.ParentCoordinateProperty , parentCoords); // set the value
-
-                    var changedPos = uiOtherChild.GetValue(UINode.ParentCoordinateProperty); // verify in debug that the value has been updated
-
+                    uiOtherChild.SetValue( UINode.ParentCoordinateProperty , parentCoords); // set the value
+                    var changedPos = uiOtherChild.ReadLocalValue(UINode.ParentCoordinateProperty); // verify in debug that the value has been updated
                 }
             }
-
+            
             return finalSize;
         }
     }

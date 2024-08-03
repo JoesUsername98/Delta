@@ -45,10 +45,10 @@
         <DataTemplate  DataType="{x:Type controls:UINode}">
           <controls:UINode Fill='Chocolate'
                            Height='50'
-                           Text='' />
+                           Text=''
+                           ParentCoordinate='0,0' />
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
-
   </Grid>
 </views:MvxWpfView>
