@@ -1,6 +1,8 @@
 ﻿using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Interfaces;
 using System;
+using System.Collections;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,7 +11,7 @@ using System.Windows.Shapes;
 
 namespace DeltaClient.WPF.Controls
 {
-    public class BinaryTreeControl : Panel
+    public class BinaryTreeControl : Canvas
     {
         public BinaryTreeControl()
         {
@@ -120,39 +122,5 @@ namespace DeltaClient.WPF.Controls
             }
             return finalSize;
         }
-
-        protected override void OnRender(DrawingContext dc)
-        {
-            base.OnRender(dc);
-
-            foreach (ContentPresenter child in InternalChildren)
-            {
-                var parentNode = child.Content as INode<State>;
-                var UIParent = child as FrameworkElement;
-                foreach (ContentPresenter otherChild in InternalChildren)
-                {
-                    var otherNodeChild = otherChild.Content as INode<State>;
-                    if (otherNodeChild.Previous != parentNode)
-                        continue;
-                    var uiOtherChild = otherChild as FrameworkElement;
-
-
-                    var point1 = UIParent.TranslatePoint(new Point(UIParent.RenderSize.Width / 2, UIParent.RenderSize.Height / 2), this);
-                    var point2 = uiOtherChild.TranslatePoint(new Point(uiOtherChild.RenderSize.Width / 2, uiOtherChild.RenderSize.Height / 2), this);
-
-                    dc.DrawLine(new Pen(Brushes.Black, 2), point1, point2);
-                }
-            }
-        }
-
-        private Point GetPositionForChild(UIElement child)
-        {
-            // Implement your custom logic to determine the position of each child
-            // For example, you could arrange items in a circle, grid, etc.
-            // This is a simple example placing items in a horizontal line
-            int index = InternalChildren.IndexOf(child);
-            return new Point(index * 60, 0);
-        }
     }
-
 }

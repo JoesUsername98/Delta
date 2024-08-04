@@ -28,13 +28,13 @@
               Minimum='0'
               Value='{Binding TimePeriods}'
               Grid.Row='0'/>
-    <ItemsControl ItemsSource="{Binding MyBinaryTree, Mode=TwoWay}"
-                  VerticalAlignment='Stretch'
-                  HorizontalAlignment='Stretch'
-                  Margin='30'
-                  Grid.Row='1'
-                  BorderBrush='Black'
-                  BorderThickness='10'>
+    <controls:BinaryTreeItemControl ItemsSource="{Binding MyBinaryTree, Mode=TwoWay}"
+                                    VerticalAlignment='Stretch'
+                                    HorizontalAlignment='Stretch'
+                                    Margin='30'
+                                    Grid.Row='1'
+                                    BorderBrush='Black'
+                                    BorderThickness='10'>
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <controls:BinaryTreeControl xElementSeparation='100'
@@ -48,6 +48,6 @@
                            Text=''/>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
-    </ItemsControl>
+    </controls:BinaryTreeItemControl>
   </Grid>
 </views:MvxWpfView>
