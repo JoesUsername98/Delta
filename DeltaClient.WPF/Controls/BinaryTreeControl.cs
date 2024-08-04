@@ -70,7 +70,7 @@ namespace DeltaClient.WPF.Controls
                 child.Measure(availableSize);
             }
 
-            double xSepToUse = availableSize.Width / totalDepth;
+            double xSepToUse = availableSize.Width / Math.Max(totalDepth,1);
 
             double width = Math.Min( availableSize.Height, totalDepth * xSepToUse);
             double height = availableSize.Height;
@@ -131,7 +131,7 @@ namespace DeltaClient.WPF.Controls
                     minNodeSize = height;
 
             }
-            double xSepToUse = (finalSize.Width - maxNodeSize/2 - minNodeSize/2) / totalDepth;
+            double xSepToUse = (finalSize.Width - maxNodeSize/2 - minNodeSize/2) / Math.Max(totalDepth, 1);
 
             foreach (ContentPresenter child in Children)
             {
