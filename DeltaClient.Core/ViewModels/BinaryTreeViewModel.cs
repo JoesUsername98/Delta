@@ -1,5 +1,4 @@
-﻿using DeltaClient.Core.Models;
-using DeltaDerivatives.Factory;
+﻿using DeltaDerivatives.Factory;
 using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Interfaces;
 using MvvmCross.ViewModels;
