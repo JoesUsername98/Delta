@@ -49,6 +49,9 @@ namespace DeltaClient.WPF.Controls
 
         protected virtual Size NoOverlapMeasure(Size availableSize)
         {
+            if (Children.Count == 0)
+                return availableSize;
+
             if (availableSize.Height == double.PositiveInfinity)
                 availableSize.Height = 1000;
 
@@ -67,7 +70,9 @@ namespace DeltaClient.WPF.Controls
                 child.Measure(availableSize);
             }
 
-            double width = totalDepth * xElementSeparation;
+            double xSepToUse = availableSize.Width / totalDepth;
+
+            double width = Math.Min( availableSize.Height, totalDepth * xSepToUse);
             double height = availableSize.Height;
 
             return new Size(width, height);
@@ -95,6 +100,39 @@ namespace DeltaClient.WPF.Controls
 
         protected virtual Size NoOverlapArrange(Size finalSize)
         {
+            if (Children.Count == 0)
+                return finalSize;
+
+            int totalDepth = 0;
+            foreach (ContentPresenter child in Children)
+            {
+                var nodeChild = child.Content as INode<State>;
+
+                if (nodeChild.Time > totalDepth)
+                    totalDepth = nodeChild.Time;
+            }
+
+            double heigtSum = 0;
+            double maxNodeSize = 0;
+            double minNodeSize = 0;
+            foreach (ContentPresenter child in Children)
+            {
+                var nodeChild = child.Content as INode<State>;
+                var UIChild = child as FrameworkElement;
+
+                double height = Math.Min(finalSize.Height / Math.Pow(2, nodeChild.Time),
+                                UIChild.DesiredSize.Height);
+                if (nodeChild.Time == totalDepth)
+                    heigtSum += height;
+
+                if (maxNodeSize < height)
+                    maxNodeSize = height;
+                if (minNodeSize < height)
+                    minNodeSize = height;
+
+            }
+            double xSepToUse = (finalSize.Width - maxNodeSize/2 - minNodeSize/2) / totalDepth;
+
             foreach (ContentPresenter child in Children)
             {
                 var nodeChild = child.Content as INode<State>;
@@ -106,14 +144,13 @@ namespace DeltaClient.WPF.Controls
                     yOffset += (hOrT ? 1 : -1) * (finalSize.Height / 2) / Math.Pow(2, ++depthCount);
 
                 int childDepth = nodeChild.Time;
-                double centreLineY = (finalSize.Height - UIChild.DesiredSize.Height) / 2;
 
+                var childHeight = Math.Min(Math.Min(finalSize.Height, finalSize.Width) / Math.Pow(2, nodeChild.Time),
+                                            UIChild.DesiredSize.Height);
+
+                double newPosX = childDepth * xSepToUse;
+                double centreLineY = (finalSize.Height - childHeight) / 2;
                 double newPosY = centreLineY + yOffset;
-                double newPosX = (childDepth) * xElementSeparation;
-
-                var childHeight = Math.Min(
-                    finalSize.Height / Math.Pow(2, nodeChild.Time),
-                    UIChild.DesiredSize.Height);
 
                 UIChild.Arrange(
                     new Rect(new Point(newPosX, newPosY),

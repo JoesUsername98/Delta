@@ -90,15 +90,16 @@ namespace DeltaClient.WPF.Controls
             {
                 var node_i = (CustomItemContainer)ItemContainerGenerator.ContainerFromIndex(i);
                 var node = node_i.Content as INode<State>;
+                var node_i_p = Math.Min(node_i.RenderSize.Width / 2, node_i.RenderSize.Height / 2);
                 for (int j = 0; j < Items.Count; j++)
                 {
                     var node_j = (CustomItemContainer)ItemContainerGenerator.ContainerFromIndex(j);
                     var otherNode = node_j.Content as INode<State>;
                     if (otherNode.Previous != node)
                         continue;
-
-                    var point1 = node_i.TranslatePoint(new Point(node_i.RenderSize.Width / 2, node_i.RenderSize.Height / 2), this);
-                    var point2 = node_j.TranslatePoint(new Point(node_j.RenderSize.Width / 2, node_j.RenderSize.Height / 2), this);
+                    var node_j_p = Math.Min(node_j.RenderSize.Width / 2, node_j.RenderSize.Height / 2);
+                    var point1 = node_i.TranslatePoint(new Point(node_i_p, node_i_p), this);
+                    var point2 = node_j.TranslatePoint(new Point(node_j_p, node_j_p), this);
 
                     dc.DrawLine(new Pen(Brushes.Black, 2), point1, point2);
                 }
