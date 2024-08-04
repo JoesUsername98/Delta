@@ -13,63 +13,17 @@ namespace DeltaClient.WPF.Controls
     public class BinaryTreeItemControl : ItemsControl
     {
         private INotifyCollectionChanged _itemsSource;
+        private DrawingVisual _lineVisual;
 
         public BinaryTreeItemControl()
         {
-            Loaded += CustomItemsControl_Loaded;
+            LayoutUpdated += BinaryTreeItemControl_LayoutUpdated;
+            _lineVisual = new DrawingVisual();
+            AddVisualChild(_lineVisual);
         }
-
-        private void CustomItemsControl_Loaded(object sender, RoutedEventArgs e)
+        private void BinaryTreeItemControl_LayoutUpdated(object sender, EventArgs e)
         {
-            AttachCollectionChangedHandler(ItemsSource as INotifyCollectionChanged);
-        }
-
-        protected override void OnItemsSourceChanged(IEnumerable oldValue, IEnumerable newValue)
-        {
-            base.OnItemsSourceChanged(oldValue, newValue);
-
-            DetachCollectionChangedHandler(oldValue as INotifyCollectionChanged);
-            AttachCollectionChangedHandler(newValue as INotifyCollectionChanged);
-
-            this.InvalidateVisual(); // Redraw lines when ItemsSource changes
-        }
-        private void AttachCollectionChangedHandler(INotifyCollectionChanged newCollection)
-        {
-            if (newCollection != null)
-            {
-                newCollection.CollectionChanged += ItemsSource_CollectionChanged;
-                _itemsSource = newCollection;
-            }
-        }
-
-        private void DetachCollectionChangedHandler(INotifyCollectionChanged oldCollection)
-        {
-            if (oldCollection != null)
-            {
-                oldCollection.CollectionChanged -= ItemsSource_CollectionChanged;
-                _itemsSource = null;
-            }
-        }
-
-        private void ItemsSource_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            this.InvalidateVisual();
-        }
-
-        public class CustomItemContainer : ContentPresenter
-        {
-            public Point Position { get; set; }
-
-            public CustomItemContainer()
-            {
-                this.Loaded += CustomItemContainer_Loaded;
-            }
-
-            private void CustomItemContainer_Loaded(object sender, RoutedEventArgs e)
-            {
-                Position = TranslatePoint(new Point(0, 0), (UIElement)VisualParent);
-                UpdateLayout();
-            }
+            RedrawLines();
         }
 
         protected override DependencyObject GetContainerForItemOverride()
@@ -82,30 +36,80 @@ namespace DeltaClient.WPF.Controls
             return item is CustomItemContainer;
         }
 
-        protected override void OnRender(DrawingContext dc)
+        protected override int VisualChildrenCount => base.VisualChildrenCount + 1;
+
+        protected override Visual GetVisualChild(int index)
         {
-            base.OnRender(dc);
+            if (index < base.VisualChildrenCount)
+                return base.GetVisualChild(index);
+            return _lineVisual;
+        }
 
-            for (int i = 0; i < Items.Count; i++)
+        private void RedrawLines()
+        {
+            using (DrawingContext dc = _lineVisual.RenderOpen())
             {
-                var node_i = (CustomItemContainer)ItemContainerGenerator.ContainerFromIndex(i);
-                var node = node_i.Content as INode<State>;
-                var node_i_p = Math.Min(node_i.RenderSize.Width / 2, node_i.RenderSize.Height / 2);
-                for (int j = 0; j < Items.Count; j++)
-                {
-                    var node_j = (CustomItemContainer)ItemContainerGenerator.ContainerFromIndex(j);
-                    var otherNode = node_j.Content as INode<State>;
-                    if (otherNode.Previous != node)
-                        continue;
-                    var node_j_p = Math.Min(node_j.RenderSize.Width / 2, node_j.RenderSize.Height / 2);
-                    var point1 = node_i.TranslatePoint(new Point(node_i_p, node_i_p), this);
-                    var point2 = node_j.TranslatePoint(new Point(node_j_p, node_j_p), this);
+                ConnectNodes(dc);
+            }
+        }
 
-                    dc.DrawLine(new Pen(Brushes.Black, 2), point1, point2);
+        private void ConnectNodes(DrawingContext dc)
+        {
+            for (int parentIdx = 0; parentIdx < Items.Count; parentIdx++)
+            {
+                var parentVisual = (CustomItemContainer)ItemContainerGenerator.ContainerFromIndex(parentIdx);
+                var parent = parentVisual.Content as INode<State>;
+                var parentDiam = Math.Min(parentVisual.RenderSize.Width / 2, parentVisual.RenderSize.Height / 2);
+                for (int childIdx = 0; childIdx < Items.Count; childIdx++)
+                {
+                    var childVisual = (CustomItemContainer)ItemContainerGenerator.ContainerFromIndex(childIdx);
+                    var otherNode = childVisual.Content as INode<State>;
+                    if (otherNode?.Previous != parent)
+                        continue;
+                    var childDiam = Math.Min(childVisual.RenderSize.Width / 2, childVisual.RenderSize.Height / 2);
+                    var parentPt = parentVisual.TranslatePoint(new Point(parentDiam, parentDiam), this);
+                    var childPoint = childVisual.TranslatePoint(new Point(childDiam, childDiam), this);
+                    //Move to front/end of nodes
+                    parentPt.X += parentVisual.RenderSize.Width / 2;
+                    childPoint.X -= childVisual.RenderSize.Width / 2;
+
+                    dc.DrawLine(new Pen(Brushes.Black, 2), parentPt, childPoint);
                 }
             }
         }
 
-    }
+        public class CustomItemContainer : ContentPresenter
+        {
+            public Point Position { get; set; }
 
+            public CustomItemContainer()
+            {
+                this.Loaded += CustomItemContainer_Loaded;
+                this.SizeChanged += CustomItemContainer_SizeChanged;
+            }
+
+            private void CustomItemContainer_Loaded(object sender, RoutedEventArgs e)
+            {
+                UpdatePosition();
+                InvalidateParentVisual();
+            }
+
+            private void CustomItemContainer_SizeChanged(object sender, SizeChangedEventArgs e)
+            {
+                UpdatePosition();
+                InvalidateParentVisual();
+            }
+
+            private void UpdatePosition()
+            {
+                Position = TranslatePoint(new Point(0, 0), (UIElement)VisualParent);
+            }
+
+            private void InvalidateParentVisual()
+            {
+                var parent = VisualParent as UIElement;
+                parent?.InvalidateVisual();
+            }
+        }
+    }
 }

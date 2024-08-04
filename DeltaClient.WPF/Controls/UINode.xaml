@@ -11,6 +11,7 @@
              Grid.Column='0'
              Fill='{Binding Fill ,Mode=OneTime}'
              Stretch='Uniform'
-             Stroke='Orange' />
+             Stroke='Orange' 
+             />
   </Grid>
 </UserControl>
