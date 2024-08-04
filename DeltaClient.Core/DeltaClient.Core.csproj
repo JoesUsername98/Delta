@@ -26,4 +26,8 @@
     <ProjectReference Include="..\DeltaDerivatives\DeltaDerivatives.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
 </Project>
