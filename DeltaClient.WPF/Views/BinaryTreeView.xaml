@@ -45,8 +45,7 @@
         <DataTemplate  DataType="{x:Type controls:UINode}">
           <controls:UINode Fill='Chocolate'
                            Height='50'
-                           Text=''
-                           ParentCoordinate='0,0' />
+                           Text=''/>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>

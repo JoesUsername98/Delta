@@ -4,10 +4,12 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace DeltaClient.WPF.Controls
 {
-    public class BinaryTreeControl : Canvas
+    public class BinaryTreeControl : Panel
     {
         public BinaryTreeControl()
         {
@@ -116,25 +118,40 @@ namespace DeltaClient.WPF.Controls
                     new Size() { Height = childHeight, Width = childHeight })
                     );
             }
-            foreach (ContentPresenter child in Children)
+            return finalSize;
+        }
+
+        protected override void OnRender(DrawingContext dc)
+        {
+            base.OnRender(dc);
+
+            foreach (ContentPresenter child in InternalChildren)
             {
                 var parentNode = child.Content as INode<State>;
                 var UIParent = child as FrameworkElement;
-                foreach (ContentPresenter otherChild in Children)
+                foreach (ContentPresenter otherChild in InternalChildren)
                 {
                     var otherNodeChild = otherChild.Content as INode<State>;
                     if (otherNodeChild.Previous != parentNode)
                         continue;
-
                     var uiOtherChild = otherChild as FrameworkElement;
-                    var originalPos = uiOtherChild.ReadLocalValue(UINode.ParentCoordinateProperty); // Check current value for debugging
-                    var parentCoords =  UIParent.PointToScreen(new Point(0, 0)); // Get correct value for the line to be drawn to
-                    uiOtherChild.SetValue( UINode.ParentCoordinateProperty , parentCoords); // set the value
-                    var changedPos = uiOtherChild.ReadLocalValue(UINode.ParentCoordinateProperty); // verify in debug that the value has been updated
+
+
+                    var point1 = UIParent.TranslatePoint(new Point(UIParent.RenderSize.Width / 2, UIParent.RenderSize.Height / 2), this);
+                    var point2 = uiOtherChild.TranslatePoint(new Point(uiOtherChild.RenderSize.Width / 2, uiOtherChild.RenderSize.Height / 2), this);
+
+                    dc.DrawLine(new Pen(Brushes.Black, 2), point1, point2);
                 }
             }
-            
-            return finalSize;
+        }
+
+        private Point GetPositionForChild(UIElement child)
+        {
+            // Implement your custom logic to determine the position of each child
+            // For example, you could arrange items in a circle, grid, etc.
+            // This is a simple example placing items in a horizontal line
+            int index = InternalChildren.IndexOf(child);
+            return new Point(index * 60, 0);
         }
     }
 

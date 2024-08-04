@@ -54,7 +54,7 @@ namespace DeltaClient.WPF.Controls
         //Used for debugging pupeoses at the moment 
         public string Text
         {
-            get { return $"Centre: {Centre},{Centre} \n Parent {ParentCoordinate.X},{ParentCoordinate.Y}"; }
+            get { return $"Centre: {Centre},{Centre}"; }
             set { _text = value; }
         }
 
@@ -64,34 +64,39 @@ namespace DeltaClient.WPF.Controls
             get { return Height == double.NaN ? 0: Height / 2; }
         }
 
+   //     //Where the Child-To-Parent line connects to 
+   //     public static readonly DependencyProperty ParentCoordinateProperty =
+   //DependencyProperty.Register(nameof(ParentCoordinate), typeof(System.Windows.Point), typeof(UINode), new
+   //   PropertyMetadata(new PropertyChangedCallback(OnParentCoordinatePropertyChangedCallBack)));
 
-        //Where the Child-To-Parent line connects to 
-        public static readonly DependencyProperty ParentCoordinateProperty =
-   DependencyProperty.Register("ParentCoordinate", typeof(System.Windows.Point), typeof(UINode), new
-      PropertyMetadata(new PropertyChangedCallback(OnParentCoordinatePropertyChangedCallBack)));
+   //     public System.Windows.Point ParentCoordinate
+   //     {
+   //         get {return (System.Windows.Point)GetValue(UINode.ParentCoordinateProperty); }
+   //         set
+   //         {
+   //             SetValue(ParentCoordinateProperty, value);
+   //             OnPropertyChanged(nameof(Text));
+   //         }
+   //     }
 
-        public System.Windows.Point ParentCoordinate
-        {
-            get { return (System.Windows.Point)GetValue(ParentCoordinateProperty); }
-            set
-            {
-                SetValue(ParentCoordinateProperty, value);
-                OnPropertyChanged("Text");
-            }
-        }
+   //     private static void OnParentCoordinatePropertyChangedCallBack(DependencyObject d,
+   //DependencyPropertyChangedEventArgs e)
+   //     {
+   //         UINode UserControl1Control = d as UINode;
+   //         if (UserControl1Control != null)
+   //             UserControl1Control.OnParentCoordinateChanged(e);
+   //     }
 
-        private static void OnParentCoordinatePropertyChangedCallBack(DependencyObject d,
-   DependencyPropertyChangedEventArgs e)
-        {
-            UINode UserControl1Control = d as UINode;
-            if (UserControl1Control != null)
-                UserControl1Control.OnParentCoordinateChanged(e);
-        }
+   //     protected virtual void OnParentCoordinateChanged(DependencyPropertyChangedEventArgs e)
+   //     {
+   //         OnPropertyChanged(nameof(ParentCoordinate)); 
+   //         OnPropertyChanged(nameof(Text));
+   //     }
 
-        protected virtual void OnParentCoordinateChanged(DependencyPropertyChangedEventArgs e)
-        {
-            ParentCoordinate = (System.Windows.Point)e.NewValue;
-            OnPropertyChanged("ParentCoordinateProperty");
-        }
+   //     public override void OnApplyTemplate()
+   //     {
+   //         parentLine = FindName("PART_ParentLine") as Line;
+   //         base.OnApplyTemplate();
+   //     }
     }
 }
