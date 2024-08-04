@@ -1,13 +1,9 @@
 ﻿using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Interfaces;
 using System;
-using System.Collections;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace DeltaClient.WPF.Controls
 {
@@ -49,14 +45,15 @@ namespace DeltaClient.WPF.Controls
 
         protected virtual Size NoOverlapMeasure(Size availableSize)
         {
-            if (Children.Count == 0)
-                return availableSize;
 
             if (availableSize.Height == double.PositiveInfinity)
-                availableSize.Height = 1000;
+                availableSize.Height = 1500;
 
             if (availableSize.Width == double.PositiveInfinity)
                 availableSize.Width = 1000;
+
+            if (Children.Count == 0)
+                return availableSize;
 
             int totalDepth = 0;
 
