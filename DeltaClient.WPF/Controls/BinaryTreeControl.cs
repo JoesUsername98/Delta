@@ -138,7 +138,7 @@ namespace DeltaClient.WPF.Controls
                 double yOffset = 0;
                 int depthCount = 0;
                 foreach (bool hOrT in nodeChild.Path)
-                    yOffset += (hOrT ? 1 : -1) * (finalSize.Height / 2) / Math.Pow(2, ++depthCount);
+                    yOffset += (hOrT ? -1 : 1) * (finalSize.Height / 2) / Math.Pow(2, ++depthCount);
 
                 int childDepth = nodeChild.Time;
 

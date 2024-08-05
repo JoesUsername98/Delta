@@ -12,7 +12,6 @@ namespace DeltaClient.WPF.Controls
 {
     public class BinaryTreeItemControl : ItemsControl
     {
-        private INotifyCollectionChanged _itemsSource;
         private DrawingVisual _lineVisual;
 
         public BinaryTreeItemControl()
@@ -64,8 +63,10 @@ namespace DeltaClient.WPF.Controls
                 {
                     var childVisual = (CustomItemContainer)ItemContainerGenerator.ContainerFromIndex(childIdx);
                     var otherNode = childVisual.Content as INode<State>;
-                    if (otherNode?.Previous != parent)
+                    if (otherNode.Previous != parent)
                         continue;
+                    
+                    bool isHeads = otherNode.Path.Last();
                     var childDiam = Math.Min(childVisual.RenderSize.Width / 2, childVisual.RenderSize.Height / 2);
                     var parentPt = parentVisual.TranslatePoint(new Point(parentDiam, parentDiam), this);
                     var childPoint = childVisual.TranslatePoint(new Point(childDiam, childDiam), this);
@@ -73,7 +74,7 @@ namespace DeltaClient.WPF.Controls
                     parentPt.X += parentVisual.RenderSize.Width / 2;
                     childPoint.X -= childVisual.RenderSize.Width / 2;
 
-                    dc.DrawLine(new Pen(Brushes.Black, 2), parentPt, childPoint);
+                    dc.DrawLine(new Pen(isHeads ? Brushes.Navy : Brushes.Crimson, 2), parentPt, childPoint);
                 }
             }
         }
