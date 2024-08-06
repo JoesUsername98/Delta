@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DeltaClient.Core\DeltaClient.Core.csproj" />
+    <ProjectReference Include="..\DeltaDerivatives\DeltaDerivatives.csproj" />
   </ItemGroup>
 
   <ItemGroup>

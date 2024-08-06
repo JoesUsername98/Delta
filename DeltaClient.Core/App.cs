@@ -1,13 +1,12 @@
-﻿using MvvmCross.ViewModels;
-using DeltaClient.Core.ViewModels;
+﻿//using DeltaClient.Core.ViewModels;
 
-namespace DeltaClient.Core
-{
-    public class App : MvxApplication
-    {
-        public override void Initialize()
-        {
-            RegisterAppStart<BinaryTreeViewModel>();
-        }
-    }
-}
+//namespace DeltaClient.Core
+//{
+//    public class App 
+//    {
+//        //public override void Initialize()
+//        //{
+//        //    RegisterAppStart<BinaryTreeViewModel>();
+//        //}
+//    }
+//}

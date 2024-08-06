@@ -1,13 +1,8 @@
-﻿using MvvmCross.Core;
-using MvvmCross.Platforms.Wpf.Views;
+﻿using System.Windows;
 
 namespace DeltaClient.WPF
 {
-    public partial class App : MvxApplication
+    public partial class App : Application
     {
-        protected override void RegisterSetup()
-        {
-            this.RegisterSetupType<Setup>();
-        }
     }
 }
