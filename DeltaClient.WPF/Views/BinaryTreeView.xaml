@@ -13,11 +13,13 @@
           x:Class="DeltaClient.WPF.Views.BinaryTreeView">
   <Grid>
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Width='37*'></ColumnDefinition>
-      <ColumnDefinition Width='13*'></ColumnDefinition>
+      <ColumnDefinition Width='3*'
+                        MinWidth='200' />
+      <ColumnDefinition Width='1*'
+                        MinWidth='200' />
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
-      <RowDefinition></RowDefinition>
+      <RowDefinition/>
     </Grid.RowDefinitions>
 
     <controls:BinaryTreeItemControl ItemsSource="{Binding DisplayTree, Mode=TwoWay}"
@@ -43,21 +45,21 @@
           Grid.Column='1'
           HorizontalAlignment='Left'>
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width='Auto'></ColumnDefinition>
-        <ColumnDefinition Width='Auto'></ColumnDefinition>
+        <ColumnDefinition Width='Auto'/>
+        <ColumnDefinition Width='Auto'/>
       </Grid.ColumnDefinitions>
       <Grid.RowDefinitions>
-        <RowDefinition Height='Auto'></RowDefinition>
-        <RowDefinition Height='Auto'></RowDefinition>
-        <RowDefinition Height='Auto'></RowDefinition>
-        <RowDefinition Height='Auto'></RowDefinition>
-        <RowDefinition Height='Auto'></RowDefinition>
-        <RowDefinition Height='Auto'></RowDefinition>
-        <RowDefinition Height='Auto'></RowDefinition>
-        <RowDefinition Height='Auto'></RowDefinition>
-        <RowDefinition Height='Auto'></RowDefinition>
-        <RowDefinition Height='Auto'></RowDefinition>
-        <RowDefinition Height='Auto'></RowDefinition>
+        <RowDefinition Height='Auto' />
+        <RowDefinition Height='Auto' />
+        <RowDefinition Height='Auto' />
+        <RowDefinition Height='Auto' />
+        <RowDefinition Height='Auto' />
+        <RowDefinition Height='Auto' />
+        <RowDefinition Height='Auto' />
+        <RowDefinition Height='Auto' />
+        <RowDefinition Height='Auto' />
+        <RowDefinition Height='Auto' />
+        <RowDefinition Height='Auto' />
       </Grid.RowDefinitions>
       <TextBlock Grid.Row='0'
                  Grid.Column='0'
@@ -168,7 +170,7 @@
               Grid.ColumnSpan='2'
               Content='Recalc!'
               HorizontalAlignment='Stretch'
-              IsEnabled='{Binding RecalcDynamically, Converter={StaticResource InverseBooleanConverter}, Mode=TwoWay}'
+              IsEnabled='{Binding RecalcManually}'
               Command='{Binding ReCalculateCommand}'
               />
     </Grid>

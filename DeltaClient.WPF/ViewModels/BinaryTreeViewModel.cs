@@ -58,6 +58,7 @@ namespace DeltaClient.Core.ViewModels
         private OptionExerciseType _exerciseType = OptionExerciseType.European;
         private OptionPayoffType _payoffType = OptionPayoffType.Call;
         private int _timePeriods = 3;
+        private bool _recalcDynamically = true;
         #endregion
         #region Public Properties
         public double UnderlyingPrice 
@@ -135,7 +136,17 @@ namespace DeltaClient.Core.ViewModels
                 OnPropertyChanged(nameof(TimePeriods));
             }
         }
-        public bool RecalcDynamically { get; set; } = true;
+        public bool RecalcDynamically 
+        {
+            get { return _recalcDynamically; } 
+            set
+            {
+                _recalcDynamically = value;
+                OnPropertyChanged(nameof(RecalcDynamically));
+                OnPropertyChanged(nameof(RecalcManually));
+            }
+        } 
+        public bool RecalcManually => !RecalcDynamically;
         public ObservableCollection<INode<State>> DisplayTree
         {
             get
