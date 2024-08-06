@@ -109,7 +109,6 @@ namespace DeltaClient.WPF.Controls
                     totalDepth = nodeChild.Time;
             }
 
-            double heigtSum = 0;
             double maxNodeSize = 0;
             double minNodeSize = 0;
             foreach (ContentPresenter child in Children)
@@ -119,16 +118,13 @@ namespace DeltaClient.WPF.Controls
 
                 double height = Math.Min(finalSize.Height / Math.Pow(2, nodeChild.Time),
                                 UIChild.DesiredSize.Height);
-                if (nodeChild.Time == totalDepth)
-                    heigtSum += height;
+                double width = Math.Min(finalSize.Width / (nodeChild.Time + 1),
+                 UIChild.DesiredSize.Height);
 
-                if (maxNodeSize < height)
-                    maxNodeSize = height;
-                if (minNodeSize < height)
-                    minNodeSize = height;
-
+                maxNodeSize = Math.Max(Math.Max(maxNodeSize, height), width);
+                minNodeSize = Math.Min(Math.Min(maxNodeSize, height), width);
             }
-            double xSepToUse = (finalSize.Width - maxNodeSize/2 - minNodeSize/2) / Math.Max(totalDepth, 1);
+            double xSepToUse = (finalSize.Width - minNodeSize) / Math.Max(totalDepth, 1);
 
             foreach (ContentPresenter child in Children)
             {
@@ -142,16 +138,13 @@ namespace DeltaClient.WPF.Controls
 
                 int childDepth = nodeChild.Time;
 
-                var childHeight = Math.Min(Math.Min(finalSize.Height, finalSize.Width) / Math.Pow(2, nodeChild.Time),
-                                            UIChild.DesiredSize.Height);
-
                 double newPosX = childDepth * xSepToUse;
-                double centreLineY = (finalSize.Height - childHeight) / 2;
+                double centreLineY = (finalSize.Height - minNodeSize) / 2;
                 double newPosY = centreLineY + yOffset;
 
                 UIChild.Arrange(
                     new Rect(new Point(newPosX, newPosY),
-                    new Size() { Height = childHeight, Width = childHeight })
+                    new Size() { Height = minNodeSize, Width = minNodeSize })
                     );
             }
             return finalSize;
