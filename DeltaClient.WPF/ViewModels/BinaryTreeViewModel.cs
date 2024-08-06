@@ -1,4 +1,5 @@
-﻿using DeltaDerivatives.Factory;
+﻿using DeltaClient.WPF.Commands;
+using DeltaDerivatives.Factory;
 using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Enums;
 using DeltaDerivatives.Objects.Interfaces;
@@ -8,6 +9,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows;
+using System.Windows.Input;
 
 namespace DeltaClient.Core.ViewModels
 {
@@ -16,8 +19,8 @@ namespace DeltaClient.Core.ViewModels
         public BinaryTreeViewModel()
         {
             UpdateTree();
+            ReCalculateCommand = new RelayCommand(ReCalculate, CanRecalculate);
         }
-
         private void UpdateTree()
         {
             LogicalTree = BinaryTreeFactory.CreateTree(_timePeriods);
@@ -32,7 +35,12 @@ namespace DeltaClient.Core.ViewModels
             OnPropertyChanged(nameof(OptionValue));
         }
 
-        #region Events and Event Handlers
+        #region Commands
+        public ICommand ReCalculateCommand { get; set; }
+        private bool CanRecalculate(object obj) => true;
+        private void ReCalculate(object obj) { UpdateTree(); }
+        #endregion
+        #region INotifyPropertyChanged Implementation
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged(string propertyName)
         {
@@ -58,7 +66,7 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _underlyingPrice = value;
-                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
+                if (RecalcDynamically) UpdateTree();
                 OnPropertyChanged(nameof(UnderlyingPrice));
             }
         } 
@@ -68,7 +76,7 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _strikePrice = value;
-                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
+                if (RecalcDynamically) UpdateTree();
                 OnPropertyChanged(nameof(StrikePrice));
             }
         }
@@ -78,7 +86,7 @@ namespace DeltaClient.Core.ViewModels
             set 
             {
                 _upFactor = value;
-                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
+                if (RecalcDynamically) UpdateTree();
                 OnPropertyChanged(nameof(UpFactor));
                 OnPropertyChanged(nameof(DownFactor));
             }
@@ -90,7 +98,7 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _interestRate = value;
-                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
+                if (RecalcDynamically) UpdateTree();
                 OnPropertyChanged(nameof(InterestRate));
             }
         }
@@ -100,7 +108,7 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _exerciseType = value;
-                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
+                if (RecalcDynamically) UpdateTree();
                 OnPropertyChanged(nameof(ExerciseType));
             }
         }
@@ -110,7 +118,7 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _payoffType = value;
-                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
+                if (RecalcDynamically) UpdateTree();
                 OnPropertyChanged(nameof(PayoffType));
             }
         }
@@ -123,11 +131,11 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _timePeriods = value;
-                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
+                if (RecalcDynamically) UpdateTree();
                 OnPropertyChanged(nameof(TimePeriods));
             }
         }
-        public bool? RecalcDynamically { get; set; } = true;
+        public bool RecalcDynamically { get; set; } = true;
         public ObservableCollection<INode<State>> DisplayTree
         {
             get

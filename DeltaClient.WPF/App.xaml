@@ -2,8 +2,10 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:DeltaClient.WPF"
+             xmlns:converters="clr-namespace:DeltaClient.WPF.Converters"
              StartupUri="Views/BinaryTreeView.xaml">
   <Application.Resources>
-
+    <converters:BooleanConverter x:Key="BooleanConverter" />
+    <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
   </Application.Resources>
 </Application>
