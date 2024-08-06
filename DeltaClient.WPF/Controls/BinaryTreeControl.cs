@@ -13,37 +13,8 @@ namespace DeltaClient.WPF.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(BinaryTreeControl), new FrameworkPropertyMetadata(typeof(BinaryTreeControl)));
         }
-        public double xElementSeparation { get; set; } = 50;
-        public double yElementSeparation { get; set; } = 50;
-        public bool OverlapNodes { get; set; } = true;
 
         protected override Size MeasureOverride(Size availableSize)
-        {
-            return OverlapNodes ? OverlapMeasure(availableSize) : NoOverlapMeasure(availableSize);
-        }
-        protected override Size ArrangeOverride(Size finalSize)
-        {
-            return OverlapNodes ? OverlapArrange(finalSize) : NoOverlapArrange(finalSize);
-        }
-
-        protected virtual Size OverlapMeasure(Size availableSize)
-        {
-            int totalDepth = 0;
-
-            foreach (ContentPresenter child in Children)
-            {
-                var nodeChild = child.Content as INode<State>;
-                totalDepth = Math.Max(nodeChild.Time, totalDepth);
-                child.Measure(availableSize);
-            }
-
-            double height = Math.Min(totalDepth * yElementSeparation * 2, 800);
-            double width = totalDepth * xElementSeparation;
-
-            return new Size(width, height);
-        }
-
-        protected virtual Size NoOverlapMeasure(Size availableSize)
         {
 
             if (availableSize.Height == double.PositiveInfinity)
@@ -75,27 +46,7 @@ namespace DeltaClient.WPF.Controls
             return new Size(width, height);
         }
 
-        protected virtual Size OverlapArrange(Size finalSize)
-        {
-            foreach (ContentPresenter child in Children)
-            {
-                var nodeChild = child.Content as INode<State>;
-                var UIChild = child as FrameworkElement;
-                int childDepth = nodeChild.Time;
-                int downness = nodeChild.Path.Count(t => t == false);
-
-                double yOffset = (childDepth - 2 * downness) * yElementSeparation;
-                double centreLineY = (finalSize.Height - UIChild.DesiredSize.Height) / 2;
-                double newPosY = centreLineY + yOffset ;
-
-                double newPosX = (childDepth) * xElementSeparation;
-
-                UIChild.Arrange(new Rect(new Point(newPosX, newPosY), UIChild.DesiredSize));
-            }
-            return finalSize;
-        }
-
-        protected virtual Size NoOverlapArrange(Size finalSize)
+        protected override Size ArrangeOverride(Size finalSize)
         {
             if (Children.Count == 0)
                 return finalSize;

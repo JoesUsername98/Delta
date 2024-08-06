@@ -9,7 +9,6 @@
           mc:Ignorable="d"
           Background='Aquamarine'
           d:DesignWidth='1000'
-          MaxHeight='1000'
           x:Class="DeltaClient.WPF.Views.BinaryTreeView">
   <Grid>
     <Grid.ColumnDefinitions>
@@ -29,8 +28,7 @@
                                     BorderThickness='10'>
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
-          <controls:BinaryTreeControl xElementSeparation='100'
-                                      OverlapNodes='False' />
+          <controls:BinaryTreeControl />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
