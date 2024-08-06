@@ -4,6 +4,8 @@
           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
           xmlns:controls="clr-namespace:DeltaClient.WPF.Controls"
           xmlns:xctk='http://schemas.xceed.com/wpf/xaml/toolkit'
+          xmlns:viewmodels='clr-namespace:DeltaClient.Core.ViewModels'
+          d:DataContext='{d:DesignInstance Type=viewmodels:BinaryTreeViewModel}'
           mc:Ignorable="d"
           Background='Aquamarine'
           d:DesignWidth='1000'
