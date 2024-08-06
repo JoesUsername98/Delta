@@ -150,6 +150,7 @@
                 Grid.Column='1'
                 HorizontalAlignment='Center'
                 VerticalAlignment='Center'
+                IsChecked='{Binding RecalcDynamically, Mode=TwoWay}'
                 Background='{x:Null}' />
       <TextBlock Grid.Row='9'
                  Grid.Column='0'

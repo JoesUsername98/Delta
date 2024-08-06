@@ -32,13 +32,14 @@ namespace DeltaClient.Core.ViewModels
             OnPropertyChanged(nameof(OptionValue));
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        #region Events and Event Handlers
+        public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged(string propertyName)
         {
-            if (PropertyChanged != null) // if there is any subscribers 
+            if (PropertyChanged != null)  
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
-
+        #endregion
         #region Private Members
         private ObservableCollection<INode<State>> _displayTree;
         private BinaryTree<Node<State>,State> _logicalTree;
@@ -57,7 +58,7 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _underlyingPrice = value;
-                if (RecalcDynamically) UpdateTree();
+                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
                 OnPropertyChanged(nameof(UnderlyingPrice));
             }
         } 
@@ -67,18 +68,17 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _strikePrice = value;
-                if (RecalcDynamically) UpdateTree();
+                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
                 OnPropertyChanged(nameof(StrikePrice));
             }
         }
-
         public double UpFactor 
         {
             get { return _upFactor; }
             set 
             {
                 _upFactor = value;
-                if (RecalcDynamically) UpdateTree();
+                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
                 OnPropertyChanged(nameof(UpFactor));
                 OnPropertyChanged(nameof(DownFactor));
             }
@@ -90,7 +90,7 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _interestRate = value;
-                if (RecalcDynamically) UpdateTree();
+                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
                 OnPropertyChanged(nameof(InterestRate));
             }
         }
@@ -100,7 +100,7 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _exerciseType = value;
-                if (RecalcDynamically) UpdateTree();
+                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
                 OnPropertyChanged(nameof(ExerciseType));
             }
         }
@@ -110,7 +110,7 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _payoffType = value;
-                if (RecalcDynamically) UpdateTree();
+                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
                 OnPropertyChanged(nameof(PayoffType));
             }
         }
@@ -123,12 +123,11 @@ namespace DeltaClient.Core.ViewModels
             set
             {
                 _timePeriods = value;
-                if (RecalcDynamically) UpdateTree();
+                if (RecalcDynamically.HasValue && RecalcDynamically.Value) UpdateTree();
                 OnPropertyChanged(nameof(TimePeriods));
             }
         }
-
-        bool RecalcDynamically { get; set; } = true;
+        public bool? RecalcDynamically { get; set; } = true;
         public ObservableCollection<INode<State>> DisplayTree
         {
             get
