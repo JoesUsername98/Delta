@@ -29,8 +29,10 @@ namespace DeltaClient.Core.ViewModels
             new PayoffBinaryTreeEnhancer(_payoffType, _strikePrice).Enhance(LogicalTree);
             new RiskNuetralProbabilityEnhancer().Enhance(LogicalTree);
             new ExpectedBinaryTreeEnhancer("PayOff").Enhance(LogicalTree);
+            new ExpectedBinaryTreeEnhancer("UnderlyingValue").Enhance(LogicalTree);
             new OptionPriceBinaryTreeEnhancer(_exerciseType).Enhance(LogicalTree);
             new DeltaHedgingBinaryTreeEnhancer().Enhance(LogicalTree);
+            if (_exerciseType == OptionExerciseType.American) new StoppingTimeBinaryTreeEnhancer().Enhance(LogicalTree);
             DisplayTree = new ObservableCollection<INode<State>>(LogicalTree);
             OnPropertyChanged(nameof(OptionValue));
         }
