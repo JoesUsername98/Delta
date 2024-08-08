@@ -7,5 +7,6 @@
   <Application.Resources>
     <converters:BooleanConverter x:Key="BooleanConverter" />
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    <converters:PathToStringConverter x:Key="PathToStringConverter" />
   </Application.Resources>
 </Application>

@@ -47,7 +47,7 @@
                 </Border>
                 <Border Grid.Row="0"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding Time}' />
+                  <TextBlock Text='{Binding Path=Node.Time}' />
                 </Border>
 
 
@@ -57,8 +57,9 @@
                 </Border>
                 <Border Grid.Row="1"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding NodePath}' />
-                </Border>
+            <TextBlock Text='{Binding Path=Node.Path, Converter={StaticResource PathToStringConverter}}' />
+                  
+          </Border>
 
                 <Border Grid.Row="2"
                         Grid.Column="0">
@@ -66,7 +67,7 @@
                 </Border>
                 <Border Grid.Row="2"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding UndVal}' />
+                  <TextBlock Text='{Binding Path=Node.Data.UnderlyingValue}' />
                 </Border>
 
                 <Border Grid.Row="3"
@@ -75,7 +76,7 @@
                 </Border>
                 <Border Grid.Row="3"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding PayOff}' />
+                <TextBlock Text='{Binding Path=Node.Data.PayOff}' />
                 </Border>
 
                 <Border Grid.Row="4"
@@ -84,7 +85,7 @@
                 </Border>
                 <Border Grid.Row="4"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding Delta}' />
+                  <TextBlock Text='{Binding Path=Node.Data.DeltaHedging}' />
                 </Border>
 
                 <Border Grid.Row="5"
@@ -93,7 +94,7 @@
                 </Border>
                 <Border Grid.Row="5"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding OptionValue}' />
+                  <TextBlock Text='{Binding Path=Node.Data.OptionValue}' />
                 </Border>
 
                 <Border Grid.Row="6"
@@ -102,7 +103,7 @@
                 </Border>
                 <Border Grid.Row="6"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding OptEx}' />
+                  <TextBlock Text='{Binding Path=Node.Data.OptimalExerciseTime}' />
                 </Border>
 
                 <Border Grid.Row="7"
@@ -111,7 +112,7 @@
                 </Border>
                 <Border Grid.Row="7"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding ExpPayOff}' />
+                  <TextBlock Text='{Binding Path=Node.Data.Expected.PayOff}' />
                 </Border>
 
                 <Border Grid.Row="8"
@@ -120,7 +121,7 @@
                 </Border>
                 <Border Grid.Row="8"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding ExpUndValue}' />
+                  <TextBlock Text='{Binding Path=Node.Data.Expected.UnderlyingValue}' />
                 </Border>
 
               </Grid>

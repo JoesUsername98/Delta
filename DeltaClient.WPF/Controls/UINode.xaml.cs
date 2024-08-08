@@ -31,7 +31,6 @@ namespace DeltaClient.WPF.Controls
             this.DataContext = this;
         }
         #endregion
-
         #region INotifyPropertyChanged Implementation
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged(string propertyName)
@@ -42,7 +41,7 @@ namespace DeltaClient.WPF.Controls
         #endregion
         #region Private Members
         private Brush _fill = Brushes.Orange;
-        private INode<State> Node { get; set; }
+        public INode<State> Node { get; set; }
         #endregion
         #region Public Properties
         public Brush Fill
@@ -54,15 +53,6 @@ namespace DeltaClient.WPF.Controls
                 OnPropertyChanged(nameof(Fill));
             }
         }
-        public int Time => Node.Time;
-        public string NodePath => Time == 0 ? "root":String.Join("", Node.Path.Select(v => (bool)v ? "H" : "T"));
-        public string UndVal => Node.Data.UnderlyingValue.ToString();
-        public string PayOff => Node.Data.PayOff.ToString();
-        public string Delta => Node.Data.DeltaHedging.ToString();
-        public string OptionValue => Node.Data.OptionValue.ToString();
-        public string OptEx => Node.Data.OptimalExerciseTime.ToString();
-        public string ExpPayOff => Node.Data.Expected.PayOff.ToString();
-        public string ExpUndValue => Node.Data.Expected.UnderlyingValue.ToString();
         #endregion
     }
 }
