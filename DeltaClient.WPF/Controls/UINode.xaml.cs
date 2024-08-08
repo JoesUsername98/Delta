@@ -20,30 +20,15 @@ namespace DeltaClient.WPF.Controls
             InitializeComponent();
             Loaded += UINode_Loaded;
         }
-        private void ShowDetailsWindow(object obj)
-        {
-            String message = $"Path is {String.Join("", Node.Path.Select(v => (bool)v ? "H" : "T"))} \n";
-            message += $"Time is {Node.Time} \n";
-            message += $"UnderlyingValue is {Node.Data.UnderlyingValue} \n";
-            message += $"Payoff is {Node.Data.PayOff} \n";
-            message += $"Delta is {Node.Data.DeltaHedging} \n";
-            message += $"OptionValue is {Node.Data.OptionValue} \n";
-            message += $"Optimal Exercise Time is {Node.Data.OptimalExerciseTime} \n";
-            message += $"E[PayOff] is {Node.Data.Expected.PayOff} \n";
-            message += $"E[UndelyingValue] is {Node.Data.Expected.UnderlyingValue} \n";
-
-            MessageBox.Show(message, "Node Details", MessageBoxButton.OK, MessageBoxImage.Asterisk);
-        }
 
         #region Events
-        private void Node_Click(object sender, RoutedEventArgs e)
-        {
-            ShowDetailsWindow(new object());
-        }
         private void UINode_Loaded(object sender, RoutedEventArgs e)
         {
             var temp = this.DataContext as INode<State>;
             Node = temp.Clone() as INode<State>;
+
+            // this works. Consider a VM here. Code is smelly
+            this.DataContext = this;
         }
         #endregion
 
@@ -69,8 +54,15 @@ namespace DeltaClient.WPF.Controls
                 OnPropertyChanged(nameof(Fill));
             }
         }
-
+        public int Time => Node.Time;
+        public string NodePath => Time == 0 ? "root":String.Join("", Node.Path.Select(v => (bool)v ? "H" : "T"));
+        public string UndVal => Node.Data.UnderlyingValue.ToString();
+        public string PayOff => Node.Data.PayOff.ToString();
+        public string Delta => Node.Data.DeltaHedging.ToString();
+        public string OptionValue => Node.Data.OptionValue.ToString();
+        public string OptEx => Node.Data.OptimalExerciseTime.ToString();
+        public string ExpPayOff => Node.Data.Expected.PayOff.ToString();
+        public string ExpUndValue => Node.Data.Expected.UnderlyingValue.ToString();
         #endregion
-
     }
 }
