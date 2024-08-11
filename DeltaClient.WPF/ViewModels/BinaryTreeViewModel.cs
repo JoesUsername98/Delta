@@ -146,6 +146,9 @@ namespace DeltaClient.Core.ViewModels
                 _recalcDynamically = value;
                 OnPropertyChanged(nameof(RecalcDynamically));
                 OnPropertyChanged(nameof(RecalcManually));
+                
+                if (_recalcDynamically)
+                    UpdateTree();
             }
         } 
         public bool RecalcManually => !RecalcDynamically;
