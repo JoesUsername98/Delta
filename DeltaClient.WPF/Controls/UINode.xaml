@@ -16,6 +16,7 @@
                    Stretch='Uniform'
                    Stroke='Orange'>
             <Ellipse.ToolTip>
+              
               <Grid>
                 <Grid.Resources>
                   <Style TargetType="Border">

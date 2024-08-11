@@ -18,12 +18,50 @@
                         MinWidth='200' />
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
+      <RowDefinition MinHeight='0'
+                     MaxHeight='20'>
+      <RowDefinition.Style>
+        <Style TargetType="{x:Type RowDefinition}">
+          <Setter Property="Height"
+                  Value='0' />
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding HasStatus}"
+                         Value="True">
+              <Setter Property="Height"
+                      Value="Auto" />
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </RowDefinition.Style>
+      </RowDefinition>
+      <RowDefinition MinHeight='0'
+                     MaxHeight='20'>
+      <RowDefinition.Style>
+        <Style TargetType="{x:Type RowDefinition}">
+          <Setter Property="Height"
+                  Value='0'/>
+          <Style.Triggers>
+              <DataTrigger Binding="{Binding HasError}"
+                           Value="True">
+                <Setter Property="Height"
+                        Value="Auto" />
+              </DataTrigger>
+          </Style.Triggers>
+        </Style>
+        </RowDefinition.Style>
+      </RowDefinition>
       <RowDefinition/>
     </Grid.RowDefinitions>
 
+    <TextBlock Grid.Row='0'
+               Text='{Binding Status}'
+               Visibility='{Binding HasStatus ,Converter={StaticResource BooleanConverter}}'  />
+    <TextBlock Grid.Row='1' 
+               Text='{Binding Error}'
+               Visibility='{Binding HasError ,Converter={StaticResource BooleanConverter}}' />
     <controls:BinaryTreeItemControl ItemsSource="{Binding DisplayTree, Mode=TwoWay}"
-                                    Margin='30,30,30,30'
-                                    Grid.Row='0'
+                                    Margin='5'
+                                    Grid.Row='2'
                                     BorderBrush='Black'
                                     BorderThickness='10'>
       <ItemsControl.ItemsPanel>
@@ -40,6 +78,7 @@
     </controls:BinaryTreeItemControl>
 
     <Grid Grid.Row='0'
+          Grid.RowSpan='3'
           Grid.Column='1'
           HorizontalAlignment='Left'>
       <Grid.ColumnDefinitions>

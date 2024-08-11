@@ -8,8 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
-using System.Windows;
 using System.Windows.Input;
 
 namespace DeltaClient.Core.ViewModels
@@ -23,18 +23,35 @@ namespace DeltaClient.Core.ViewModels
         }
         private void UpdateTree()
         {
-            LogicalTree = BinaryTreeFactory.CreateTree(_timePeriods);
-            new UnderlyingValueBinaryTreeEnhancer(_underlyingPrice, _upFactor).Enhance(LogicalTree);
-            new ConstantInterestRateBinaryTreeEnhancer(_interestRate).Enhance(LogicalTree);
-            new PayoffBinaryTreeEnhancer(_payoffType, _strikePrice).Enhance(LogicalTree);
-            new RiskNuetralProbabilityEnhancer().Enhance(LogicalTree);
-            new ExpectedBinaryTreeEnhancer("PayOff").Enhance(LogicalTree);
-            new ExpectedBinaryTreeEnhancer("UnderlyingValue").Enhance(LogicalTree);
-            new OptionPriceBinaryTreeEnhancer(_exerciseType).Enhance(LogicalTree);
-            new DeltaHedgingBinaryTreeEnhancer().Enhance(LogicalTree);
-            if (_exerciseType == OptionExerciseType.American) new StoppingTimeBinaryTreeEnhancer().Enhance(LogicalTree);
-            DisplayTree = new ObservableCollection<INode<State>>(LogicalTree);
-            OnPropertyChanged(nameof(OptionValue));
+            var timer = new Stopwatch();
+            try
+            {
+                timer.Start();
+                LogicalTree = BinaryTreeFactory.CreateTree(_timePeriods);
+                new UnderlyingValueBinaryTreeEnhancer(_underlyingPrice, _upFactor).Enhance(LogicalTree);
+                new ConstantInterestRateBinaryTreeEnhancer(_interestRate).Enhance(LogicalTree);
+                new PayoffBinaryTreeEnhancer(_payoffType, _strikePrice).Enhance(LogicalTree);
+                new RiskNuetralProbabilityEnhancer().Enhance(LogicalTree);
+                new ExpectedBinaryTreeEnhancer("PayOff").Enhance(LogicalTree);
+                new ExpectedBinaryTreeEnhancer("UnderlyingValue").Enhance(LogicalTree);
+                new OptionPriceBinaryTreeEnhancer(_exerciseType).Enhance(LogicalTree);
+                new DeltaHedgingBinaryTreeEnhancer().Enhance(LogicalTree);
+                if (_exerciseType == OptionExerciseType.American) new StoppingTimeBinaryTreeEnhancer().Enhance(LogicalTree);
+                DisplayTree = new ObservableCollection<INode<State>>(LogicalTree);
+                OnPropertyChanged(nameof(OptionValue));
+                Error = "";
+            }
+            catch( Exception ex)
+            {
+                Error = "Error! " + ex.Message;
+                Status = "";
+            }
+            finally
+            {
+                timer.Stop();
+                CalcTime = timer.ElapsedMilliseconds;
+            }
+
         }
 
         #region Commands
@@ -61,8 +78,48 @@ namespace DeltaClient.Core.ViewModels
         private OptionPayoffType _payoffType = OptionPayoffType.Call;
         private int _timePeriods = 3;
         private bool _recalcDynamically = true;
+        private string _status = "";
+        private string _error = "";
+        private long _calcTime = 0;
         #endregion
         #region Public Properties
+        public long CalcTime
+        {
+            get => _calcTime;
+            set
+            {
+                _calcTime = value;
+                OnPropertyChanged(nameof(CalcTime));
+                OnPropertyChanged(nameof(Status));
+                OnPropertyChanged(nameof(HasStatus));
+            }
+        }
+        public bool HasStatus => _status.Length > 0;
+        public string Status
+        {
+            get
+            {
+                _status = $"Calc Duration {CalcTime} ms";
+                return _status;
+            }
+            set
+            {
+                _status = value;
+                OnPropertyChanged(nameof(Status));
+                OnPropertyChanged(nameof(HasStatus));
+            }
+        }
+        public bool HasError => _error.Length > 0;
+        public string Error
+        {
+            get { return _error; }
+            set
+            {
+                _error = value;
+                OnPropertyChanged(nameof(Error));
+                OnPropertyChanged(nameof(HasError));
+            }
+        }
         public double UnderlyingPrice 
         { 
             get { return _underlyingPrice; } 
