@@ -10,12 +10,17 @@ namespace DeltaTests.Derivatives.Objects.BinaryTreeTests
     {
       //arrange
       var bt = BinaryTreeTestFactory.GenerateTimeTwoTree();
+      int originalCount = bt.Count;
+      int originalTime = bt.Time;
+
       //act
       var btClone = (BinaryTree<Node<string>, string>)bt.Clone();
-      //assert meta data correct
-      Assert.Equal(bt.Count, btClone.Count);
-      Assert.Equal(bt.Time, btClone.Time);
-    }
+      bt.Remove(bt.GetAt(new bool[] { true }));
+      bt.Remove(bt.GetAt(new bool[] { false }));
 
+      //assert meta data correct
+      Assert.Equal(originalCount, btClone.Count);
+      Assert.Equal(originalTime, btClone.Time);
+    }
   }
 }
