@@ -23,16 +23,6 @@ namespace DeltaClient.WPF.Controls
             RedrawLines();
         }
 
-        protected override DependencyObject GetContainerForItemOverride()
-        {
-            return new CustomItemContainer();
-        }
-
-        protected override bool IsItemItsOwnContainerOverride(object item)
-        {
-            return item is CustomItemContainer;
-        }
-
         protected override int VisualChildrenCount => base.VisualChildrenCount + 1;
 
         protected override Visual GetVisualChild(int index)
@@ -62,8 +52,8 @@ namespace DeltaClient.WPF.Controls
                 if (node.Previous is null)
                     continue;
 
-                var nodeVis = (CustomItemContainer)ItemContainerGenerator.ContainerFromItem(node);
-                var parentVis = (CustomItemContainer)ItemContainerGenerator.ContainerFromItem(node.Previous);
+                var nodeVis = (UIElement)ItemContainerGenerator.ContainerFromItem(node);
+                var parentVis = (UIElement)ItemContainerGenerator.ContainerFromItem(node.Previous);
 
                 var nodeDiam = Math.Min(nodeVis.RenderSize.Width / 2, nodeVis.RenderSize.Height / 2);
                 var parentDiam = Math.Min(parentVis.RenderSize.Width / 2, parentVis.RenderSize.Height / 2);
@@ -76,40 +66,6 @@ namespace DeltaClient.WPF.Controls
                 
                 bool isHeads = node.Path.Last();
                 dc.DrawLine(new Pen(isHeads ? Brushes.Navy : Brushes.Crimson, 2), parentPoint, nodePoint);
-            }
-        }
-
-        public class CustomItemContainer : ContentPresenter
-        {
-            public Point Position { get; set; }
-
-            public CustomItemContainer()
-            {
-                this.Loaded += CustomItemContainer_Loaded;
-                this.SizeChanged += CustomItemContainer_SizeChanged;
-            }
-
-            private void CustomItemContainer_Loaded(object sender, RoutedEventArgs e)
-            {
-                UpdatePosition();
-                InvalidateParentVisual();
-            }
-
-            private void CustomItemContainer_SizeChanged(object sender, SizeChangedEventArgs e)
-            {
-                UpdatePosition();
-                InvalidateParentVisual();
-            }
-
-            private void UpdatePosition()
-            {
-                Position = TranslatePoint(new Point(0, 0), (UIElement)VisualParent);
-            }
-
-            private void InvalidateParentVisual()
-            {
-                var parent = VisualParent as UIElement;
-                parent?.InvalidateVisual();
             }
         }
     }
