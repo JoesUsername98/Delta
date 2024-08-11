@@ -52,28 +52,30 @@ namespace DeltaClient.WPF.Controls
 
         private void ConnectNodes(DrawingContext dc)
         {
-            for (int parentIdx = 0; parentIdx < Items.Count; parentIdx++)
-            {
-                var parentVisual = (CustomItemContainer)ItemContainerGenerator.ContainerFromIndex(parentIdx);
-                var parent = parentVisual.Content as INode<State>;
-                var parentDiam = Math.Min(parentVisual.RenderSize.Width / 2, parentVisual.RenderSize.Height / 2);
-                for (int childIdx = 0; childIdx < Items.Count; childIdx++)
-                {
-                    var childVisual = (CustomItemContainer)ItemContainerGenerator.ContainerFromIndex(childIdx);
-                    var otherNode = childVisual.Content as INode<State>;
-                    if (otherNode.Previous != parent)
-                        continue;
-                    
-                    bool isHeads = otherNode.Path.Last();
-                    var childDiam = Math.Min(childVisual.RenderSize.Width / 2, childVisual.RenderSize.Height / 2);
-                    var parentPt = parentVisual.TranslatePoint(new Point(parentDiam, parentDiam), this);
-                    var childPoint = childVisual.TranslatePoint(new Point(childDiam, childDiam), this);
-                    //Move to front/end of nodes
-                    parentPt.X += parentVisual.RenderSize.Width / 2;
-                    childPoint.X -= childVisual.RenderSize.Width / 2;
+            if (ItemContainerGenerator.Items.Count == 0)
+                return; 
+           
+            var tree = new BinaryTree<INode<State>, State>() { ItemContainerGenerator.Items.Cast<INode<State>>().First(n => n.Time == 0) };
 
-                    dc.DrawLine(new Pen(isHeads ? Brushes.Navy : Brushes.Crimson, 2), parentPt, childPoint);
-                }
+            foreach ( var node in tree)
+            {
+                if (node.Previous is null)
+                    continue;
+
+                var nodeVis = (CustomItemContainer)ItemContainerGenerator.ContainerFromItem(node);
+                var parentVis = (CustomItemContainer)ItemContainerGenerator.ContainerFromItem(node.Previous);
+
+                var nodeDiam = Math.Min(nodeVis.RenderSize.Width / 2, nodeVis.RenderSize.Height / 2);
+                var parentDiam = Math.Min(parentVis.RenderSize.Width / 2, parentVis.RenderSize.Height / 2);
+
+                var nodePoint = nodeVis.TranslatePoint(new Point(nodeDiam, nodeDiam), this);
+                var parentPoint = parentVis.TranslatePoint(new Point(parentDiam, parentDiam), this);
+
+                parentPoint.X += parentVis.RenderSize.Width / 2;
+                nodePoint.X -= nodeVis.RenderSize.Width / 2;
+                
+                bool isHeads = node.Path.Last();
+                dc.DrawLine(new Pen(isHeads ? Brushes.Navy : Brushes.Crimson, 2), parentPoint, nodePoint);
             }
         }
 
