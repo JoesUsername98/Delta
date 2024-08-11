@@ -1,69 +1,69 @@
-﻿  <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-          xmlns:controls="clr-namespace:DeltaClient.WPF.Controls"
-          xmlns:xctk='http://schemas.xceed.com/wpf/xaml/toolkit'
-          xmlns:viewmodels='clr-namespace:DeltaClient.Core.ViewModels'
-          d:DataContext='{d:DesignInstance Type=viewmodels:BinaryTreeViewModel}'
-          mc:Ignorable="d"
-          Background='Aquamarine'
-          d:DesignWidth='1000'
-          x:Class="DeltaClient.WPF.Views.BinaryTreeView">
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:DeltaClient.WPF.Controls"
+        xmlns:xctk='http://schemas.xceed.com/wpf/xaml/toolkit'
+        xmlns:viewmodels='clr-namespace:DeltaClient.Core.ViewModels'
+        d:DataContext='{d:DesignInstance Type=viewmodels:BinaryTreeViewModel}'
+        mc:Ignorable="d"
+        Background='Aquamarine'
+        d:DesignWidth='1000'
+        x:Class="DeltaClient.WPF.Views.BinaryTreeView"
+        MinHeight='260'
+        MinWidth='315'>
   <Grid>
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Width='3*'
-                        MinWidth='200' />
-      <ColumnDefinition Width='1*'
-                        MinWidth='200' />
+      <ColumnDefinition  />
+      <ColumnDefinition Width='215' />
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
       <RowDefinition MinHeight='0'
                      MaxHeight='20'>
-      <RowDefinition.Style>
-        <Style TargetType="{x:Type RowDefinition}">
-          <Setter Property="Height"
-                  Value='0' />
-          <Style.Triggers>
-            <DataTrigger Binding="{Binding HasStatus}"
-                         Value="True">
-              <Setter Property="Height"
-                      Value="Auto" />
-            </DataTrigger>
-          </Style.Triggers>
-        </Style>
-      </RowDefinition.Style>
+        <RowDefinition.Style>
+          <Style TargetType="{x:Type RowDefinition}">
+            <Setter Property="Height"
+                    Value='0' />
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding HasStatus}"
+                           Value="True">
+                <Setter Property="Height"
+                        Value="Auto" />
+              </DataTrigger>
+            </Style.Triggers>
+          </Style>
+        </RowDefinition.Style>
       </RowDefinition>
       <RowDefinition MinHeight='0'
                      MaxHeight='20'>
-      <RowDefinition.Style>
-        <Style TargetType="{x:Type RowDefinition}">
-          <Setter Property="Height"
-                  Value='0'/>
-          <Style.Triggers>
+        <RowDefinition.Style>
+          <Style TargetType="{x:Type RowDefinition}">
+            <Setter Property="Height"
+                    Value='0'/>
+            <Style.Triggers>
               <DataTrigger Binding="{Binding HasError}"
                            Value="True">
                 <Setter Property="Height"
                         Value="Auto" />
               </DataTrigger>
-          </Style.Triggers>
-        </Style>
+            </Style.Triggers>
+          </Style>
         </RowDefinition.Style>
       </RowDefinition>
-      <RowDefinition/>
+      <RowDefinition />
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row='0'
                Text='{Binding Status}'
-               Visibility='{Binding HasStatus ,Converter={StaticResource BooleanConverter}}'  />
-    <TextBlock Grid.Row='1' 
+               Visibility='{Binding HasStatus ,Converter={StaticResource BooleanConverter}}'/>
+    <TextBlock Grid.Row='1'
                Text='{Binding Error}'
-               Visibility='{Binding HasError ,Converter={StaticResource BooleanConverter}}' />
-    <controls:BinaryTreeItemControl ItemsSource="{Binding DisplayTree, Mode=TwoWay}"
-                                    Margin='5'
+               Visibility='{Binding HasError ,Converter={StaticResource BooleanConverter}}'/>
+    <controls:BinaryTreeItemControl ItemsSource="{Binding Tree, Mode=TwoWay}"
+                                    Margin='5,5,5,5'
                                     Grid.Row='2'
                                     BorderBrush='Black'
-                                    BorderThickness='10'>
+                                    BorderThickness='5'>
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <controls:BinaryTreeControl />
@@ -72,7 +72,7 @@
       <ItemsControl.ItemTemplate>
         <DataTemplate  DataType="{x:Type controls:UINode}">
           <controls:UINode Fill='Chocolate'
-                           Height='50'/>
+                           Height='50' />
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </controls:BinaryTreeItemControl>
@@ -103,11 +103,11 @@
                  Text='Underlying Price'
                  HorizontalAlignment='Right' />
       <xctk:DoubleUpDown Grid.Row='0'
-                          Grid.Column='1'
-                          FormatString='C2'
-                          Value='{Binding UnderlyingPrice}'
-                          Minimum='0.05'
-                          Background='{x:Null}' />
+                         Grid.Column='1'
+                         FormatString='C2'
+                         Value='{Binding UnderlyingPrice}'
+                         Minimum='0.05'
+                         Background='{x:Null}' />
       <TextBlock Grid.Row='1'
                  Grid.Column='0'
                  Text='Strike Price'
@@ -123,34 +123,34 @@
                  Text='Up Factor'
                  HorizontalAlignment='Right' />
       <xctk:DoubleUpDown Grid.Row='2'
-                          Grid.Column='1'
-                          FormatString='F2'
-                          Value='{Binding UpFactor}'
-                          Increment='.05'
-                          Minimum='0.00'
-                          Background='{x:Null}' />
+                         Grid.Column='1'
+                         FormatString='F2'
+                         Value='{Binding UpFactor}'
+                         Increment='.05'
+                         Minimum='0.00'
+                         Background='{x:Null}' />
       <TextBlock Grid.Row='3'
                  Grid.Column='0'
                  Text='Down Factor'
                  HorizontalAlignment='Right' />
       <xctk:DoubleUpDown Grid.Row='3'
-                          Grid.Column='1'
-                          FormatString='F2'
-                          Value='{Binding DownFactor, Mode=OneWay}'
-                          IsReadOnly='True'
-                          Increment='.05'
-                          Minimum='0.00'
-                          Background='{x:Null}'/>
+                         Grid.Column='1'
+                         FormatString='F2'
+                         Value='{Binding DownFactor, Mode=OneWay}'
+                         IsReadOnly='True'
+                         Increment='.05'
+                         Minimum='0.00'
+                         Background='{x:Null}'/>
       <TextBlock Grid.Row='4'
                  Grid.Column='0'
                  Text='Interest Rates'
                  HorizontalAlignment='Right' />
       <xctk:DoubleUpDown Grid.Row='4'
-                          Grid.Column='1'
-                          FormatString='P2'
-                          Value='{Binding InterestRate}'
-                          Increment='.005'
-                          Background='{x:Null}' />
+                         Grid.Column='1'
+                         FormatString='P2'
+                         Value='{Binding InterestRate}'
+                         Increment='.005'
+                         Background='{x:Null}' />
       <TextBlock Grid.Row='5'
                  Grid.Column='0'
                  Text='Excercise Type'
@@ -208,8 +208,7 @@
               Content='Recalc!'
               HorizontalAlignment='Stretch'
               IsEnabled='{Binding RecalcManually}'
-              Command='{Binding ReCalculateCommand}'
-              />
+              Command='{Binding ReCalculateCommand}'/>
     </Grid>
   </Grid>
 </Window>
