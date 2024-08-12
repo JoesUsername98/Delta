@@ -40,6 +40,8 @@
                   <RowDefinition />
                   <RowDefinition />
                   <RowDefinition />
+                  <RowDefinition />
+                  <RowDefinition />
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0"
@@ -109,18 +111,36 @@
 
                 <Border Grid.Row="7"
                         Grid.Column="0">
-                  <TextBlock Text='E[PayOff]' />
+                  <TextBlock Text='P[Heads]' />
                 </Border>
                 <Border Grid.Row="7"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding Path=Node.Data.Expected.PayOff}' />
+                  <TextBlock Text='{Binding Path=Node.Data.ProbabilityHeads}' />
                 </Border>
 
                 <Border Grid.Row="8"
                         Grid.Column="0">
-                  <TextBlock Text='E[UnderlyingValue]' />
+                  <TextBlock Text='P[Tails]' />
                 </Border>
                 <Border Grid.Row="8"
+                        Grid.Column="1">
+                  <TextBlock Text='{Binding Path=Node.Data.ProbabilityTails}' />
+                </Border>
+                
+                <Border Grid.Row="9"
+                        Grid.Column="0">
+                  <TextBlock Text='E[PayOff]' />
+                </Border>
+                <Border Grid.Row="9"
+                        Grid.Column="1">
+                  <TextBlock Text='{Binding Path=Node.Data.Expected.PayOff}' />
+                </Border>
+
+                <Border Grid.Row="10"
+                        Grid.Column="0">
+                  <TextBlock Text='E[UnderlyingValue]' />
+                </Border>
+                <Border Grid.Row="10"
                         Grid.Column="1">
                   <TextBlock Text='{Binding Path=Node.Data.Expected.UnderlyingValue}' />
                 </Border>
