@@ -27,16 +27,18 @@ namespace DeltaClient.Core.ViewModels
             try
             {
                 timer.Start();
-                Tree = BinaryTreeFactory.CreateTree(_timePeriods);
-                new UnderlyingValueBinaryTreeEnhancer(_underlyingPrice, _upFactor).Enhance(Tree);
-                new ConstantInterestRateBinaryTreeEnhancer(_interestRate).Enhance(Tree);
-                new PayoffBinaryTreeEnhancer(_payoffType, _strikePrice).Enhance(Tree);
-                new RiskNuetralProbabilityEnhancer().Enhance(Tree);
-                new ExpectedBinaryTreeEnhancer("PayOff").Enhance(Tree);
-                new ExpectedBinaryTreeEnhancer("UnderlyingValue").Enhance(Tree);
-                new OptionPriceBinaryTreeEnhancer(_exerciseType).Enhance(Tree);
-                new DeltaHedgingBinaryTreeEnhancer().Enhance(Tree);
-                if (_exerciseType == OptionExerciseType.American) new StoppingTimeBinaryTreeEnhancer().Enhance(Tree);
+                Tree = BinaryTreeFactory.CreateTree(_timePeriods,
+                    new UnderlyingValueBinaryTreeEnhancer(_underlyingPrice, _upFactor),
+                    new ConstantInterestRateBinaryTreeEnhancer(_interestRate),
+                    new PayoffBinaryTreeEnhancer(_payoffType, _strikePrice),
+                    new RiskNuetralProbabilityEnhancer(),
+                    new ExpectedBinaryTreeEnhancer("PayOff"),
+                    new ExpectedBinaryTreeEnhancer("UnderlyingValue"),
+                    new OptionPriceBinaryTreeEnhancer(_exerciseType),
+                    new DeltaHedgingBinaryTreeEnhancer(),
+                    new StoppingTimeBinaryTreeEnhancer(_exerciseType)
+                );
+
                 OnPropertyChanged(nameof(OptionValue));
                 Error = "";
             }

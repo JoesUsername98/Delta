@@ -1,16 +1,27 @@
 ﻿using DeltaDerivatives.Objects;
+using DeltaDerivatives.Objects.Enums;
 using DeltaDerivatives.Objects.Interfaces;
 
 namespace DeltaDerivatives.Visitors
 {
-    public class StoppingTimeBinaryTreeEnhancer : IBinaryTreeEnhancer
+  public class StoppingTimeBinaryTreeEnhancer : IBinaryTreeEnhancer
   {
+    private readonly OptionExerciseType _exerciseType;
+    
+    // TODO DEPRECATE UNSAFE USAGE
     public StoppingTimeBinaryTreeEnhancer()
     {
-
+      _exerciseType = OptionExerciseType.American;
+    }
+    public StoppingTimeBinaryTreeEnhancer(OptionExerciseType exType )
+    {
+       _exerciseType = exType;
     }
     public void Enhance(BinaryTree<Node<State>, State> subject)
     {
+      if (_exerciseType != OptionExerciseType.American) 
+        return;
+
       //Expiration time nodes. 
       foreach (var node in subject.Where(n => n.Time == subject.Time))
       {
@@ -22,7 +33,6 @@ namespace DeltaDerivatives.Visitors
           node.Data.OptimalExerciseTime = node.Data.OptionValue > 0 ? node.Time : int.MaxValue;
           continue;
         }
-
         node.Data.OptimalExerciseTime = nodesInPathWhereShouldExercise.Time;
       }
 

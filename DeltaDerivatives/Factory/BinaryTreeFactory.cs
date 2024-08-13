@@ -20,6 +20,17 @@ namespace DeltaDerivatives.Factory
       }
       return bt;
     }
+    
+    // TODO ASSERT ORDER OF ENHANCERS
+    // TODO MAKE IBinaryTreeEnhancer.Enhance SEALED TO PREVENT CLIENTS USING
+    // TODO IMPLEMENT THROUGHT UNIT TESTS
+    public static BinaryTree<Node<State>, State> CreateTree(int time, params IBinaryTreeEnhancer[] enhancers)
+    {
+      var bt = CreateTree(time);
+      foreach (IBinaryTreeEnhancer enhancer in enhancers)
+          enhancer.Enhance(bt);
 
-  }
+      return bt;
+    }
+   }
 }
