@@ -32,5 +32,8 @@ namespace DeltaDerivatives.Factory
 
       return bt;
     }
+
+    // TODO ADD BinaryTreeFactory.ResetFromRoot(Node<State> newRoot) and
+    // TODO Seal new Node<T>(new T(), new bool[] { }) if possible
    }
 }
