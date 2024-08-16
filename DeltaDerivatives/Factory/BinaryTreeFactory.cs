@@ -20,10 +20,6 @@ namespace DeltaDerivatives.Factory
       }
       return bt;
     }
-    
-    // TODO ASSERT ORDER OF ENHANCERS
-    // TODO MAKE IBinaryTreeEnhancer.Enhance SEALED TO PREVENT CLIENTS USING
-    // TODO IMPLEMENT THROUGHT UNIT TESTS
     public static BinaryTree<Node<State>, State> CreateTree(int time, params IBinaryTreeEnhancer[] enhancers)
     {
       var bt = CreateTree(time);
@@ -32,8 +28,5 @@ namespace DeltaDerivatives.Factory
 
       return bt;
     }
-
-    // TODO ADD BinaryTreeFactory.ResetFromRoot(Node<State> newRoot) and
-    // TODO Seal new Node<T>(new T(), new bool[] { }) if possible
    }
 }

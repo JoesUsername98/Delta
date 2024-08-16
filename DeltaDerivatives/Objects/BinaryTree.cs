@@ -12,9 +12,9 @@ namespace DeltaDerivatives.Objects
         private int _count;
         private int _time;
 
-        private double? _constantUpFactor;//TODO REMOVE
-        public double? _constantDownFactor;//TODO REMOVE
-        private double? _constantInterestRate;//TODO REMOVE
+        private double? _constantUpFactor;
+        private double? _constantDownFactor;
+        private double? _constantInterestRate;
 
         public int Count 
         {
@@ -36,7 +36,7 @@ namespace DeltaDerivatives.Objects
         }
         public bool IsReadOnly => false;
         
-        public double? ConstantUpFactor //TODO REMOVE
+        public double? ConstantUpFactor 
         {
             get => _constantUpFactor;
             set
@@ -53,7 +53,7 @@ namespace DeltaDerivatives.Objects
                 _constantDownFactor = value;
                 NotifyPropertyChanged(nameof(ConstantDownFactor));
             }
-        } //TODO REMOVE
+        }
         public double? ConstantInterestRate
         {
             get => _constantInterestRate;
@@ -62,7 +62,7 @@ namespace DeltaDerivatives.Objects
                 _constantInterestRate = value;
                 NotifyPropertyChanged(nameof(ConstantInterestRate));
             }
-        } //TODO REMOVE
+        }
 
         public BinaryTree()
         {
