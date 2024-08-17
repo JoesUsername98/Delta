@@ -64,9 +64,27 @@ namespace DeltaClient.WPF.Controls
                 parentPoint.X += parentVis.RenderSize.Width / 2;
                 nodePoint.X -= nodeVis.RenderSize.Width / 2;
                 
-                bool isHeads = node.Path.Last();
-                dc.DrawLine(new Pen(isHeads ? Brushes.Navy : Brushes.Crimson, 2), parentPoint, nodePoint);
+                dc.DrawLine(GetColourForLine(node), parentPoint, nodePoint);
             }
+        }
+        private static readonly Pen _exercisedPen = new Pen()
+        {
+            Brush = Brushes.Black,
+            Thickness = 1,
+            DashStyle = new DashStyle(new double[] { 1,2,3}, 1)
+        };
+        private static readonly Pen _upPen = new Pen(){ Brush = Brushes.Navy, Thickness = 2 };
+        private static readonly Pen _downPen = new Pen() { Brush = Brushes.Crimson, Thickness = 2 };
+
+        private Pen GetColourForLine(INode<State> node)
+        {
+            if( !node.Data.OptimalExerciseTime.HasValue ) //European
+                return node.Path.Last() ? _upPen : _downPen;
+
+            if (node.Time > node.Data.OptimalExerciseTime.Value) //exercised
+                return _exercisedPen;
+
+            return node.Path.Last() ? _upPen : _downPen;
         }
     }
 }

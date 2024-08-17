@@ -40,7 +40,6 @@ namespace DeltaClient.WPF.Controls
         }
         #endregion
         #region Private Members
-        private Brush _fill = Brushes.Orange;
         public INode<State> Node { get; set; }
 
         public bool hasOptionalValue => Node.Data.OptimalExerciseTime.HasValue;
@@ -48,11 +47,14 @@ namespace DeltaClient.WPF.Controls
         #region Public Properties
         public Brush Fill
         {
-            get { return _fill; }
-            set
+            get 
             {
-                _fill = value;
-                OnPropertyChanged(nameof(Fill));
+                if (hasOptionalValue && Node.Data.OptimalExerciseTime.Value == Node.Time)
+                    return Brushes.Gold;
+                else if (hasOptionalValue && Node.Data.OptimalExerciseTime.Value < Node.Time)
+                    return Brushes.Black;
+                else
+                    return Brushes.Orange;
             }
         }
         #endregion

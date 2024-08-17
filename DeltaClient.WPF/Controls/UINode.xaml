@@ -12,9 +12,9 @@
           VerticalAlignment='Stretch'>
     <Ellipse Grid.Row='0'
                    Grid.Column='0'
-                   Fill='Orange'
+                   Fill="{Binding Fill}"
                    Stretch='Uniform'
-                   Stroke='Orange'>
+                   Stroke="{Binding Fill}">
             <Ellipse.ToolTip>
               
               <Grid>

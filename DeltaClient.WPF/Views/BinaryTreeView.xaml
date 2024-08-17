@@ -71,8 +71,7 @@
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate  DataType="{x:Type controls:UINode}">
-          <controls:UINode Fill='Chocolate'
-                           Height='50' />
+          <controls:UINode Height='50' />
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </controls:BinaryTreeItemControl>
