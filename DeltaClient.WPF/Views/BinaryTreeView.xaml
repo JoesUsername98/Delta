@@ -18,6 +18,7 @@
       <ColumnDefinition Width='215' />
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
+      <RowDefinition Height='Auto' />
       <RowDefinition MinHeight='0'
                      MaxHeight='20'>
         <RowDefinition.Style>
@@ -53,15 +54,44 @@
       <RowDefinition />
     </Grid.RowDefinitions>
 
-    <TextBlock Grid.Row='0'
+    <Ribbon x:Name="RibbonWin"
+            Grid.Row='0'
+            Grid.Column='0'
+            Grid.ColumnSpan='2'
+            SelectedIndex="1">
+      <RibbonTab Header="Calculation"
+                 KeyTip="C">
+        <RibbonGroup x:Name="Calculation_Settings"
+                     Header="Calculation" >
+        <RibbonCheckBox
+                Label='Dynamic Calculation'
+                IsChecked='{Binding RecalcDynamically, Converter={StaticResource BooleanConverter}, Mode=TwoWay}'
+                Background='{x:Null}' />
+        <RibbonButton Label='Recalc!'
+                IsEnabled='{Binding RecalcManually}'
+                Command='{Binding ReCalculateCommand}' />
+        </RibbonGroup>
+      </RibbonTab>
+      <RibbonTab Header="View"
+                 KeyTip="V">
+        <RibbonGroup x:Name="View_Settings"
+                     Header="View">
+          <RibbonCheckBox Label='Overlap Nodes'
+                          IsChecked='{Binding OverlapNodes, Converter={StaticResource BooleanConverter}, Mode=TwoWay}'
+                          Background='{x:Null}' />
+        </RibbonGroup>
+      </RibbonTab>
+    </Ribbon>
+
+    <TextBlock Grid.Row='1'
                Text='{Binding Status}'
                Visibility='{Binding HasStatus ,Converter={StaticResource BooleanConverter}}'/>
-    <TextBlock Grid.Row='1'
+    <TextBlock Grid.Row='2'
                Text='{Binding Error}'
                Visibility='{Binding HasError ,Converter={StaticResource BooleanConverter}}'/>
     <controls:BinaryTreeItemControl ItemsSource="{Binding Tree, Mode=TwoWay}"
                                     Margin='5,5,5,5'
-                                    Grid.Row='2'
+                                    Grid.Row='3'
                                     BorderBrush='Black'
                                     BorderThickness='5'>
       <ItemsControl.ItemsPanel>
@@ -76,7 +106,7 @@
       </ItemsControl.ItemTemplate>
     </controls:BinaryTreeItemControl>
 
-    <Grid Grid.Row='0'
+    <Grid Grid.Row='1'
           Grid.RowSpan='3'
           Grid.Column='1'
           HorizontalAlignment='Left'>
@@ -85,9 +115,6 @@
         <ColumnDefinition Width='Auto'/>
       </Grid.ColumnDefinitions>
       <Grid.RowDefinitions>
-        <RowDefinition Height='Auto' />
-        <RowDefinition Height='Auto' />
-        <RowDefinition Height='Auto' />
         <RowDefinition Height='Auto' />
         <RowDefinition Height='Auto' />
         <RowDefinition Height='Auto' />
@@ -183,42 +210,15 @@
                           Background='{x:Null}' />
       <TextBlock Grid.Row='8'
                  Grid.Column='0'
-                 Text='Dynamic Recalculation'
-                 HorizontalAlignment='Right' />
-      <CheckBox Grid.Row='8'
-                Grid.Column='1'
-                HorizontalAlignment='Center'
-                VerticalAlignment='Center'
-                IsChecked='{Binding RecalcDynamically, Converter={StaticResource BooleanConverter}, Mode=TwoWay}'
-                Background='{x:Null}' />
-      <TextBlock Grid.Row='9'
-                 Grid.Column='0'
                  Text='Option Value'
                  HorizontalAlignment='Right' />
-      <xctk:DoubleUpDown Grid.Row='9'
+      <xctk:DoubleUpDown Grid.Row='8'
                          Grid.Column='1'
                          FormatString='C2'
                          Value='{Binding OptionValue, Mode=OneWay}'
                          IsReadOnly='True'
                          Background='{x:Null}' />
-      <Button x:Name='Btn_Recalc'
-              Grid.Row='10'
-              Grid.Column='0'
-              Grid.ColumnSpan='2'
-              Content='Recalc!'
-              HorizontalAlignment='Stretch'
-              IsEnabled='{Binding RecalcManually}'
-              Command='{Binding ReCalculateCommand}'/>
-      <TextBlock Grid.Row='11'
-                 Grid.Column='0'
-                 Text='Overlap Nodes'
-                 HorizontalAlignment='Right' />
-      <CheckBox Grid.Row='11'
-                Grid.Column='1'
-                HorizontalAlignment='Center'
-                VerticalAlignment='Center'
-                IsChecked='{Binding OverlapNodes, Converter={StaticResource BooleanConverter}, Mode=TwoWay}'
-                Background='{x:Null}' />
+
     </Grid>
   </Grid>
 </Window>
