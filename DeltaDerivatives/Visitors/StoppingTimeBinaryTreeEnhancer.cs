@@ -40,7 +40,7 @@ namespace DeltaDerivatives.Visitors
       {
         //if exercise time nodes find the min stopping time to be this node or prior in path,
         //set stopping time to that minimum, else set to max int (do not exercise)
-        var minStopingTime = Math.Min(node.Heads.Data.OptimalExerciseTime, node.Tails.Data.OptimalExerciseTime);
+        var minStopingTime = Math.Min(node.Heads.Data.OptimalExerciseTime ?? int.MaxValue, node.Tails.Data.OptimalExerciseTime ?? int.MaxValue);
         node.Data.OptimalExerciseTime = minStopingTime <= node.Time ? minStopingTime : int.MaxValue;
         
       }

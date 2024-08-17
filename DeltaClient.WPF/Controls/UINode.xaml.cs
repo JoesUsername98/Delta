@@ -42,6 +42,8 @@ namespace DeltaClient.WPF.Controls
         #region Private Members
         private Brush _fill = Brushes.Orange;
         public INode<State> Node { get; set; }
+
+        public bool hasOptionalValue => Node.Data.OptimalExerciseTime.HasValue;
         #endregion
         #region Public Properties
         public Brush Fill
