@@ -9,20 +9,36 @@ namespace DeltaClient.WPF.Controls
 {
     public class BinaryTreeControl : Canvas
     {
+        public static readonly DependencyProperty OverlapProperty =
+            DependencyProperty.Register(
+                nameof(Overlap),                
+                typeof(bool),                   
+                typeof(BinaryTreeControl),      
+                new PropertyMetadata(true));    
+
+        public bool Overlap
+        {
+            get { return (bool)GetValue(OverlapProperty); }
+            set 
+            { 
+                SetValue(OverlapProperty, value); 
+                InvalidateMeasure();
+                InvalidateArrange();
+            }
+        }
+
         public BinaryTreeControl()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(BinaryTreeControl), new FrameworkPropertyMetadata(typeof(BinaryTreeControl)));
         }
-
         protected override Size MeasureOverride(Size availableSize)
         {
-
             if (availableSize.Height == double.PositiveInfinity)
                 availableSize.Height = 1500;
 
             if (availableSize.Width == double.PositiveInfinity)
                 availableSize.Width = 1000;
-
+            
             if (Children.Count == 0)
                 return availableSize;
 
@@ -45,8 +61,12 @@ namespace DeltaClient.WPF.Controls
 
             return new Size(width, height);
         }
-
+        
         protected override Size ArrangeOverride(Size finalSize)
+        {
+            return Overlap ? ArrangeOverlap(finalSize) : ArrangeNoOverlap(finalSize);
+        }
+        private Size ArrangeNoOverlap(Size finalSize)
         {
             if (Children.Count == 0)
                 return finalSize;
@@ -92,6 +112,57 @@ namespace DeltaClient.WPF.Controls
                 double newPosX = childDepth * xSepToUse;
                 double centreLineY = (finalSize.Height - minNodeSize) / 2;
                 double newPosY = centreLineY + yOffset;
+
+                UIChild.Arrange(
+                    new Rect(new Point(newPosX, newPosY),
+                    new Size() { Height = minNodeSize, Width = minNodeSize })
+                    );
+            }
+            return finalSize;
+        }
+        private Size ArrangeOverlap(Size finalSize)
+        {
+            if (Children.Count == 0)
+                return finalSize;
+
+            int totalDepth = 0;
+            foreach (ContentPresenter child in Children)
+            {
+                var nodeChild = child.Content as INode<State>;
+
+                if (nodeChild.Time > totalDepth)
+                    totalDepth = nodeChild.Time;
+            }
+
+            double maxNodeSize = 0;
+            double minNodeSize = 0;
+            foreach (ContentPresenter child in Children)
+            {
+                var nodeChild = child.Content as INode<State>;
+                var UIChild = child as FrameworkElement;
+
+                double height = Math.Min(finalSize.Height /( nodeChild.Time + 1 ),
+                                UIChild.DesiredSize.Height);
+                double width = Math.Min(finalSize.Width / (nodeChild.Time + 1),
+                 UIChild.DesiredSize.Height);
+
+                maxNodeSize = Math.Max(Math.Max(maxNodeSize, height), width);
+                minNodeSize = Math.Min(Math.Min(maxNodeSize, height), width);
+            }
+            double xSepToUse = (finalSize.Width - minNodeSize) / Math.Max(totalDepth, 1);
+
+            foreach (ContentPresenter child in Children)
+            {
+                var nodeChild = child.Content as INode<State>;
+                var UIChild = child as FrameworkElement;
+
+                double yOffset = 0;
+                foreach (bool hOrT in nodeChild.Path)
+                    yOffset += (hOrT ? -1D : 1D)  / (1D + totalDepth);
+
+                double newPosX = nodeChild.Time * xSepToUse;
+                double centreLineY = (finalSize.Height - minNodeSize) / 2;
+                double newPosY = centreLineY + yOffset * (finalSize.Height / 2);
 
                 UIChild.Arrange(
                     new Rect(new Point(newPosX, newPosY),

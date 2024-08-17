@@ -66,7 +66,7 @@
                                     BorderThickness='5'>
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
-          <controls:BinaryTreeControl />
+          <controls:BinaryTreeControl Overlap="{Binding OverlapNodes, Mode=TwoWay}" />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
@@ -85,6 +85,7 @@
         <ColumnDefinition Width='Auto'/>
       </Grid.ColumnDefinitions>
       <Grid.RowDefinitions>
+        <RowDefinition Height='Auto' />
         <RowDefinition Height='Auto' />
         <RowDefinition Height='Auto' />
         <RowDefinition Height='Auto' />
@@ -208,6 +209,16 @@
               HorizontalAlignment='Stretch'
               IsEnabled='{Binding RecalcManually}'
               Command='{Binding ReCalculateCommand}'/>
+      <TextBlock Grid.Row='11'
+                 Grid.Column='0'
+                 Text='Overlap Nodes'
+                 HorizontalAlignment='Right' />
+      <CheckBox Grid.Row='11'
+                Grid.Column='1'
+                HorizontalAlignment='Center'
+                VerticalAlignment='Center'
+                IsChecked='{Binding OverlapNodes, Converter={StaticResource BooleanConverter}, Mode=TwoWay}'
+                Background='{x:Null}' />
     </Grid>
   </Grid>
 </Window>

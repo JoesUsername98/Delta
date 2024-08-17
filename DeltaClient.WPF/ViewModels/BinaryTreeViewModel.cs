@@ -81,6 +81,7 @@ namespace DeltaClient.Core.ViewModels
         private string _status = "";
         private string _error = "";
         private long _calcTime = 0;
+        private bool _overlapNodes = true;
         #endregion
         #region Public Properties
         public long CalcTime
@@ -209,6 +210,19 @@ namespace DeltaClient.Core.ViewModels
             }
         } 
         public bool RecalcManually => !RecalcDynamically;
+        public bool OverlapNodes 
+        {
+            get { return _overlapNodes; }
+            set
+            {
+                if (_overlapNodes != value)
+                {
+                    _overlapNodes = value;
+                    OnPropertyChanged(nameof(OverlapNodes));
+                    UpdateTree(); // hack to redraw
+                }
+            }
+        }
         public BinaryTree<Node<State>, State> Tree
         {
             get
