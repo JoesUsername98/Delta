@@ -2,11 +2,10 @@
 using DeltaDerivatives.Factory;
 using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Enums;
-using DeltaDerivatives.Objects.Interfaces;
+using DeltaDerivatives.Objects.Records;
 using DeltaDerivatives.Visitors;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -15,11 +14,22 @@ using System.Windows.Input;
 namespace DeltaClient.Core.ViewModels
 {
     public class BinaryTreeViewModel : INotifyPropertyChanged
-    { 
+    {
+        // MAKE THIS A SERVICE
+        private static readonly Dictionary<string, BinaryTreeParams> Examples = new Dictionary<string, BinaryTreeParams>()
+        { 
+            { "EuropeanCall", new BinaryTreeParams( 3, 4, 2, 0.25, OptionPayoffType.Call, 5, OptionExerciseType.European ) },
+            { "EuropeanPut", new BinaryTreeParams( 3, 4, 2, 0.25, OptionPayoffType.Put, 5, OptionExerciseType.European ) },
+            { "AmericanCall", new BinaryTreeParams( 3, 4, 2, 0.25, OptionPayoffType.Call, 5, OptionExerciseType.American ) },
+            { "AmericanPut", new BinaryTreeParams( 3, 4, 2, 0.25, OptionPayoffType.Put, 5, OptionExerciseType.American ) },
+            { "Exercise4.2", new BinaryTreeParams( 3, 4, 2, 0.25, OptionPayoffType.Put, 5, OptionExerciseType.American ) }
+        }
+        ;
         public BinaryTreeViewModel()
         {
             UpdateTree();
             ReCalculateCommand = new RelayCommand(ReCalculate, CanRecalculate);
+            LoadExampleCommand = new RelayCommand(LoadExample, CanLoadExample);
         }
         private void UpdateTree()
         {
@@ -59,6 +69,26 @@ namespace DeltaClient.Core.ViewModels
         public ICommand ReCalculateCommand { get; set; }
         private bool CanRecalculate(object obj) => true;
         private void ReCalculate(object obj) { UpdateTree(); }
+        public ICommand LoadExampleCommand { get; set; }
+        private bool CanLoadExample(object obj) => true;
+        private void LoadExample (object obj) 
+        {
+            if (obj is not string)
+                return;
+
+            var nameOfExample = obj as string;
+            BinaryTreeParams p = Examples[nameOfExample];
+            if (p is null)
+                return;
+            
+            TimePeriods = p.timePeriods;
+            UnderlyingPrice = p.underlyingPrice;
+            UpFactor = p.upFactor;
+            InterestRate = p.interestRate;
+            StrikePrice = p.strikePrice;
+            ExerciseType = p.exerciseType;
+            PayoffType = p.payoffType;
+        }
         #endregion
         #region INotifyPropertyChanged Implementation
         public event PropertyChangedEventHandler? PropertyChanged;

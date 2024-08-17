@@ -63,13 +63,13 @@
                  KeyTip="C">
         <RibbonGroup x:Name="Calculation_Settings"
                      Header="Calculation" >
-        <RibbonCheckBox
-                Label='Dynamic Calculation'
-                IsChecked='{Binding RecalcDynamically, Converter={StaticResource BooleanConverter}, Mode=TwoWay}'
-                Background='{x:Null}' />
-        <RibbonButton Label='Recalc!'
-                IsEnabled='{Binding RecalcManually}'
-                Command='{Binding ReCalculateCommand}' />
+          <RibbonCheckBox
+                  Label='Dynamic Calculation'
+                  IsChecked='{Binding RecalcDynamically, Converter={StaticResource BooleanConverter}, Mode=TwoWay}'
+                  Background='{x:Null}' />
+          <RibbonButton Label='Recalc!'
+                  IsEnabled='{Binding RecalcManually}'
+                  Command='{Binding ReCalculateCommand}' />
         </RibbonGroup>
       </RibbonTab>
       <RibbonTab Header="View"
@@ -79,6 +79,27 @@
           <RibbonCheckBox Label='Overlap Nodes'
                           IsChecked='{Binding OverlapNodes, Converter={StaticResource BooleanConverter}, Mode=TwoWay}'
                           Background='{x:Null}' />
+        </RibbonGroup>
+      </RibbonTab>
+      <RibbonTab Header="Examples"
+                 KeyTip="E">
+        <RibbonGroup x:Name="Examples"
+                     Header="Examples">
+          <RibbonButton Label='European Call'
+                        Command='{Binding LoadExampleCommand}' 
+                        CommandParameter='EuropeanCall'/>
+          <RibbonButton Label='European Put'
+                        Command='{Binding LoadExampleCommand}'
+                        CommandParameter='EuropeanPut' />
+          <RibbonButton Label='American Call'
+                        Command='{Binding LoadExampleCommand}'
+                        CommandParameter='AmericanCall' />
+          <RibbonButton Label='American Put'
+                        Command='{Binding LoadExampleCommand}'
+                        CommandParameter='AmericanPut' />
+          <RibbonButton Label='Exercise 4.2'
+                        Command='{Binding LoadExampleCommand}'
+                        CommandParameter='Exercise4.2' />
         </RibbonGroup>
       </RibbonTab>
     </Ribbon>
