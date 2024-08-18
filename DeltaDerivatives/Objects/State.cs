@@ -29,6 +29,7 @@ namespace DeltaDerivatives.Objects
               ProbabilityHeads == other.ProbabilityHeads &&
               PayOff == other.PayOff &&
               InterestRate == other.InterestRate &&
+              OptionValue == other.OptionValue &&
               DeltaHedging == other.DeltaHedging;
     }
     /// <summary>
