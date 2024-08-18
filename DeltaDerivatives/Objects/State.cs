@@ -29,7 +29,7 @@ namespace DeltaDerivatives.Objects
               ProbabilityHeads == other.ProbabilityHeads &&
               PayOff == other.PayOff &&
               InterestRate == other.InterestRate &&
-              Expected == other.Expected;
+              DeltaHedging == other.DeltaHedging;
     }
     /// <summary>
     /// Get the discount rate of this node down to N = 0 (root)
