@@ -35,7 +35,7 @@ namespace DeltaTests.Derivatives.Builder
             foreach( var bTreeNode in bTree)
             {
                 var bTreeState = bTreeNode.Data;
-                var tMatState = tMat.GetAt(bTreeNode.Path);
+                var tMatState = tMat.GetAt(bTreeNode.Path).Data;
                 Assert.True(bTreeState.Equals(tMatState));
             }
 
@@ -65,7 +65,7 @@ namespace DeltaTests.Derivatives.Builder
             foreach (var bTreeNode in bTree)
             {
                 var bTreeState = bTreeNode.Data;
-                var tMatState = tMat.GetAt(bTreeNode.Path);
+                var tMatState = tMat.GetAt(bTreeNode.Path).Data;
                 Assert.True(bTreeState.Equals(tMatState));
             }
 
@@ -95,7 +95,7 @@ namespace DeltaTests.Derivatives.Builder
             foreach (var bTreeNode in bTree)
             {
                 var bTreeState = bTreeNode.Data;
-                var tMatState = tMat.GetAt(bTreeNode.Path);
+                var tMatState = tMat.GetAt(bTreeNode.Path).Data;
                 Assert.True(bTreeState.Equals(tMatState));
             }
 
@@ -125,7 +125,7 @@ namespace DeltaTests.Derivatives.Builder
             foreach (var bTreeNode in bTree)
             {
                 var bTreeState = bTreeNode.Data;
-                var tMatState = tMat.GetAt(bTreeNode.Path);
+                var tMatState = tMat.GetAt(bTreeNode.Path).Data;
                 Assert.True(bTreeState.Equals(tMatState));
             }
 

@@ -20,7 +20,6 @@ namespace DeltaDerivatives.Builders
     public interface ITriMatBuilderWithPayoff
     {
         public ITriMatBuilderWithRiskNuetralProb WithPayoff(OptionPayoffType optionType, double strikePrice);
-        //protected Func<State, double, double> GetPayoffStrategy(OptionPayoffType type);
     }
     public interface ITriMatBuilderWithRiskNuetralProb
     {
@@ -29,7 +28,6 @@ namespace DeltaDerivatives.Builders
     public interface ITriMatBuilderWithPremium
     {
         public ITriMatBuilderWithDelta WithPremium(OptionExerciseType exerciseType);
-        //protected Func<State, State?, State?, double> GetOptionPricingStrategy(OptionExerciseType type);
     }
     public interface ITriMatBuilderWithDelta
     {
@@ -37,7 +35,7 @@ namespace DeltaDerivatives.Builders
     }
     public interface ITriMatBuilderReady
     {
-        public TriangularMatrix<State> Build();
+        public TriangularMatrix<TriMatNode<State>, State> Build();
     }
 
     public class TriangularMatrixBuilder :
@@ -49,7 +47,7 @@ namespace DeltaDerivatives.Builders
         ITriMatBuilderWithDelta,
         ITriMatBuilderReady
     {
-        TriangularMatrix<State> _result;
+        TriangularMatrix<TriMatNode<State>, State> _result;
 
         private double _upFactor;
         private double _downFactor;
@@ -59,7 +57,7 @@ namespace DeltaDerivatives.Builders
 
         public TriangularMatrixBuilder(int time)
         {
-            _result = new TriangularMatrix<State>(time);
+            _result = new TriangularMatrix<TriMatNode<State>, State>(time);
         }
         public ITriMatBuilderWithInterestRate WithUnderlyingValue(double initialPrice, double upFactor)
         {
@@ -74,8 +72,16 @@ namespace DeltaDerivatives.Builders
                 for (int downMoves = _result.matrix[time].Length - 1; downMoves >= 0; downMoves--)
                 {
                     int noOfHeads = time - downMoves;
-                    _result.matrix[time][downMoves] = new State();
-                    _result.matrix[time][downMoves].UnderlyingValue = initialPrice * Math.Pow(_upFactor, noOfHeads) * Math.Pow(_downFactor, downMoves);
+                    TriMatNode<State>? parentHeads = time - 1 >= downMoves && time - 1 > 0 ? _result.matrix[time - 1][downMoves] : null;
+                    TriMatNode<State>? heads = time + 1 >= downMoves && time + 1 < _result.matrix.Length ? _result.matrix[time + 1][downMoves] : null;
+                    TriMatNode<State>? parentTails = time - 1 >= downMoves - 1 && time - 1 > 0 && downMoves - 1 > 0 ? _result.matrix[time - 1][downMoves -1 ] : null;
+                    TriMatNode<State>? tails = time + 1 >= downMoves + 1 && time + 1 < _result.matrix.Length && downMoves + 1 < _result.matrix[time + 1].Length ?
+                        _result.matrix[time + 1][downMoves + 1] : null;
+
+                    _result.matrix[time][downMoves] =
+                        new TriMatNode<State>(time, downMoves,
+                        new State() { UnderlyingValue = initialPrice * Math.Pow(_upFactor, noOfHeads) * Math.Pow(_downFactor, downMoves) },
+                        parentHeads, parentTails, heads, tails );
                 }
 
             return this;
@@ -85,7 +91,7 @@ namespace DeltaDerivatives.Builders
             _interestRate = constantInterestRate;
 
             foreach (var state in _result)
-                state.InterestRate = constantInterestRate;
+                state.Data.InterestRate = constantInterestRate;
 
             return this;
         }
@@ -94,7 +100,7 @@ namespace DeltaDerivatives.Builders
             _payoffStrategy = GetPayoffStrategy(optionType);
 
             foreach (var state in _result)
-                state.PayOff = _payoffStrategy(state, strikePrice);
+                state.Data.PayOff = _payoffStrategy(state.Data, strikePrice);
 
             return this;
         }
@@ -117,7 +123,7 @@ namespace DeltaDerivatives.Builders
             if (1 + _interestRate <= _downFactor) throw new InvalidOperationException("1 + r > d to prevent arbitrage");
 
             foreach (var state in _result)
-                state.ProbabilityHeads = (1 + state.InterestRate - _downFactor) / (_upFactor - _downFactor);
+                state.Data.ProbabilityHeads = (1 + state.Data.InterestRate - _downFactor) / (_upFactor - _downFactor);
 
             return this;
         }
@@ -128,21 +134,21 @@ namespace DeltaDerivatives.Builders
             for (int time = _result.matrix.Length - 1; time >= 0; time--)
                 for (int downMoves = _result.matrix[time].Length - 1; downMoves >= 0; downMoves--)
                 {
-                    var state = _result.matrix[time][downMoves];
-                    State? heads = time >= _result.matrix.Length - 1 ? null : _result.matrix[time + 1][downMoves];
-                    State? tails = time >= _result.matrix.Length - 1 ? null : _result.matrix[time + 1][downMoves + 1];
+                    var node = _result.matrix[time][downMoves];
+                    State? heads = node.Heads?.Data;
+                    State? tails = node.Tails?.Data;
 
-                    if (state?.PayOff is null) throw new NullReferenceException($"Payoff is not set");
+                    if (node?.Data?.PayOff is null) throw new NullReferenceException($"Payoff is not set");
 
                     if (time == _result.matrix.Length - 1 || exerciseType == OptionExerciseType.American)
                     {
-                        state.OptionValue = _optionPricingStrategy(state, heads, tails);
+                        node.Data.OptionValue = _optionPricingStrategy(node.Data, heads, tails);
                         continue;
                     }
 
-                    state.OptionValue = state.DiscountRate *
-                                              (heads.OptionValue * state.ProbabilityHeads +
-                                               tails.OptionValue * state.ProbabilityTails);
+                    node.Data.OptionValue = node.Data.DiscountRate *
+                                              (heads.OptionValue * node.Data.ProbabilityHeads +
+                                               tails.OptionValue * node.Data.ProbabilityTails);
                 }
 
             return this;
@@ -169,20 +175,20 @@ namespace DeltaDerivatives.Builders
             for (int time = _result.matrix.Length - 2; time >= 0; time--)
                 for (int downMoves = _result.matrix[time].Length - 1; downMoves >= 0; downMoves--)
                 {
-                    var state = _result.matrix[time][downMoves];
-                    State heads = _result.matrix[time + 1][downMoves];
-                    State tails = _result.matrix[time + 1][downMoves + 1];
+                    var node = _result.matrix[time][downMoves];
+                    State heads = node.Heads.Data;
+                    State tails = node.Tails.Data;
 
                     if (heads.UnderlyingValue == tails.UnderlyingValue)
                         throw new DivideByZeroException("Underlying Value of heads and tails node are the same leading to a divide by 0 error");
 
-                    state.DeltaHedging = (heads.OptionValue - tails.OptionValue)
+                    node.Data.DeltaHedging = (heads.OptionValue - tails.OptionValue)
                                             / (heads.UnderlyingValue - tails.UnderlyingValue);
                 }
 
             return this;
         }
 
-        public TriangularMatrix<State> Build() => _result;
+        public TriangularMatrix<TriMatNode<State>, State> Build() => _result;
     }
 }
