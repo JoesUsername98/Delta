@@ -155,7 +155,7 @@
                        Margin='1' />
             <xctk:IntegerUpDown Grid.Row='0'
                                Grid.Column='1'
-                               Maximum='8'
+                               Maximum='20'
                                Minimum='0'
                                Value='{Binding TimePeriods}'
                                Background='{x:Null}'
