@@ -1,12 +1,12 @@
 ﻿namespace DeltaDerivatives.Objects
 {
-    public interface ITriMatNode<StateType>
+    public interface ITriMatNode<StateType> : ICloneable
     {
         StateType Data { get; set; }
-        ITriMatNode<StateType>? ParentHeads { get; init; }
-        ITriMatNode<StateType>? ParentTails { get; init; }
-        ITriMatNode<StateType>? Heads { get; init; }
-        ITriMatNode<StateType>? Tails { get; init; }
+        ITriMatNode<StateType>? ParentHeads { get; set; }
+        ITriMatNode<StateType>? ParentTails { get; set; }
+        ITriMatNode<StateType>? Heads { get; set; }
+        ITriMatNode<StateType>? Tails { get; set; }
         int Time { get; init; }
         int DownMoves { get; init; }
     }

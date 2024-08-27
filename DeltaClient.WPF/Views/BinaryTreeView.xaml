@@ -245,6 +245,12 @@
                              Margin='1' />
           </Grid>
         </RibbonGroup>
+        <RibbonGroup x:Name="Calculation_Method"
+                     Header="Method">
+          <RibbonCheckBox   Label='Use Matrix'
+                            IsChecked='{Binding UseTriMat, Converter={StaticResource BooleanConverter}, Mode=TwoWay}'
+                            Background='{x:Null}' />
+        </RibbonGroup>
       </RibbonTab>
       <RibbonTab Header="View"
                  KeyTip="V">
@@ -284,18 +290,23 @@
     <TextBlock Grid.Row='2'
                Text='{Binding Error}'
                Visibility='{Binding HasError ,Converter={StaticResource BooleanConverter}}'/>
-    <controls:BinaryTreeItemControl ItemsSource="{Binding Tree, Mode=TwoWay}"
+    <controls:BinaryTreeItemControl ItemsSource="{Binding NodeCollection}"
+                                    UseTriMat="{Binding UseTriMat, Mode=TwoWay}"
                                     Margin='5,5,5,5'
                                     Grid.Row='3'
                                     BorderBrush='Black'
                                     BorderThickness='5'>
+      <!--Tree-->
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
-          <controls:BinaryTreeControl Overlap="{Binding OverlapNodes, Mode=TwoWay}" />
+          <controls:BinaryTreeControl 
+            Overlap="{Binding OverlapNodes, Mode=TwoWay}"
+            UseTriMat="{Binding UseTriMat, Mode=TwoWay}" 
+            />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
-        <DataTemplate  DataType="{x:Type controls:UINode}">
+        <DataTemplate  DataType="{x:Type controls:UINode}" >
           <controls:UINode Height='50' />
         </DataTemplate>
       </ItemsControl.ItemTemplate>

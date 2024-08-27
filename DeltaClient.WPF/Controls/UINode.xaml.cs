@@ -21,11 +21,25 @@ namespace DeltaClient.WPF.Controls
             Loaded += UINode_Loaded;
         }
 
+        private bool _useTriMat;
+
         #region Events
         private void UINode_Loaded(object sender, RoutedEventArgs e)
         {
-            var temp = this.DataContext as INode<State>;
-            Node = temp.Clone() as INode<State>;
+            _useTriMat = this.DataContext is TriMatNode<State>;
+
+            if (_useTriMat )
+            {
+                var temp = this.DataContext as TriMatNode<State>;
+                NodeTriMat = temp.Clone() as TriMatNode<State>;
+                NodeBT = null;
+            }
+            else
+            { 
+                var temp = this.DataContext as INode<State>;
+                NodeBT = temp.Clone() as INode<State>;
+                NodeTriMat = null;
+            }
 
             // this works. Consider a VM here. Code is smelly
             this.DataContext = this;
@@ -40,18 +54,19 @@ namespace DeltaClient.WPF.Controls
         }
         #endregion
         #region Private Members
-        public INode<State> Node { get; set; }
-
-        public bool hasOptionalValue => Node.Data.OptimalExerciseTime.HasValue;
+        public INode<State>? NodeBT { get; set; }
+        public TriMatNode<State>? NodeTriMat { get; set; }
+        public object Node => _useTriMat ? NodeTriMat : NodeBT;
+        public bool hasOptionalValue => NodeBT?.Data?.OptimalExerciseTime.HasValue ?? false ;
         #endregion
         #region Public Properties
         public Brush Fill
         {
             get 
             {
-                if (hasOptionalValue && Node.Data.OptimalExerciseTime.Value == Node.Time)
+                if (!_useTriMat && hasOptionalValue && NodeBT.Data.OptimalExerciseTime.Value == NodeBT.Time)
                     return Brushes.Gold;
-                else if (hasOptionalValue && Node.Data.OptimalExerciseTime.Value < Node.Time)
+                else if (!_useTriMat && hasOptionalValue && NodeBT.Data.OptimalExerciseTime.Value < NodeBT.Time)
                     return Brushes.Black;
                 else
                     return Brushes.Orange;

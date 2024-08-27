@@ -15,11 +15,20 @@
             Tails = tails;
         }
         public StateType Data { get; set; }
-        public ITriMatNode<StateType>? ParentHeads { get; init; }
-        public ITriMatNode<StateType>? ParentTails { get; init; }
-        public ITriMatNode<StateType>? Heads { get; init; }
-        public ITriMatNode<StateType>? Tails { get; init; }
+        public ITriMatNode<StateType>? ParentHeads { get; set; }
+        public ITriMatNode<StateType>? ParentTails { get; set; }
+        public ITriMatNode<StateType>? Heads { get; set; }
+        public ITriMatNode<StateType>? Tails { get; set; }
         public int Time { get; init; }
         public int DownMoves { get; init; }
+
+        public object Clone()
+        {
+            return new TriMatNode<StateType>(this.Time, this.DownMoves, this.Data,
+                (TriMatNode<StateType>?)this.ParentHeads,
+                (TriMatNode<StateType>?)this.ParentTails,
+                (TriMatNode<StateType>?)this.Heads,
+                (TriMatNode<StateType>?)this.Tails);
+        }
     }
 }

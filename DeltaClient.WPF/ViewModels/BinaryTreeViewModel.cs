@@ -1,4 +1,5 @@
 ﻿using DeltaClient.WPF.Commands;
+using DeltaDerivatives.Builders;
 using DeltaDerivatives.Factory;
 using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Enums;
@@ -6,6 +7,7 @@ using DeltaDerivatives.Objects.Records;
 using DeltaDerivatives.Visitors;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -37,17 +39,31 @@ namespace DeltaClient.Core.ViewModels
             try
             {
                 timer.Start();
-                Tree = BinaryTreeFactory.CreateTree(_timePeriods,
-                    new UnderlyingValueBinaryTreeEnhancer(_underlyingPrice, _upFactor),
-                    new ConstantInterestRateBinaryTreeEnhancer(_interestRate),
-                    new PayoffBinaryTreeEnhancer(_payoffType, _strikePrice),
-                    new RiskNuetralProbabilityEnhancer(),
-                    new ExpectedBinaryTreeEnhancer("PayOff"),
-                    new ExpectedBinaryTreeEnhancer("UnderlyingValue"),
-                    new OptionPriceBinaryTreeEnhancer(_exerciseType),
-                    new DeltaHedgingBinaryTreeEnhancer(),
-                    new StoppingTimeBinaryTreeEnhancer(_exerciseType)
-                );
+                if ( UseTriMat )
+                {
+                    Matrix = new TriangularMatrixBuilder(_timePeriods)
+                        .WithUnderlyingValue(_underlyingPrice, _upFactor)
+                        .WithInterestRate(_interestRate)
+                        .WithPayoff(_payoffType, _strikePrice)
+                        .WithRiskNuetralProb()
+                        .WithPremium(_exerciseType)
+                        .WithDelta()
+                        .Build();
+                }
+                else
+                {
+                    Tree = BinaryTreeFactory.CreateTree(_timePeriods,
+                        new UnderlyingValueBinaryTreeEnhancer(_underlyingPrice, _upFactor),
+                        new ConstantInterestRateBinaryTreeEnhancer(_interestRate),
+                        new PayoffBinaryTreeEnhancer(_payoffType, _strikePrice),
+                        new RiskNuetralProbabilityEnhancer(),
+                        new ExpectedBinaryTreeEnhancer("PayOff"),
+                        new ExpectedBinaryTreeEnhancer("UnderlyingValue"),
+                        new OptionPriceBinaryTreeEnhancer(_exerciseType),
+                        new DeltaHedgingBinaryTreeEnhancer(),
+                        new StoppingTimeBinaryTreeEnhancer(_exerciseType)
+                    );
+                }
 
                 OnPropertyChanged(nameof(OptionValue));
                 Error = "";
@@ -99,7 +115,8 @@ namespace DeltaClient.Core.ViewModels
         }
         #endregion
         #region Private Members
-        private BinaryTree<Node<State>,State> _logicalTree;
+        private BinaryTree<Node<State>,State> _tree;
+        private TriangularMatrix<TriMatNode<State>, State> _matrix;
         private double _underlyingPrice = 100D;
         private double _strikePrice = 105D;
         private double _upFactor = 2D;
@@ -112,6 +129,7 @@ namespace DeltaClient.Core.ViewModels
         private string _error = "";
         private long _calcTime = 0;
         private bool _overlapNodes = true;
+        private bool _useTriMat = true;
         #endregion
         #region Public Properties
         public long CalcTime
@@ -248,7 +266,28 @@ namespace DeltaClient.Core.ViewModels
                 if (_overlapNodes != value)
                 {
                     _overlapNodes = value;
+
+                    if (!_overlapNodes && UseTriMat)
+                        UseTriMat = false;
+
                     OnPropertyChanged(nameof(OverlapNodes));
+                    UpdateTree(); // hack to redraw
+                }
+            }
+        }
+        public bool UseTriMat
+        {
+            get { return _useTriMat; }
+            set
+            {
+                if (_useTriMat != value)
+                {
+                    _useTriMat = value;
+
+                    if (!OverlapNodes && _useTriMat)
+                        OverlapNodes = true;
+
+                    OnPropertyChanged(nameof(UseTriMat));
                     UpdateTree(); // hack to redraw
                 }
             }
@@ -257,15 +296,40 @@ namespace DeltaClient.Core.ViewModels
         {
             get
             {
-                return _logicalTree;
+                return _tree;
             }
             set
             {
-                _logicalTree = value;
+                _tree = value;
                 OnPropertyChanged(nameof(Tree));
+                OnPropertyChanged(nameof(NodeCollection));
             }
         }
-        public double? OptionValue => Tree.GetAt(new bool[] { }).Data.OptionValue; 
+        public TriangularMatrix<TriMatNode<State>, State> Matrix
+        {
+            get
+            {
+                return _matrix;
+            }
+            set
+            {
+                _matrix = value;
+                OnPropertyChanged(nameof(Matrix));
+                OnPropertyChanged(nameof(NodeCollection));
+            }
+        }
+        public IEnumerable<object> NodeCollection
+        {
+            get
+            {
+                return (UseTriMat ? Matrix : Tree);
+            }
+        }
+
+        public double? OptionValue => 
+            UseTriMat ? 
+                Matrix[0,0].Data.OptionValue : 
+                Tree.GetAt(new bool[] { }).Data.OptionValue; 
         public IEnumerable<OptionExerciseType> ExerciseTypes =>
     Enum.GetValues(typeof(OptionExerciseType)).Cast<OptionExerciseType>();
         public IEnumerable<OptionPayoffType> PayoffTypes =>

@@ -25,6 +25,19 @@ namespace DeltaClient.WPF.Controls
 
         protected override int VisualChildrenCount => base.VisualChildrenCount + 1;
 
+        public static readonly DependencyProperty UseTriMatProperty =
+            DependencyProperty.Register(
+            nameof(UseTriMat),
+            typeof(bool),
+            typeof(BinaryTreeItemControl),
+            new PropertyMetadata(true));
+
+        public bool UseTriMat
+        {
+            get { return (bool)GetValue(UseTriMatProperty); }
+            set { SetValue(UseTriMatProperty, value); }
+        }
+
         protected override Visual GetVisualChild(int index)
         {
             if (index < base.VisualChildrenCount)
@@ -40,14 +53,11 @@ namespace DeltaClient.WPF.Controls
             }
         }
 
-        private void ConnectNodes(DrawingContext dc)
+        private void ConnectNodesBT(DrawingContext dc)
         {
-            if (ItemContainerGenerator.Items.Count == 0)
-                return; 
-           
             var tree = new BinaryTree<INode<State>, State>() { ItemContainerGenerator.Items.Cast<INode<State>>().First(n => n.Time == 0) };
 
-            foreach ( var node in tree)
+            foreach (var node in tree)
             {
                 if (node.Previous is null)
                     continue;
@@ -63,9 +73,54 @@ namespace DeltaClient.WPF.Controls
 
                 parentPoint.X += parentVis.RenderSize.Width / 2;
                 nodePoint.X -= nodeVis.RenderSize.Width / 2;
-                
+
                 dc.DrawLine(GetColourForLine(node), parentPoint, nodePoint);
             }
+        }
+
+        private void ConnectNodesTriMat(DrawingContext dc)
+        {
+            for (int i = 0; i < ItemContainerGenerator.Items.Count; i++)
+            {
+                var nodeVis = (ContentPresenter)ItemContainerGenerator.ContainerFromIndex(i);
+                var node = nodeVis.Content as TriMatNode<State>;
+                var nodeDiam = Math.Min(nodeVis.RenderSize.Width / 2, nodeVis.RenderSize.Height / 2);
+                var nodePoint = nodeVis.TranslatePoint(new Point(nodeDiam, nodeDiam), this);
+                nodePoint.X -= nodeVis.RenderSize.Width / 2;
+
+                if (node.ParentHeads is not null)
+                {
+                    var parentHeadsVis = (ContentPresenter)ItemContainerGenerator.ContainerFromItem((TriMatNode<State>)node.ParentHeads);
+
+                    var parentHeadDiam = Math.Min(parentHeadsVis.RenderSize.Width / 2, parentHeadsVis.RenderSize.Height / 2);
+                    var parentHeadPoint = parentHeadsVis.TranslatePoint(new Point(parentHeadDiam, parentHeadDiam), this);
+                    parentHeadPoint.X += parentHeadsVis.RenderSize.Width / 2;
+
+                    dc.DrawLine(GetColourForLine(true), parentHeadPoint, nodePoint);
+                }
+
+                if (node.ParentTails is not null)
+                {
+                    var parentTailsVis = (ContentPresenter)ItemContainerGenerator.ContainerFromItem((TriMatNode<State>)node.ParentTails);
+
+                    var parentTailsDiam = Math.Min(parentTailsVis.RenderSize.Width / 2, parentTailsVis.RenderSize.Height / 2);
+                    var parentTailsPoint = parentTailsVis.TranslatePoint(new Point(parentTailsDiam, parentTailsDiam), this);
+                    parentTailsPoint.X += parentTailsVis.RenderSize.Width / 2;
+
+                    dc.DrawLine(GetColourForLine(false), parentTailsPoint, nodePoint);
+                }
+            }
+        }
+
+        private void ConnectNodes(DrawingContext dc)
+        {
+            if (ItemContainerGenerator.Items.Count == 0)
+                return;
+
+            if( UseTriMat )
+                ConnectNodesTriMat(dc);
+            else
+                ConnectNodesBT(dc);
         }
         private static readonly Pen _exercisedPen = new Pen()
         {
@@ -85,6 +140,11 @@ namespace DeltaClient.WPF.Controls
                 return _exercisedPen;
 
             return node.Path.Last() ? _upPen : _downPen;
+        }
+
+        private Pen GetColourForLine(bool isUp)
+        {
+            return isUp ? _upPen : _downPen;
         }
     }
 }

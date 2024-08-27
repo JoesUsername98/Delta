@@ -72,16 +72,20 @@ namespace DeltaDerivatives.Builders
                 for (int downMoves = _result.matrix[time].Length - 1; downMoves >= 0; downMoves--)
                 {
                     int noOfHeads = time - downMoves;
-                    TriMatNode<State>? parentHeads = time - 1 >= downMoves && time - 1 > 0 ? _result.matrix[time - 1][downMoves] : null;
-                    TriMatNode<State>? heads = time + 1 >= downMoves && time + 1 < _result.matrix.Length ? _result.matrix[time + 1][downMoves] : null;
-                    TriMatNode<State>? parentTails = time - 1 >= downMoves - 1 && time - 1 > 0 && downMoves - 1 > 0 ? _result.matrix[time - 1][downMoves -1 ] : null;
-                    TriMatNode<State>? tails = time + 1 >= downMoves + 1 && time + 1 < _result.matrix.Length && downMoves + 1 < _result.matrix[time + 1].Length ?
-                        _result.matrix[time + 1][downMoves + 1] : null;
-
                     _result.matrix[time][downMoves] =
                         new TriMatNode<State>(time, downMoves,
                         new State() { UnderlyingValue = initialPrice * Math.Pow(_upFactor, noOfHeads) * Math.Pow(_downFactor, downMoves) },
-                        parentHeads, parentTails, heads, tails );
+                        null, null, null, null); //TODO fix this ctor
+                }
+
+            for (int time = _result.matrix.Length - 1; time >= 0; time--)
+                for (int downMoves = _result.matrix[time].Length - 1; downMoves >= 0; downMoves--)
+                {
+                    _result.matrix[time][downMoves].ParentHeads = time - 1 >= downMoves && time - 1 >= 0 ? _result.matrix[time - 1][downMoves] : null;
+                    _result.matrix[time][downMoves].Heads = time + 1 >= downMoves && time + 1 < _result.matrix.Length ? _result.matrix[time + 1][downMoves] : null;
+                    _result.matrix[time][downMoves].ParentTails = time >= downMoves - 1 && time - 1 >= 0 && downMoves - 1 >= 0 ? _result.matrix[time - 1][downMoves - 1] : null;
+                    _result.matrix[time][downMoves].Tails = time + 1 >= downMoves + 1 && time + 1 < _result.matrix.Length && downMoves + 1 < _result.matrix[time + 1].Length ?
+                        _result.matrix[time + 1][downMoves + 1] : null;
                 }
 
             return this;
@@ -189,6 +193,9 @@ namespace DeltaDerivatives.Builders
             return this;
         }
 
-        public TriangularMatrix<TriMatNode<State>, State> Build() => _result;
+        public TriangularMatrix<TriMatNode<State>, State> Build()
+        {
+            return _result;
+        }
     }
 }

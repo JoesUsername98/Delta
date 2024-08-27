@@ -27,10 +27,59 @@ namespace DeltaClient.WPF.Controls
             }
         }
 
+        public static readonly DependencyProperty UseTriMatProperty =
+    DependencyProperty.Register(
+        nameof(UseTriMat),
+        typeof(bool),
+        typeof(BinaryTreeControl),
+        new PropertyMetadata(true));
+
+        public bool UseTriMat
+        {
+            get { return (bool)GetValue(UseTriMatProperty); }
+            set
+            {
+                SetValue(UseTriMatProperty, value);
+                if (value && !Overlap)
+                    Overlap = true;
+            }
+        }
+
         public BinaryTreeControl()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(BinaryTreeControl), new FrameworkPropertyMetadata(typeof(BinaryTreeControl)));
         }
+
+        private int MeasureChildrenBT (Size availableSize)
+        {
+            int totalDepth = 0;
+            foreach (ContentPresenter child in Children)
+            {
+                var nodeChild = child.Content as INode<State>;
+
+                if (nodeChild.Time > totalDepth)
+                    totalDepth = nodeChild.Time;
+
+                child.Measure(availableSize);
+            }
+            return totalDepth;
+        }
+
+        private int MeasureChildrenTriMat(Size availableSize)
+        {
+            int totalDepth = 0;
+            foreach (ContentPresenter child in Children)
+            {
+                var nodeChild = child.Content as TriMatNode<State>;
+
+                if (nodeChild.Time > totalDepth)
+                    totalDepth = nodeChild.Time;
+
+                child.Measure(availableSize);
+            }
+            return totalDepth;
+        }
+
         protected override Size MeasureOverride(Size availableSize)
         {
             if (availableSize.Height == double.PositiveInfinity)
@@ -42,17 +91,7 @@ namespace DeltaClient.WPF.Controls
             if (Children.Count == 0)
                 return availableSize;
 
-            int totalDepth = 0;
-
-            foreach (ContentPresenter child in Children)
-            {
-                var nodeChild = child.Content as INode<State>;
-                
-                if(nodeChild.Time > totalDepth)
-                    totalDepth = nodeChild.Time;
-
-                child.Measure(availableSize);
-            }
+            double totalDepth = UseTriMat ? MeasureChildrenTriMat(availableSize) : MeasureChildrenBT(availableSize);
 
             double xSepToUse = availableSize.Width / Math.Max(totalDepth,1);
 
@@ -68,6 +107,9 @@ namespace DeltaClient.WPF.Controls
         }
         private Size ArrangeNoOverlap(Size finalSize)
         {
+            if (UseTriMat)
+                throw new InvalidOperationException("Nodes must overlap with a Triangular Matrix Calculation method!");
+
             if (Children.Count == 0)
                 return finalSize;
 
@@ -85,6 +127,7 @@ namespace DeltaClient.WPF.Controls
             foreach (ContentPresenter child in Children)
             {
                 var nodeChild = child.Content as INode<State>;
+
                 var UIChild = child as FrameworkElement;
 
                 double height = Math.Min(finalSize.Height / Math.Pow(2, nodeChild.Time),
@@ -100,12 +143,13 @@ namespace DeltaClient.WPF.Controls
             foreach (ContentPresenter child in Children)
             {
                 var nodeChild = child.Content as INode<State>;
+
                 var UIChild = child as FrameworkElement;
 
                 double yOffset = 0;
                 int depthCount = 0;
                 foreach (bool hOrT in nodeChild.Path)
-                    yOffset += (hOrT ? -1 : 1) * (finalSize.Height / 2) / Math.Pow(2, ++depthCount);
+                        yOffset += (hOrT ? -1 : 1) * (finalSize.Height / 2) / Math.Pow(2, ++depthCount);
 
                 int childDepth = nodeChild.Time;
 
@@ -120,11 +164,22 @@ namespace DeltaClient.WPF.Controls
             }
             return finalSize;
         }
-        private Size ArrangeOverlap(Size finalSize)
-        {
-            if (Children.Count == 0)
-                return finalSize;
 
+        private int GetTotalDepthFromChildTriMat()
+        {
+            int totalDepth = 0;
+            foreach (ContentPresenter child in Children)
+            {
+                var nodeChild = child.Content as TriMatNode<State>;
+
+                if (nodeChild.Time > totalDepth)
+                    totalDepth = nodeChild.Time;
+            }
+            return totalDepth;
+        }
+
+        private int GetTotalDepthFromChildBT()
+        {
             int totalDepth = 0;
             foreach (ContentPresenter child in Children)
             {
@@ -133,15 +188,20 @@ namespace DeltaClient.WPF.Controls
                 if (nodeChild.Time > totalDepth)
                     totalDepth = nodeChild.Time;
             }
+            return totalDepth;
+        }
 
+        private double GetChildMinSizeTriMat(Size finalSize)
+        {
             double maxNodeSize = 0;
             double minNodeSize = 0;
             foreach (ContentPresenter child in Children)
             {
-                var nodeChild = child.Content as INode<State>;
+                var nodeChild = child.Content as TriMatNode<State>;
+
                 var UIChild = child as FrameworkElement;
 
-                double height = Math.Min(finalSize.Height /( nodeChild.Time + 1 ),
+                double height = Math.Min(finalSize.Height / (nodeChild.Time + 1),
                                 UIChild.DesiredSize.Height);
                 double width = Math.Min(finalSize.Width / (nodeChild.Time + 1),
                  UIChild.DesiredSize.Height);
@@ -149,25 +209,75 @@ namespace DeltaClient.WPF.Controls
                 maxNodeSize = Math.Max(Math.Max(maxNodeSize, height), width);
                 minNodeSize = Math.Min(Math.Min(maxNodeSize, height), width);
             }
+            return minNodeSize;
+        }
+
+        private double GetChildMinSizeBT(Size finalSize)
+        {
+            double maxNodeSize = 0;
+            double minNodeSize = 0;
+            foreach (ContentPresenter child in Children)
+            {
+                var nodeChild = child.Content as INode<State>;
+
+                var UIChild = child as FrameworkElement;
+
+                double height = Math.Min(finalSize.Height / (nodeChild.Time + 1),
+                                UIChild.DesiredSize.Height);
+                double width = Math.Min(finalSize.Width / (nodeChild.Time + 1),
+                 UIChild.DesiredSize.Height);
+
+                maxNodeSize = Math.Max(Math.Max(maxNodeSize, height), width);
+                minNodeSize = Math.Min(Math.Min(maxNodeSize, height), width);
+            }
+            return minNodeSize;
+        }
+
+        private Point GetChildPositionBT(ContentPresenter child, int totalDepth, double xSepToUse, double minNodeSize, Size finalSize)
+        {
+            var nodeChild = child.Content as INode<State>;
+
+            double yOffset = 0;
+            foreach (bool hOrT in nodeChild.Path)
+                yOffset += (hOrT ? -1D : 1D) / (1D + totalDepth);
+
+            double newPosX = nodeChild.Time * xSepToUse;
+            double centreLineY = (finalSize.Height - minNodeSize) / 2;
+            double newPosY = centreLineY + yOffset * (finalSize.Height / 2);
+
+            return new Point(newPosX, newPosY);
+        }
+
+        private Point GetChildPositionTriMat(ContentPresenter child, int totalDepth, double xSepToUse, double minNodeSize, Size finalSize)
+        {
+            var nodeChild = child.Content as TriMatNode<State>;
+            double yOffset = (2 * nodeChild.DownMoves - nodeChild.Time) / (1D + totalDepth);
+
+            double newPosX = nodeChild.Time * xSepToUse;
+            double centreLineY = (finalSize.Height - minNodeSize) / 2;
+            double newPosY = centreLineY + yOffset * (finalSize.Height / 2);
+
+            return new Point(newPosX, newPosY);
+        }
+
+        private Size ArrangeOverlap(Size finalSize)
+        {
+            if (Children.Count == 0)
+                return finalSize;
+
+            int totalDepth = UseTriMat ? GetTotalDepthFromChildTriMat() : GetTotalDepthFromChildBT();
+            double minNodeSize = UseTriMat ? GetChildMinSizeTriMat(finalSize) : GetChildMinSizeBT(finalSize);
             double xSepToUse = (finalSize.Width - minNodeSize) / Math.Max(totalDepth, 1);
 
             foreach (ContentPresenter child in Children)
             {
-                var nodeChild = child.Content as INode<State>;
                 var UIChild = child as FrameworkElement;
 
-                double yOffset = 0;
-                foreach (bool hOrT in nodeChild.Path)
-                    yOffset += (hOrT ? -1D : 1D)  / (1D + totalDepth);
+                Point childPos = UseTriMat ?
+                    GetChildPositionTriMat(child, totalDepth, xSepToUse, minNodeSize, finalSize) :
+                    GetChildPositionBT(child, totalDepth, xSepToUse, minNodeSize, finalSize) ;
 
-                double newPosX = nodeChild.Time * xSepToUse;
-                double centreLineY = (finalSize.Height - minNodeSize) / 2;
-                double newPosY = centreLineY + yOffset * (finalSize.Height / 2);
-
-                UIChild.Arrange(
-                    new Rect(new Point(newPosX, newPosY),
-                    new Size() { Height = minNodeSize, Width = minNodeSize })
-                    );
+                UIChild.Arrange( new Rect(childPos, new Size() { Height = minNodeSize, Width = minNodeSize }) );
             }
             return finalSize;
         }
