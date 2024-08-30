@@ -193,8 +193,8 @@ namespace DeltaClient.WPF.Controls
 
         private double GetChildMinSizeTriMat(Size finalSize)
         {
-            double maxNodeSize = 0;
-            double minNodeSize = 0;
+            double maxNodeSize = double.MinValue;
+            double minNodeSize = double.MaxValue;
             foreach (ContentPresenter child in Children)
             {
                 var nodeChild = child.Content as TriMatNode<State>;
@@ -206,16 +206,19 @@ namespace DeltaClient.WPF.Controls
                 double width = Math.Min(finalSize.Width / (nodeChild.Time + 1),
                  UIChild.DesiredSize.Height);
 
-                maxNodeSize = Math.Max(Math.Max(maxNodeSize, height), width);
-                minNodeSize = Math.Min(Math.Min(maxNodeSize, height), width);
+                double smallerDim = Math.Min(width, height);
+                double largerDim = Math.Max(width, height);
+
+                maxNodeSize = Math.Max(maxNodeSize, largerDim);
+                minNodeSize = Math.Min(minNodeSize, smallerDim);
             }
             return minNodeSize;
         }
 
         private double GetChildMinSizeBT(Size finalSize)
         {
-            double maxNodeSize = 0;
-            double minNodeSize = 0;
+            double maxNodeSize = double.MinValue;
+            double minNodeSize = double.MaxValue;
             foreach (ContentPresenter child in Children)
             {
                 var nodeChild = child.Content as INode<State>;
@@ -227,8 +230,11 @@ namespace DeltaClient.WPF.Controls
                 double width = Math.Min(finalSize.Width / (nodeChild.Time + 1),
                  UIChild.DesiredSize.Height);
 
-                maxNodeSize = Math.Max(Math.Max(maxNodeSize, height), width);
-                minNodeSize = Math.Min(Math.Min(maxNodeSize, height), width);
+                double smallerDim = Math.Min(width, height);
+                double largerDim = Math.Max(width, height);
+
+                maxNodeSize = Math.Max(maxNodeSize, largerDim);
+                minNodeSize = Math.Min(minNodeSize, smallerDim);
             }
             return minNodeSize;
         }

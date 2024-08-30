@@ -55,6 +55,9 @@ namespace DeltaClient.WPF.Controls
 
         private void ConnectNodesBT(DrawingContext dc)
         {
+            if ( ((ContentPresenter)ItemContainerGenerator.ContainerFromIndex(0)).Content is not INode<State>)
+                return;
+
             var tree = new BinaryTree<INode<State>, State>() { ItemContainerGenerator.Items.Cast<INode<State>>().First(n => n.Time == 0) };
 
             foreach (var node in tree)
@@ -80,6 +83,9 @@ namespace DeltaClient.WPF.Controls
 
         private void ConnectNodesTriMat(DrawingContext dc)
         {
+            if (((ContentPresenter)ItemContainerGenerator.ContainerFromIndex(0)).Content is not TriMatNode<State>)
+                return;
+
             for (int i = 0; i < ItemContainerGenerator.Items.Count; i++)
             {
                 var nodeVis = (ContentPresenter)ItemContainerGenerator.ContainerFromIndex(i);
