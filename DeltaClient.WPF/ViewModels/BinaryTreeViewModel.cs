@@ -271,7 +271,7 @@ namespace DeltaClient.Core.ViewModels
                         UseTriMat = false;
 
                     OnPropertyChanged(nameof(OverlapNodes));
-                    UpdateTree(); // hack to redraw
+                    if (RecalcDynamically) UpdateTree(); // hack to redraw
                 }
             }
         }
@@ -288,7 +288,7 @@ namespace DeltaClient.Core.ViewModels
                         OverlapNodes = true;
 
                     OnPropertyChanged(nameof(UseTriMat));
-                    UpdateTree(); // hack to redraw
+                    if (RecalcDynamically) UpdateTree(); // hack to redraw
                 }
             }
         }
