@@ -47,7 +47,7 @@ namespace DeltaDerivatives.Objects
       if (node == null) return -1;
 
       var subTree = new BinaryTree<INode<T>, T>(node);
-      return subTree.Time;
+      return subTree.TimeSteps;
     }
     public object Clone()
     {

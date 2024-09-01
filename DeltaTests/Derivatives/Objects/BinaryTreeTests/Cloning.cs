@@ -11,7 +11,7 @@ namespace DeltaTests.Derivatives.Objects.BinaryTreeTests
       //arrange
       var bt = BinaryTreeTestFactory.GenerateTimeTwoTree();
       int originalCount = bt.Count;
-      int originalTime = bt.Time;
+      int originalTime = bt.TimeSteps;
 
       //act
       var btClone = (BinaryTree<Node<string>, string>)bt.Clone();
@@ -20,7 +20,7 @@ namespace DeltaTests.Derivatives.Objects.BinaryTreeTests
 
       //assert meta data correct
       Assert.Equal(originalCount, btClone.Count);
-      Assert.Equal(originalTime, btClone.Time);
+      Assert.Equal(originalTime, btClone.TimeSteps);
     }
   }
 }

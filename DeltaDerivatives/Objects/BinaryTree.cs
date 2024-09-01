@@ -10,8 +10,8 @@ namespace DeltaDerivatives.Objects
     {
         private N _root;
         private int _count;
-        private int _time;
-
+        private int _timeSteps;
+        private double _timeStep;
         private double? _constantUpFactor;
         private double? _constantDownFactor;
         private double? _constantInterestRate;
@@ -25,17 +25,25 @@ namespace DeltaDerivatives.Objects
                 NotifyPropertyChanged(nameof(Count));
             }
         }
-        public int Time 
+        public int TimeSteps 
         {
-          get => _time;
+          get => _timeSteps;
           private set
             {
-                _time = value;
-                NotifyPropertyChanged(nameof(Time));
+                _timeSteps = value;
+                NotifyPropertyChanged(nameof(TimeSteps));
             } 
         }
         public bool IsReadOnly => false;
-        
+        public double TimeStep
+        {
+            get => _timeStep;
+            set
+            {
+                _timeStep = value;
+                NotifyPropertyChanged(nameof(TimeStep));
+            }
+        }
         public double? ConstantUpFactor 
         {
             get => _constantUpFactor;
@@ -95,7 +103,7 @@ namespace DeltaDerivatives.Objects
             {
                 _root = newItem;
                 Count++;
-                Time = 0;
+                TimeSteps = 0;
                 return;
             }
             var parentNodePath = newItem.Path.Take(newItem.Path.Length - 1);
@@ -114,7 +122,7 @@ namespace DeltaDerivatives.Objects
 
             parentNode.AddNext(newItem, newItem.Path.Last());
             NotifyCollectionAdd(new List<N> { newItem } );
-            Time = newItem.Path.Length > Time ? newItem.Path.Length : Time;
+            TimeSteps = newItem.Path.Length > TimeSteps ? newItem.Path.Length : TimeSteps;
             Count++;
         }
         public bool Contains(N item)
@@ -159,7 +167,7 @@ namespace DeltaDerivatives.Objects
             {
                 _root = default(N);
                 Count = 0;
-                Time = -1;
+                TimeSteps = -1;
                 NotifyCollectionReset();
                 return doesContain;
             }
@@ -172,20 +180,20 @@ namespace DeltaDerivatives.Objects
             node.Previous = null;
 
             Count -= nodesInSubtree;
-            RecountTime();
+            RecountTimeSteps();
             NotifyCollectionRemove(new List<N> { node });
             return doesContain;
         }
         public void Clear()
         {
             _root = default(N);
-            Time = 0;
+            TimeSteps = 0;
             Count = 0;
             NotifyCollectionReset();
         }
         #endregion
         #region ICloneable
-        public object Clone() => new BinaryTree<N, T>((N)_root.Clone()) { Count = this.Count, Time = this.Time };
+        public object Clone() => new BinaryTree<N, T>((N)_root.Clone()) { Count = this.Count, TimeSteps = this.TimeSteps };
         #endregion
         #region INotifyCollectionChanged
         public event NotifyCollectionChangedEventHandler? CollectionChanged;
@@ -229,10 +237,10 @@ namespace DeltaDerivatives.Objects
 
             return currNode;
         }
-        private int RecountTime()
+        private int RecountTimeSteps()
         {
-            Time = this.Max(x => x.Path.Length);
-            return Time;
+            TimeSteps = this.Max(x => x.Path.Length);
+            return TimeSteps;
         }
         #endregion
     }

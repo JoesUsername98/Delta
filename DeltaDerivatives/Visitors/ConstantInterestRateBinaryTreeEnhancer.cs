@@ -14,7 +14,7 @@ namespace DeltaDerivatives.Visitors
     {
       foreach (var node in subject)
       {
-        node.Data.InterestRate = _constantInterestRate; 
+        node.Data.InterestRate = Math.Pow(1 + _constantInterestRate, subject.TimeStep) - 1; // gives exact rate
       }
       subject.ConstantInterestRate = _constantInterestRate;
     }

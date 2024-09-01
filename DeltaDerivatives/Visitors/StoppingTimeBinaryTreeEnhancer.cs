@@ -23,7 +23,7 @@ namespace DeltaDerivatives.Visitors
         return;
 
       //Expiration time nodes. 
-      foreach (var node in subject.Where(n => n.TimeStep == subject.Time))
+      foreach (var node in subject.Where(n => n.TimeStep == subject.TimeSteps))
       {
         var nodesInPathWhereShouldExercise = node.Where(n => n.Data.OptionValue == n.Data.PayOff).OrderBy(n => n.TimeStep).FirstOrDefault();
 
@@ -36,7 +36,7 @@ namespace DeltaDerivatives.Visitors
         node.Data.OptimalExerciseTime = nodesInPathWhereShouldExercise.TimeStep;
       }
 
-      foreach (var node in subject.Where(n => n.TimeStep < subject.Time).OrderByDescending(n => n.TimeStep))
+      foreach (var node in subject.Where(n => n.TimeStep < subject.TimeSteps).OrderByDescending(n => n.TimeStep))
       {
         //if exercise time nodes find the min stopping time to be this node or prior in path,
         //set stopping time to that minimum, else set to max int (do not exercise)

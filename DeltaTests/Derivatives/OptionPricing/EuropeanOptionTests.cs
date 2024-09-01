@@ -31,7 +31,7 @@ namespace DeltaTests.Derivatives.Pricing
       //The Discounted price of a derivative security is a martingale under risk nuetral pricing. 
       // Vn / (1+r)^n = En ( Vn+1 / (1+r)^(n+1) )   ---   (2.4.12)
       var expectedOptionPriceValueAtEachTime = new Dictionary<int, double>();
-      for (int thisTime = tree.Time; thisTime >= 0; thisTime--)
+      for (int thisTime = tree.TimeSteps; thisTime >= 0; thisTime--)
       {
         var discountedExpectedOptionPrice
           = tree.Where(n => n.TimeStep == thisTime)
@@ -60,7 +60,7 @@ namespace DeltaTests.Derivatives.Pricing
       //The Discounted price of a derivative security is a martingale under risk nuetral pricing. 
       // Vn / (1+r)^n = En ( Vn+1 / (1+r)^(n+1) )   ---   (2.4.12)
       var expectedOptionPriceValueAtEachTime = new Dictionary<int, double>();
-      for (int thisTime = tree.Time; thisTime >= 0; thisTime--)
+      for (int thisTime = tree.TimeSteps; thisTime >= 0; thisTime--)
       {
         var discountedExpectedOptionPrice
           = tree.Where(n => n.TimeStep == thisTime)

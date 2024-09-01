@@ -36,7 +36,7 @@ namespace DeltaTests.Derivatives.OptionPricing
 
       //assert
       var expectedOptionPriceValueAtEachTime = new Dictionary<int, double>();
-      for (int thisTime = tree.Time; thisTime >= 0; thisTime--)
+      for (int thisTime = tree.TimeSteps; thisTime >= 0; thisTime--)
       {
         var discountedExpectedOptionPrice
           = tree.Where(n => n.TimeStep == thisTime)
@@ -62,7 +62,7 @@ namespace DeltaTests.Derivatives.OptionPricing
           new OptionPriceBinaryTreeEnhancer(OptionExerciseType.American));
 
             var expectedOptionPriceValueAtEachTime = new Dictionary<int, double>();
-      for (int thisTime = tree.Time; thisTime >= 0; thisTime--)
+      for (int thisTime = tree.TimeSteps; thisTime >= 0; thisTime--)
       {
         var discountedExpectedOptionPrice
           = tree.Where(n => n.TimeStep == thisTime)

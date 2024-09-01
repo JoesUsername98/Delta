@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DeltaDerivatives.Factory;
+using DeltaDerivatives.Objects;
 using DeltaDerivatives.Visitors;
 using Xunit;
 
@@ -21,15 +22,16 @@ namespace DeltaTests.Derivatives.Factory.Enhancers
     public void GenerateTreeWithConstantInterestRate(double r)
     {
       //arrange 
-      int N = 3;
-      var tree = BinaryTreeFactory.CreateTree(N);
+      int N = 4;
+      var tree = BinaryTreeFactory.CreateTree(N, 1D / N);
 
       //act 
       new ConstantInterestRateBinaryTreeEnhancer(r).Enhance(tree);
 
       //assert
       Assert.Equal(tree.Count, Enumerable.Range(0, N + 1).Sum(i => Combinations.summedNCR(i)));
-      foreach (var node in tree) Assert.Equal(r, node.Data.InterestRate);
+      foreach (var node in tree.Where(n => n.TimeStep == N ))
+                Assert.Equal( 1D / (1D + r) ,  State.GetAbsoluteDiscountRate(node) , 5);
     }
     [Theory]
     [InlineData(4, 2, 1.1, 0.25)]

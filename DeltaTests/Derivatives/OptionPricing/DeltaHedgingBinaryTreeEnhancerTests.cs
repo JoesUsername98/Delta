@@ -28,7 +28,7 @@ namespace DeltaTests.Derivatives.OptionPricing
             new DeltaHedgingBinaryTreeEnhancer());
 
       //assert //Example 4.2.1 Exercise 4.2
-      Assert.Equal(-0.433, Math.Round(tree.GetAt(new bool[] { }).Data.DeltaHedging, 3));
+      Assert.Equal(-0.436, Math.Round(tree.GetAt(new bool[] { }).Data.DeltaHedging, 3));
       Assert.Equal(Math.Round((double)-1 / 12, 3), Math.Round(tree.GetAt(new bool[] { true }).Data.DeltaHedging, 3));
       Assert.Equal(-1, Math.Round(tree.GetAt(new bool[] { false }).Data.DeltaHedging, 3));
     }

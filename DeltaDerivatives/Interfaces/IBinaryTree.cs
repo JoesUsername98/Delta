@@ -14,7 +14,7 @@ namespace DeltaDerivatives.Objects.Interfaces
     double? ConstantUpFactor { get; set; }
     double? ConstantDownFactor { get; set; }
     double? ConstantInterestRate { get; set; }
-    int Time  { get; }
+    int TimeSteps  { get; }
     N GetAt(bool[] path);
   }
 }

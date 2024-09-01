@@ -35,7 +35,7 @@ namespace DeltaDerivatives.Visitors
       {
         var noOfHeads = node.Path.Count(p => p);
         var noOfTails = node.TimeStep - noOfHeads;
-        node.Data.UnderlyingValue = _initialPrice * Math.Pow(_upFactor, noOfHeads) * Math.Pow(_downFactor, noOfTails);
+        node.Data.UnderlyingValue = _initialPrice * Math.Pow(_upFactor, subject.TimeStep * noOfHeads) * Math.Pow(_downFactor, subject.TimeStep * noOfTails);
       }
 
       subject.ConstantUpFactor = _upFactor;

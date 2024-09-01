@@ -21,7 +21,7 @@ namespace DeltaTests.Derivatives.Objects.BinaryTreeTests
       Assert.Equal("tt", bt.GetAt(new bool[] { false, false }).Data);
       Assert.Equal("th", bt.GetAt(new bool[] { false, true }).Data);
       Assert.Equal(7, bt.Count);
-      Assert.Equal(2, bt.Time);
+      Assert.Equal(2, bt.TimeSteps);
     }
     [Fact]
     public void GetAnItemThatDoesntExist()

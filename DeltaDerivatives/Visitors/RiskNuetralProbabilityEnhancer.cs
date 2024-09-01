@@ -16,14 +16,16 @@ namespace DeltaDerivatives.Visitors
       
       var u = subject.ConstantUpFactor.Value;
       var d = subject.ConstantDownFactor.Value;
+      var a = Math.Exp(subject.ConstantInterestRate.Value * subject.TimeStep); // Hull 12.6
 
       foreach (var node in subject)
       {
         if (u <= 1 + node.Data.InterestRate) throw new InvalidOperationException("u > 1 + r to prevent arbitrage");
         if (1 + node.Data.InterestRate <= d) throw new InvalidOperationException("1 + r > d to prevent arbitrage");
         if (d <= 0) throw new InvalidOperationException("d > 0 to prevent arbitrage");
-
-        node.Data.ProbabilityHeads = (1 + node.Data.InterestRate - d) / (u - d);
+        
+        node.Data.ProbabilityHeads = (a - d) / (u - d); // Hull 12.5
+        //node.Data.ProbabilityHeads = (1 + node.Data.InterestRate - d) / (u - d); //Shreve
       }
     }
   }

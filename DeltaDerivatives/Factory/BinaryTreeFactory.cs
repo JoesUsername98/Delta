@@ -10,7 +10,7 @@ namespace DeltaDerivatives.Factory
       if (timeSteps < 0) throw new ArgumentException("time steps cannot be less than 0", "timeSteps");
       if (timeStep <= 0) throw new ArgumentException("time Step cannot be less than or equal to 0", "timeStep");
 
-      var bt = new BinaryTree<Node<State>, State>(new Node<State>(new State(), new bool[] { }));
+      var bt = new BinaryTree<Node<State>, State>(new Node<State>(new State(), new bool[] { })) {  TimeStep = timeStep };
       for (int currTime = 1; currTime <= timeSteps; currTime++)
       {
         var inputParams = Combinations.GenerateParams(new bool[] { true, false }, currTime);
