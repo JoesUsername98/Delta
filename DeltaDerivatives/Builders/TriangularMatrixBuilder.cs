@@ -84,7 +84,7 @@ namespace DeltaDerivatives.Builders
                     int noOfHeads = step - downMoves;
                     _result.matrix[step][downMoves] =
                         new TriMatNode<State>(step, downMoves,
-                        new State() { UnderlyingValue = initialPrice * Math.Pow(_upFactor, noOfHeads ) * Math.Pow(_downFactor, downMoves ) }); //TODO fix this ctor
+                        new State() { UnderlyingValue = initialPrice * Math.Pow(_upFactor, noOfHeads ) * Math.Pow(_downFactor, downMoves ) }); 
                 }
 
             for (int step = _result.matrix.Length - 1; step >= 0; step--)
