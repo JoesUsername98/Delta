@@ -84,7 +84,7 @@ namespace DeltaDerivatives.Builders
                     int noOfHeads = step - downMoves;
                     _result.matrix[step][downMoves] =
                         new TriMatNode<State>(step, downMoves,
-                        new State() { UnderlyingValue = initialPrice * Math.Pow(_upFactor, noOfHeads * _timeStep) * Math.Pow(_downFactor, downMoves * _timeStep) }); //TODO fix this ctor
+                        new State() { UnderlyingValue = initialPrice * Math.Pow(_upFactor, noOfHeads ) * Math.Pow(_downFactor, downMoves ) }); //TODO fix this ctor
                 }
 
             for (int step = _result.matrix.Length - 1; step >= 0; step--)
@@ -135,11 +135,10 @@ namespace DeltaDerivatives.Builders
             if (_upFactor <= 1 + _interestRate) throw new InvalidOperationException("u > 1 + r to prevent arbitrage");
             if (1 + _interestRate <= _downFactor) throw new InvalidOperationException("1 + r > d to prevent arbitrage");
 
-            var a = Math.Exp(_interestRate * _timeStep); // Hull 12.6
+            var growthFactor = Math.Exp(_interestRate * _timeStep); // Hull 12.6
 
             foreach (var state in _result)
-                //state.Data.ProbabilityHeads = (1 + _interestRate - _downFactor) / (_upFactor - _downFactor); //Shreve
-                state.Data.ProbabilityHeads = (a - _downFactor) / (_upFactor - _downFactor); // Hull 12.5
+                state.Data.ProbabilityHeads = (growthFactor - _downFactor) / (_upFactor - _downFactor); // Hull 12.5
 
 
             return this;
