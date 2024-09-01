@@ -11,19 +11,21 @@ namespace DeltaDerivatives.Objects
         IEnumerable<NodeStateType> where NodeStateType : ITriMatNode<StateType>
     {
         public NodeStateType[][] matrix;
-        public TriangularMatrix(int maxTime)
+        public double dt;
+        public TriangularMatrix(int steps, double timeStep = 1D)
         {
-            matrix = new NodeStateType[maxTime + 1][];
-            for (int time = 0; time <= maxTime; ++time)
-                matrix[time] = new NodeStateType[time + 1];
+            dt = timeStep;
+            matrix = new NodeStateType[steps + 1][];
+            for (int step = 0; step <= steps; ++step)
+                matrix[step] = new NodeStateType[step + 1];
             
         }
         private TriangularMatrix(NodeStateType[][] otherMatrix)
         {
             matrix = new NodeStateType[otherMatrix.Length][];
-            for (int time = otherMatrix.Length - 1; time >= 0; time--)
-                for (int downMoves = otherMatrix[time].Length - 1; downMoves >= 0; downMoves--)
-                    matrix[time][downMoves] = otherMatrix[time][downMoves];
+            for (int step = otherMatrix.Length - 1; step >= 0; step--)
+                for (int downMoves = otherMatrix[step].Length - 1; downMoves >= 0; downMoves--)
+                    matrix[step][downMoves] = otherMatrix[step][downMoves];
         }
         public int Time => matrix.Length;
         #region INotifyCollectionChanged
@@ -52,28 +54,28 @@ namespace DeltaDerivatives.Objects
         // Traverse the matrix in reverse order (bottom-right to top-left)
         public IEnumerator<NodeStateType> GetEnumerator()
         {
-            for (int time = matrix.Length - 1; time >= 0; time--)
-                for (int downMoves = matrix[time].Length - 1; downMoves >= 0; downMoves--)
-                    yield return matrix[time][downMoves];
+            for (int step = matrix.Length - 1; step >= 0; step--)
+                for (int downMoves = matrix[step].Length - 1; downMoves >= 0; downMoves--)
+                    yield return matrix[step][downMoves];
         }
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
         #endregion
-        public NodeStateType this[int time, int downMoves]
+        public NodeStateType this[int step, int downMoves]
         {
             get
             {
-                 if (time < downMoves)
+                 if (step < downMoves)
                     throw new InvalidOperationException("Cannot get elements below the diagonal in an upper triangular matrix.");
-                return matrix[time][downMoves];
+                return matrix[step][downMoves];
             }
             set
             {
-                if (time < downMoves)
+                if (step < downMoves)
                     throw new InvalidOperationException("Cannot set elements below the diagonal in an upper triangular matrix.");
-                matrix[time][downMoves] = value;
+                matrix[step][downMoves] = value;
             }
         }
         public NodeStateType GetAt(bool[] path) => this[path.Length, path.Count(HOrT => !HOrT)];

@@ -13,7 +13,7 @@ namespace DeltaDerivatives.Objects
     }
     public T Data { get; set; }
     public bool[] Path { get; private set; }
-    public int Time { get { return Path.Length; } }
+    public int TimeStep { get { return Path.Length; } }
     public INode<T> Previous { get; set; }
     public INode<T> Heads { get; set; }
     public INode<T> Tails { get; set; }

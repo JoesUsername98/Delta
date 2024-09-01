@@ -58,7 +58,7 @@ namespace DeltaClient.WPF.Controls
             if ( ((ContentPresenter)ItemContainerGenerator.ContainerFromIndex(0)).Content is not INode<State>)
                 return;
 
-            var tree = new BinaryTree<INode<State>, State>() { ItemContainerGenerator.Items.Cast<INode<State>>().First(n => n.Time == 0) };
+            var tree = new BinaryTree<INode<State>, State>() { ItemContainerGenerator.Items.Cast<INode<State>>().First(n => n.TimeStep == 0) };
 
             foreach (var node in tree)
             {
@@ -142,7 +142,7 @@ namespace DeltaClient.WPF.Controls
             if( !node.Data.OptimalExerciseTime.HasValue ) //European
                 return node.Path.Last() ? _upPen : _downPen;
 
-            if (node.Time > node.Data.OptimalExerciseTime.Value) //exercised
+            if (node.TimeStep > node.Data.OptimalExerciseTime.Value) //exercised
                 return _exercisedPen;
 
             return node.Path.Last() ? _upPen : _downPen;

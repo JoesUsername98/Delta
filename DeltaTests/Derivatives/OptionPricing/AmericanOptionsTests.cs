@@ -25,25 +25,21 @@ namespace DeltaTests.Derivatives.OptionPricing
     [InlineData(4, 3, 2, 5, 0.25)]
     public void GenerateTreeWithAmericanCallPrice(int So, int N, double u, double k, double r)
     {
-      //arrange 
-      var d = 1 / u;
-      var tree = BinaryTreeFactory.CreateTree(N);
-      var underlyingEnhancer = new UnderlyingValueBinaryTreeEnhancer(So, u, d);
-      underlyingEnhancer.Enhance(tree);
-
-      //act 
-      new ConstantInterestRateBinaryTreeEnhancer(r).Enhance(tree);
-      new PayoffBinaryTreeEnhancer(OptionPayoffType.Call, k).Enhance(tree);
-      new RiskNuetralProbabilityEnhancer().Enhance(tree);
-      new ExpectedBinaryTreeEnhancer("PayOff").Enhance(tree);
-      new OptionPriceBinaryTreeEnhancer(OptionExerciseType.American).Enhance(tree);
+      //act and arrange 
+      var tree = BinaryTreeFactory.CreateTree(N,1D,
+          new UnderlyingValueBinaryTreeEnhancer(So, u),
+          new ConstantInterestRateBinaryTreeEnhancer(r),
+          new PayoffBinaryTreeEnhancer(OptionPayoffType.Call, k),
+          new RiskNuetralProbabilityEnhancer(),
+          new ExpectedBinaryTreeEnhancer("PayOff"),
+          new OptionPriceBinaryTreeEnhancer(OptionExerciseType.American));
 
       //assert
       var expectedOptionPriceValueAtEachTime = new Dictionary<int, double>();
       for (int thisTime = tree.Time; thisTime >= 0; thisTime--)
       {
         var discountedExpectedOptionPrice
-          = tree.Where(n => n.Time == thisTime)
+          = tree.Where(n => n.TimeStep == thisTime)
                  .Sum(n => n.Data.OptionValue * State.GetAbsoluteDiscountRate(n) * State.GetAbsoluteProb(n));
 
         expectedOptionPriceValueAtEachTime.Add(thisTime, Math.Round(discountedExpectedOptionPrice, 5));
@@ -56,24 +52,20 @@ namespace DeltaTests.Derivatives.OptionPricing
     [InlineData(4, 6, 2, 5, 0.25)]
     public void GenerateTreeWithAmericanPutPrice(int So, int N, double u, double k, double r)
     {
-      //arrange 
-      var d = 1 / u;
-      var tree = BinaryTreeFactory.CreateTree(N);
-      var underlyingEnhancer = new UnderlyingValueBinaryTreeEnhancer(So, u, d);
-      underlyingEnhancer.Enhance(tree);
+      //act and arrange  
+      var tree = BinaryTreeFactory.CreateTree(N, 1D,
+          new UnderlyingValueBinaryTreeEnhancer(So, u),
+          new ConstantInterestRateBinaryTreeEnhancer(r),
+          new PayoffBinaryTreeEnhancer(OptionPayoffType.Put, k),
+          new RiskNuetralProbabilityEnhancer(),
+          new ExpectedBinaryTreeEnhancer("PayOff"),
+          new OptionPriceBinaryTreeEnhancer(OptionExerciseType.American));
 
-      //act 
-      new ConstantInterestRateBinaryTreeEnhancer(r).Enhance(tree);
-      new PayoffBinaryTreeEnhancer(OptionPayoffType.Put, k).Enhance(tree);
-      new RiskNuetralProbabilityEnhancer().Enhance(tree);
-      new ExpectedBinaryTreeEnhancer("PayOff").Enhance(tree);
-      new OptionPriceBinaryTreeEnhancer(OptionExerciseType.American).Enhance(tree);
-
-      var expectedOptionPriceValueAtEachTime = new Dictionary<int, double>();
+            var expectedOptionPriceValueAtEachTime = new Dictionary<int, double>();
       for (int thisTime = tree.Time; thisTime >= 0; thisTime--)
       {
         var discountedExpectedOptionPrice
-          = tree.Where(n => n.Time == thisTime)
+          = tree.Where(n => n.TimeStep == thisTime)
                  .Sum(n => n.Data.OptionValue * State.GetAbsoluteDiscountRate(n) * State.GetAbsoluteProb(n));
 
         expectedOptionPriceValueAtEachTime.Add(thisTime, Math.Round(discountedExpectedOptionPrice, 5));

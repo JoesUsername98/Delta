@@ -64,9 +64,9 @@ namespace DeltaClient.WPF.Controls
         {
             get 
             {
-                if (!_useTriMat && hasOptionalValue && NodeBT.Data.OptimalExerciseTime.Value == NodeBT.Time)
+                if (!_useTriMat && hasOptionalValue && NodeBT.Data.OptimalExerciseTime.Value == NodeBT.TimeStep)
                     return Brushes.Gold;
-                else if (!_useTriMat && hasOptionalValue && NodeBT.Data.OptimalExerciseTime.Value < NodeBT.Time)
+                else if (!_useTriMat && hasOptionalValue && NodeBT.Data.OptimalExerciseTime.Value < NodeBT.TimeStep)
                     return Brushes.Black;
                 else
                     return Brushes.Orange;

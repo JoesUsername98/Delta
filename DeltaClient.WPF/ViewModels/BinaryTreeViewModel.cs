@@ -20,11 +20,11 @@ namespace DeltaClient.Core.ViewModels
         // MAKE THIS A SERVICE
         private static readonly Dictionary<string, BinaryTreeParams> Examples = new Dictionary<string, BinaryTreeParams>()
         { 
-            { "EuropeanCall", new BinaryTreeParams( 3, 4, 2, 0.25, OptionPayoffType.Call, 5, OptionExerciseType.European ) },
-            { "EuropeanPut", new BinaryTreeParams( 3, 4, 2, 0.25, OptionPayoffType.Put, 5, OptionExerciseType.European ) },
-            { "AmericanCall", new BinaryTreeParams( 3, 4, 2, 0.25, OptionPayoffType.Call, 5, OptionExerciseType.American ) },
-            { "AmericanPut", new BinaryTreeParams( 3, 4, 2, 0.25, OptionPayoffType.Put, 5, OptionExerciseType.American ) },
-            { "Exercise4.2", new BinaryTreeParams( 3, 4, 2, 0.25, OptionPayoffType.Put, 5, OptionExerciseType.American ) }
+            { "EuropeanCall", new BinaryTreeParams( 3, 1D, 4, 2, 0.25, OptionPayoffType.Call, 5, OptionExerciseType.European ) },
+            { "EuropeanPut", new BinaryTreeParams( 3, 1D, 4, 2, 0.25, OptionPayoffType.Put, 5, OptionExerciseType.European ) },
+            { "AmericanCall", new BinaryTreeParams( 3, 1D, 4, 2, 0.25, OptionPayoffType.Call, 5, OptionExerciseType.American ) },
+            { "AmericanPut", new BinaryTreeParams( 3, 1D, 4, 2, 0.25, OptionPayoffType.Put, 5, OptionExerciseType.American ) },
+            { "Exercise4.2", new BinaryTreeParams( 3, 1D, 4, 2, 0.25, OptionPayoffType.Put, 5, OptionExerciseType.American ) }
         }
         ;
         public BinaryTreeViewModel()
@@ -41,8 +41,8 @@ namespace DeltaClient.Core.ViewModels
                 timer.Start();
                 if ( UseTriMat )
                 {
-                    Matrix = new TriangularMatrixBuilder(_timePeriods)
-                        .WithUnderlyingValue(_underlyingPrice, _upFactor)
+                    Matrix = new TriangularMatrixBuilder(_timePeriods, TimeStep)
+                        .WithUnderlyingValueAndVolatility(_underlyingPrice, _volatility)
                         .WithInterestRate(_interestRate)
                         .WithPayoff(_payoffType, _strikePrice)
                         .WithRiskNuetralProb()
@@ -52,8 +52,8 @@ namespace DeltaClient.Core.ViewModels
                 }
                 else
                 {
-                    Tree = BinaryTreeFactory.CreateTree(_timePeriods,
-                        new UnderlyingValueBinaryTreeEnhancer(_underlyingPrice, _upFactor),
+                    Tree = BinaryTreeFactory.CreateTree(_timePeriods, TimeStep,
+                        new UnderlyingValueBinaryTreeEnhancer(_underlyingPrice, UpFactor),
                         new ConstantInterestRateBinaryTreeEnhancer(_interestRate),
                         new PayoffBinaryTreeEnhancer(_payoffType, _strikePrice),
                         new RiskNuetralProbabilityEnhancer(),
@@ -96,10 +96,11 @@ namespace DeltaClient.Core.ViewModels
             BinaryTreeParams p = Examples[nameOfExample];
             if (p is null)
                 return;
-            
+
+            Maturity = p.timePeriods;
             TimePeriods = p.timePeriods;
             UnderlyingPrice = p.underlyingPrice;
-            UpFactor = p.upFactor;
+            Volatility = Math.Log( p.upFactor ) /  Math.Sqrt( Maturity / TimePeriods) ;
             InterestRate = p.interestRate;
             StrikePrice = p.strikePrice;
             ExerciseType = p.exerciseType;
@@ -118,9 +119,10 @@ namespace DeltaClient.Core.ViewModels
         private BinaryTree<Node<State>,State> _tree;
         private TriangularMatrix<TriMatNode<State>, State> _matrix;
         private double _underlyingPrice = 100D;
+        private double _volatility = 1.2D;
         private double _strikePrice = 105D;
-        private double _upFactor = 2D;
         private double _interestRate = 0.05D;
+        private double _maturity = 1D;
         private OptionExerciseType _exerciseType = OptionExerciseType.European;
         private OptionPayoffType _payoffType = OptionPayoffType.Call;
         private int _timePeriods = 3;
@@ -189,18 +191,55 @@ namespace DeltaClient.Core.ViewModels
                 OnPropertyChanged(nameof(StrikePrice));
             }
         }
-        public double UpFactor 
+        public int TimePeriods
         {
-            get { return _upFactor; }
-            set 
+            get
             {
-                _upFactor = value;
+                return _timePeriods;
+            }
+            set
+            {
+                _timePeriods = value;
                 if (RecalcDynamically) UpdateTree();
+                OnPropertyChanged(nameof(TimeStep));
+                OnPropertyChanged(nameof(UpFactor));
+                OnPropertyChanged(nameof(DownFactor));
+                OnPropertyChanged(nameof(Volatility));
+                OnPropertyChanged(nameof(TimePeriods));
+            }
+        }
+        public double Maturity
+        {
+            get
+            {
+                return _maturity;
+            }
+            set
+            {
+                _maturity = value;
+                if (RecalcDynamically) UpdateTree();
+                OnPropertyChanged(nameof(TimeStep));
+                OnPropertyChanged(nameof(UpFactor));
+                OnPropertyChanged(nameof(DownFactor));
+                OnPropertyChanged(nameof(Volatility));
+                OnPropertyChanged(nameof(Maturity));
+            }
+        }
+        public double TimeStep => Maturity / TimePeriods;
+        public double Volatility
+        {
+            get { return _volatility; }
+            set
+            {
+                _volatility = value;
+                if (RecalcDynamically) UpdateTree();
+                OnPropertyChanged(nameof(Volatility));
                 OnPropertyChanged(nameof(UpFactor));
                 OnPropertyChanged(nameof(DownFactor));
             }
         }
-        public double DownFactor => 1D/_upFactor; 
+        public double UpFactor => Math.Exp( Volatility * Math.Sqrt( TimeStep ) ); //Hull 12.3
+        public double DownFactor => Math.Exp( - Volatility * Math.Sqrt( TimeStep ) );
         public double InterestRate
         {
             get { return _interestRate; }
@@ -229,19 +268,6 @@ namespace DeltaClient.Core.ViewModels
                 _payoffType = value;
                 if (RecalcDynamically) UpdateTree();
                 OnPropertyChanged(nameof(PayoffType));
-            }
-        }
-        public int TimePeriods
-        {
-            get
-            {
-                return _timePeriods;
-            }
-            set
-            {
-                _timePeriods = value;
-                if (RecalcDynamically) UpdateTree();
-                OnPropertyChanged(nameof(TimePeriods));
             }
         }
         public bool RecalcDynamically 
@@ -318,14 +344,7 @@ namespace DeltaClient.Core.ViewModels
                 OnPropertyChanged(nameof(NodeCollection));
             }
         }
-        public IEnumerable<object> NodeCollection
-        {
-            get
-            {
-                return (UseTriMat ? Matrix : Tree);
-            }
-        }
-
+        public IEnumerable<object> NodeCollection => UseTriMat ? Matrix : Tree;
         public double? OptionValue => 
             UseTriMat ? 
                 Matrix[0,0].Data.OptionValue : 

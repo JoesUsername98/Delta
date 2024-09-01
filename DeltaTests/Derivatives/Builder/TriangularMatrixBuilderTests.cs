@@ -15,8 +15,8 @@ namespace DeltaTests.Derivatives.Builder
         [InlineData(4, 3, 2, 5, 0.25)]
         public void GenerateTriMatEuroCall(int So, int N, double u, double k, double r)
         {
-            var tMat = new TriangularMatrixBuilder(N)
-                            .WithUnderlyingValue(So, u)
+            var tMat = new TriangularMatrixBuilder(N, 1D)
+                            .WithUnderlyingValueAndUpFactor(So, u)
                             .WithInterestRate(r)
                             .WithPayoff(OptionPayoffType.Call, k)
                             .WithRiskNuetralProb()
@@ -24,7 +24,7 @@ namespace DeltaTests.Derivatives.Builder
                             .WithDelta()
                             .Build();
 
-            var bTree = BinaryTreeFactory.CreateTree(N,
+            var bTree = BinaryTreeFactory.CreateTree(N, 1D,
                 new UnderlyingValueBinaryTreeEnhancer(So, u),
                 new ConstantInterestRateBinaryTreeEnhancer(r),
                 new PayoffBinaryTreeEnhancer(OptionPayoffType.Call, k),
@@ -45,8 +45,8 @@ namespace DeltaTests.Derivatives.Builder
         [InlineData(4, 3, 2, 5, 0.25)]
         public void GenerateTriMatEuroPut(int So, int N, double u, double k, double r)
         {
-            var tMat = new TriangularMatrixBuilder(N)
-                            .WithUnderlyingValue(So, u)
+            var tMat = new TriangularMatrixBuilder(N, 1D)
+                            .WithUnderlyingValueAndUpFactor(So, u)
                             .WithInterestRate(r)
                             .WithPayoff(OptionPayoffType.Put, k)
                             .WithRiskNuetralProb()
@@ -54,7 +54,7 @@ namespace DeltaTests.Derivatives.Builder
                             .WithDelta()
                             .Build();
 
-            var bTree = BinaryTreeFactory.CreateTree(N,
+            var bTree = BinaryTreeFactory.CreateTree(N, 1D,
                 new UnderlyingValueBinaryTreeEnhancer(So, u),
                 new ConstantInterestRateBinaryTreeEnhancer(r),
                 new PayoffBinaryTreeEnhancer(OptionPayoffType.Put, k),
@@ -75,8 +75,8 @@ namespace DeltaTests.Derivatives.Builder
         [InlineData(4, 3, 2, 5, 0.25)]
         public void GenerateTriMatAmerCall(int So, int N, double u, double k, double r)
         {
-            var tMat = new TriangularMatrixBuilder(N)
-                            .WithUnderlyingValue(So, u)
+            var tMat = new TriangularMatrixBuilder(N, 1D)
+                            .WithUnderlyingValueAndUpFactor(So, u)
                             .WithInterestRate(r)
                             .WithPayoff(OptionPayoffType.Call, k)
                             .WithRiskNuetralProb()
@@ -84,7 +84,7 @@ namespace DeltaTests.Derivatives.Builder
                             .WithDelta()
                             .Build();
 
-            var bTree = BinaryTreeFactory.CreateTree(N,
+            var bTree = BinaryTreeFactory.CreateTree(N, 1D,
                 new UnderlyingValueBinaryTreeEnhancer(So, u),
                 new ConstantInterestRateBinaryTreeEnhancer(r),
                 new PayoffBinaryTreeEnhancer(OptionPayoffType.Call, k),
@@ -105,8 +105,8 @@ namespace DeltaTests.Derivatives.Builder
         [InlineData(4, 3, 2, 5, 0.25)]
         public void GenerateTriMatAmerPut(int So, int N, double u, double k, double r)
         {
-            var tMat = new TriangularMatrixBuilder(N)
-                            .WithUnderlyingValue(So, u)
+            var tMat = new TriangularMatrixBuilder(N, 1D)
+                            .WithUnderlyingValueAndUpFactor(So, u)
                             .WithInterestRate(r)
                             .WithPayoff(OptionPayoffType.Put, k)
                             .WithRiskNuetralProb()
@@ -114,7 +114,7 @@ namespace DeltaTests.Derivatives.Builder
                             .WithDelta()
                             .Build();
 
-            var bTree = BinaryTreeFactory.CreateTree(N,
+            var bTree = BinaryTreeFactory.CreateTree(N, 1D,
                 new UnderlyingValueBinaryTreeEnhancer(So, u),
                 new ConstantInterestRateBinaryTreeEnhancer(r),
                 new PayoffBinaryTreeEnhancer(OptionPayoffType.Put, k),

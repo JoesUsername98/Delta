@@ -19,7 +19,7 @@ namespace DeltaDerivatives.Objects
         _interestRate = value;
       }
     }
-    public double DiscountRate { get { return 1 / (1 + InterestRate); } }
+    public double DiscountRate => 1D / (1D + InterestRate); 
     public bool Equals(ExpectableState other)
     {
       return PayOff == other.PayOff &&

@@ -23,25 +23,25 @@ namespace DeltaDerivatives.Visitors
         return;
 
       //Expiration time nodes. 
-      foreach (var node in subject.Where(n => n.Time == subject.Time))
+      foreach (var node in subject.Where(n => n.TimeStep == subject.Time))
       {
-        var nodesInPathWhereShouldExercise = node.Where(n => n.Data.OptionValue == n.Data.PayOff).OrderBy(n => n.Time).FirstOrDefault();
+        var nodesInPathWhereShouldExercise = node.Where(n => n.Data.OptionValue == n.Data.PayOff).OrderBy(n => n.TimeStep).FirstOrDefault();
 
         //No optimal optimal exercise 
         if (nodesInPathWhereShouldExercise is null)
         {
-          node.Data.OptimalExerciseTime = node.Data.OptionValue > 0 ? node.Time : int.MaxValue;
+          node.Data.OptimalExerciseTime = node.Data.OptionValue > 0 ? node.TimeStep : int.MaxValue;
           continue;
         }
-        node.Data.OptimalExerciseTime = nodesInPathWhereShouldExercise.Time;
+        node.Data.OptimalExerciseTime = nodesInPathWhereShouldExercise.TimeStep;
       }
 
-      foreach (var node in subject.Where(n => n.Time < subject.Time).OrderByDescending(n => n.Time))
+      foreach (var node in subject.Where(n => n.TimeStep < subject.Time).OrderByDescending(n => n.TimeStep))
       {
         //if exercise time nodes find the min stopping time to be this node or prior in path,
         //set stopping time to that minimum, else set to max int (do not exercise)
         var minStopingTime = Math.Min(node.Heads.Data.OptimalExerciseTime ?? int.MaxValue, node.Tails.Data.OptimalExerciseTime ?? int.MaxValue);
-        node.Data.OptimalExerciseTime = minStopingTime <= node.Time ? minStopingTime : int.MaxValue;
+        node.Data.OptimalExerciseTime = minStopingTime <= node.TimeStep ? minStopingTime : int.MaxValue;
         
       }
     }

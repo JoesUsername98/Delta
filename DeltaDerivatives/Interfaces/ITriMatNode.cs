@@ -7,7 +7,7 @@
         ITriMatNode<StateType>? ParentTails { get; set; }
         ITriMatNode<StateType>? Heads { get; set; }
         ITriMatNode<StateType>? Tails { get; set; }
-        int Time { get; init; }
+        int TimeStep { get; init; }
         int DownMoves { get; init; }
     }
 }

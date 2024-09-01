@@ -20,50 +20,40 @@ namespace DeltaTests.Derivatives.OptionPricing
       [InlineData(4, 3, 2, 5, 0.25)]
       public void OptimalStoppingTimeCall(int So, int N, double u, double k, double r)
       {
-        //arrange 
-        var d = 1 / u;
-        var tree = BinaryTreeFactory.CreateTree(N);
-        var underlyingEnhancer = new UnderlyingValueBinaryTreeEnhancer(So, u, d);
-        underlyingEnhancer.Enhance(tree);
-        var optionExercisePolicy = OptionExerciseType.American;
+        //act and arrange 
+        var tree = BinaryTreeFactory.CreateTree(N, 1D,
+            new UnderlyingValueBinaryTreeEnhancer(So, u),
+            new ConstantInterestRateBinaryTreeEnhancer(r),
+            new PayoffBinaryTreeEnhancer(OptionPayoffType.Call, k),
+            new RiskNuetralProbabilityEnhancer(),
+            new ExpectedBinaryTreeEnhancer("PayOff"),
+            new OptionPriceBinaryTreeEnhancer(OptionExerciseType.American),
+            new StoppingTimeBinaryTreeEnhancer());
 
-        //act 
-        new ConstantInterestRateBinaryTreeEnhancer(r).Enhance(tree);
-        new PayoffBinaryTreeEnhancer(OptionPayoffType.Call, k).Enhance(tree);
-        new RiskNuetralProbabilityEnhancer().Enhance(tree);
-        new ExpectedBinaryTreeEnhancer("PayOff").Enhance(tree);
-        new OptionPriceBinaryTreeEnhancer(optionExercisePolicy).Enhance(tree);
-        if (optionExercisePolicy == OptionExerciseType.American) new StoppingTimeBinaryTreeEnhancer().Enhance(tree);
-
-        //assert
-        //prevent inefficient markets => prevent insider trading
-        Assert.All<INode<State>>(tree, n =>
-          Assert.True(n.Data.OptimalExerciseTime <= n.Time ||
+         //assert
+         //prevent inefficient markets => prevent insider trading
+         Assert.All<INode<State>>(tree, n =>
+          Assert.True(n.Data.OptimalExerciseTime <= n.TimeStep ||
             n.Data.OptimalExerciseTime == int.MaxValue));
 
         //what a optimal pay off is
         Assert.All<INode<State>>(tree.Where( n => n.Data.OptionValue == n.Data.PayOff), n =>
-          Assert.True(n.Time >= n.Data.OptimalExerciseTime));
+          Assert.True(n.TimeStep >= n.Data.OptimalExerciseTime));
       }
 
       [Theory]
       [InlineData(4, 2, 2, 5, 0.25)]
       public void OptimalStoppingTimePut(int So, int N, double u, double k, double r)
       {
-        //arrange 
-        var d = 1 / u;
-        var tree = BinaryTreeFactory.CreateTree(N);
-        var underlyingEnhancer = new UnderlyingValueBinaryTreeEnhancer(So, u, d);
-        underlyingEnhancer.Enhance(tree);
-        var optionExercisePolicy = OptionExerciseType.American;
-
-        //act 
-        new ConstantInterestRateBinaryTreeEnhancer(r).Enhance(tree);
-        new PayoffBinaryTreeEnhancer(OptionPayoffType.Put, k).Enhance(tree);
-        new RiskNuetralProbabilityEnhancer().Enhance(tree);
-        new ExpectedBinaryTreeEnhancer("PayOff").Enhance(tree);
-        new OptionPriceBinaryTreeEnhancer(optionExercisePolicy).Enhance(tree);
-        if(optionExercisePolicy==OptionExerciseType.American) new StoppingTimeBinaryTreeEnhancer().Enhance(tree);
+        //act and arrange 
+        var tree = BinaryTreeFactory.CreateTree(N, 1D,
+            new UnderlyingValueBinaryTreeEnhancer(So, u),
+            new ConstantInterestRateBinaryTreeEnhancer(r),
+            new PayoffBinaryTreeEnhancer(OptionPayoffType.Put, k),
+            new RiskNuetralProbabilityEnhancer(),
+            new ExpectedBinaryTreeEnhancer("PayOff"),
+            new OptionPriceBinaryTreeEnhancer(OptionExerciseType.American),
+            new StoppingTimeBinaryTreeEnhancer());
 
         //assert
 
@@ -78,12 +68,12 @@ namespace DeltaTests.Derivatives.OptionPricing
 
         //prevent inefficient markets => prevent insider trading 
         Assert.All<INode<State>>(tree, n => 
-          Assert.True(n.Data.OptimalExerciseTime <= n.Time || 
+          Assert.True(n.Data.OptimalExerciseTime <= n.TimeStep || 
             n.Data.OptimalExerciseTime == int.MaxValue));
 
         //what a optimal pay off is
         Assert.All<INode<State>>(tree.Where(n => n.Data.OptionValue == n.Data.PayOff), n =>
-         Assert.True(n.Time >= n.Data.OptimalExerciseTime));
+         Assert.True(n.TimeStep >= n.Data.OptimalExerciseTime));
       }
     }
   }

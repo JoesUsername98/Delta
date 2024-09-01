@@ -57,8 +57,8 @@ namespace DeltaClient.WPF.Controls
             {
                 var nodeChild = child.Content as INode<State>;
 
-                if (nodeChild.Time > totalDepth)
-                    totalDepth = nodeChild.Time;
+                if (nodeChild.TimeStep > totalDepth)
+                    totalDepth = nodeChild.TimeStep;
 
                 child.Measure(availableSize);
             }
@@ -72,8 +72,8 @@ namespace DeltaClient.WPF.Controls
             {
                 var nodeChild = child.Content as TriMatNode<State>;
 
-                if (nodeChild.Time > totalDepth)
-                    totalDepth = nodeChild.Time;
+                if (nodeChild.TimeStep > totalDepth)
+                    totalDepth = nodeChild.TimeStep;
 
                 child.Measure(availableSize);
             }
@@ -118,8 +118,8 @@ namespace DeltaClient.WPF.Controls
             {
                 var nodeChild = child.Content as INode<State>;
 
-                if (nodeChild.Time > totalDepth)
-                    totalDepth = nodeChild.Time;
+                if (nodeChild.TimeStep > totalDepth)
+                    totalDepth = nodeChild.TimeStep;
             }
 
             double maxNodeSize = 0;
@@ -130,9 +130,9 @@ namespace DeltaClient.WPF.Controls
 
                 var UIChild = child as FrameworkElement;
 
-                double height = Math.Min(finalSize.Height / Math.Pow(2, nodeChild.Time),
+                double height = Math.Min(finalSize.Height / Math.Pow(2, nodeChild.TimeStep),
                                 UIChild.DesiredSize.Height);
-                double width = Math.Min(finalSize.Width / (nodeChild.Time + 1),
+                double width = Math.Min(finalSize.Width / (nodeChild.TimeStep + 1),
                  UIChild.DesiredSize.Height);
 
                 maxNodeSize = Math.Max(Math.Max(maxNodeSize, height), width);
@@ -151,7 +151,7 @@ namespace DeltaClient.WPF.Controls
                 foreach (bool hOrT in nodeChild.Path)
                         yOffset += (hOrT ? -1 : 1) * (finalSize.Height / 2) / Math.Pow(2, ++depthCount);
 
-                int childDepth = nodeChild.Time;
+                int childDepth = nodeChild.TimeStep;
 
                 double newPosX = childDepth * xSepToUse;
                 double centreLineY = (finalSize.Height - minNodeSize) / 2;
@@ -172,8 +172,8 @@ namespace DeltaClient.WPF.Controls
             {
                 var nodeChild = child.Content as TriMatNode<State>;
 
-                if (nodeChild.Time > totalDepth)
-                    totalDepth = nodeChild.Time;
+                if (nodeChild.TimeStep > totalDepth)
+                    totalDepth = nodeChild.TimeStep;
             }
             return totalDepth;
         }
@@ -185,8 +185,8 @@ namespace DeltaClient.WPF.Controls
             {
                 var nodeChild = child.Content as INode<State>;
 
-                if (nodeChild.Time > totalDepth)
-                    totalDepth = nodeChild.Time;
+                if (nodeChild.TimeStep > totalDepth)
+                    totalDepth = nodeChild.TimeStep;
             }
             return totalDepth;
         }
@@ -201,9 +201,9 @@ namespace DeltaClient.WPF.Controls
 
                 var UIChild = child as FrameworkElement;
 
-                double height = Math.Min(finalSize.Height / (nodeChild.Time + 1),
+                double height = Math.Min(finalSize.Height / (nodeChild.TimeStep + 1),
                                 UIChild.DesiredSize.Height);
-                double width = Math.Min(finalSize.Width / (nodeChild.Time + 1),
+                double width = Math.Min(finalSize.Width / (nodeChild.TimeStep + 1),
                  UIChild.DesiredSize.Height);
 
                 double smallerDim = Math.Min(width, height);
@@ -225,9 +225,9 @@ namespace DeltaClient.WPF.Controls
 
                 var UIChild = child as FrameworkElement;
 
-                double height = Math.Min(finalSize.Height / (nodeChild.Time + 1),
+                double height = Math.Min(finalSize.Height / (nodeChild.TimeStep + 1),
                                 UIChild.DesiredSize.Height);
-                double width = Math.Min(finalSize.Width / (nodeChild.Time + 1),
+                double width = Math.Min(finalSize.Width / (nodeChild.TimeStep + 1),
                  UIChild.DesiredSize.Height);
 
                 double smallerDim = Math.Min(width, height);
@@ -247,7 +247,7 @@ namespace DeltaClient.WPF.Controls
             foreach (bool hOrT in nodeChild.Path)
                 yOffset += (hOrT ? -1D : 1D) / (1D + totalDepth);
 
-            double newPosX = nodeChild.Time * xSepToUse;
+            double newPosX = nodeChild.TimeStep * xSepToUse;
             double centreLineY = (finalSize.Height - minNodeSize) / 2;
             double newPosY = centreLineY + yOffset * (finalSize.Height / 2);
 
@@ -257,9 +257,9 @@ namespace DeltaClient.WPF.Controls
         private Point GetChildPositionTriMat(ContentPresenter child, int totalDepth, double xSepToUse, double minNodeSize, Size finalSize)
         {
             var nodeChild = child.Content as TriMatNode<State>;
-            double yOffset = (2 * nodeChild.DownMoves - nodeChild.Time) / (1D + totalDepth);
+            double yOffset = (2 * nodeChild.DownMoves - nodeChild.TimeStep) / (1D + totalDepth);
 
-            double newPosX = nodeChild.Time * xSepToUse;
+            double newPosX = nodeChild.TimeStep * xSepToUse;
             double centreLineY = (finalSize.Height - minNodeSize) / 2;
             double newPosY = centreLineY + yOffset * (finalSize.Height / 2);
 

@@ -7,7 +7,7 @@
     bool[] Path { get; }
     INode<T> Previous { get; set; }
     INode<T> Tails { get; set; }
-    int Time { get; }
+    int TimeStep { get; }
     int CountSubsequentNodes(INode<T> node);
     int CountTime(INode<T> node);
     INode<T> GetNext(bool isHeads);

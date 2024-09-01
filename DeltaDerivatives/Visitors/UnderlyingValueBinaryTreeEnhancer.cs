@@ -34,7 +34,7 @@ namespace DeltaDerivatives.Visitors
       foreach (var node in subject)
       {
         var noOfHeads = node.Path.Count(p => p);
-        var noOfTails = node.Time - noOfHeads;
+        var noOfTails = node.TimeStep - noOfHeads;
         node.Data.UnderlyingValue = _initialPrice * Math.Pow(_upFactor, noOfHeads) * Math.Pow(_downFactor, noOfTails);
       }
 

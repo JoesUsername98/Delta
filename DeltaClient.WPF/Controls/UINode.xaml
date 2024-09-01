@@ -57,15 +57,16 @@
                   <RowDefinition />
                   <RowDefinition />
                   <RowDefinition />
-                </Grid.RowDefinitions>
+                  <RowDefinition />
+            </Grid.RowDefinitions>
 
                 <Border Grid.Row="0"
                         Grid.Column="0">
-                  <TextBlock Text='Time' />
+                  <TextBlock Text='TimeStep' />
                 </Border>
                 <Border Grid.Row="0"
                         Grid.Column="1">
-                  <TextBlock Text='{Binding Path=Node.Time}' />
+                  <TextBlock Text='{Binding Path=Node.TimeStep}' />
                 </Border>
 
 
@@ -160,7 +161,16 @@
                   <TextBlock Text='{Binding Path=Node.Data.Expected.UnderlyingValue}' />
                 </Border>
 
-              </Grid>
+                <Border Grid.Row="11"
+                        Grid.Column="0">
+                  <TextBlock Text='StepDiscountFactor' />
+                </Border>
+                <Border Grid.Row="11"
+                        Grid.Column="1">
+                <TextBlock Text='{Binding Path=Node.Data.DiscountRate}' />
+                </Border>
+
+        </Grid>
             </Ellipse.ToolTip>
           </Ellipse>
   </Grid>

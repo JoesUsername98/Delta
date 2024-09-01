@@ -72,6 +72,7 @@
             <Grid.RowDefinitions>
               <RowDefinition Height='Auto' />
               <RowDefinition Height='Auto' />
+              <RowDefinition Height='Auto' />
             </Grid.RowDefinitions>
             
                 <TextBlock Grid.Row='0'
@@ -109,7 +110,8 @@
             <xctk:DoubleUpDown Grid.Row='0'
                                Grid.Column='3'
                                FormatString='F2'
-                               Value='{Binding UpFactor}'
+                               Value='{Binding UpFactor, Mode=OneWay}'
+                               IsReadOnly='True'
                                Increment='.05'
                                Minimum='0.00'
                                Background='{x:Null}'
@@ -128,7 +130,19 @@
                                Minimum='0.00'
                                Background='{x:Null}'
                                Margin='1' />
-
+            <TextBlock Grid.Row='2'
+                       Grid.Column='0'
+                       Text='Volatility'
+                       VerticalAlignment='Center'
+                       Margin='1' />
+            <xctk:DoubleUpDown Grid.Row='2'
+                               Grid.Column='1'
+                               FormatString='P2'
+                               Value='{Binding Volatility}'
+                               Increment='.05'
+                               Minimum='0.00'
+                               Background='{x:Null}'
+                               Margin='1' />
           </Grid>
         </RibbonGroup>
 
@@ -149,17 +163,16 @@
 
             <TextBlock Grid.Row='0'
                        Grid.Column='0'
-                       Text='Time Periods'
+                       Text='Maturity (Y)'
                        HorizontalAlignment='Right'
                        VerticalAlignment='Center'
                        Margin='1' />
-            <xctk:IntegerUpDown Grid.Row='0'
-                               Grid.Column='1'
-                               Maximum='20'
-                               Minimum='0'
-                               Value='{Binding TimePeriods}'
-                               Background='{x:Null}'
-                               Margin='1' />
+            <xctk:DoubleUpDown Grid.Row='0'
+                                Grid.Column='1'
+                                Value='{Binding Maturity}'
+                                FormatString='F2'
+                                Background='{x:Null}'
+                                Margin='1' />
 
             <TextBlock Grid.Row='1'
                        Grid.Column='0'
@@ -245,11 +258,52 @@
                              Margin='1' />
           </Grid>
         </RibbonGroup>
-        <RibbonGroup x:Name="Calculation_Method"
-                     Header="Method">
-          <RibbonCheckBox   Label='Use Matrix'
+        <RibbonGroup x:Name="Model"
+                     Header="Model">
+          <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width='Auto' />
+            <ColumnDefinition Width='Auto' />
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height='Auto' />
+            <RowDefinition Height='Auto' />
+            <RowDefinition Height='Auto' />
+          </Grid.RowDefinitions>
+            
+          <RibbonCheckBox   Grid.Row='0'
+                            Grid.Column='0'
+                            Grid.ColumnSpan='2'
+                            Label='Use Matrix'
                             IsChecked='{Binding UseTriMat, Converter={StaticResource BooleanConverter}, Mode=TwoWay}'
                             Background='{x:Null}' />
+          <TextBlock Grid.Row='1'
+                     Grid.Column='0'
+                     Text='Time Periods'
+                     HorizontalAlignment='Right'
+                     VerticalAlignment='Center'
+                     Margin='1' />
+          <xctk:IntegerUpDown Grid.Row='1'
+                              Grid.Column='1'
+                              Maximum='20'
+                              Minimum='0'
+                              Value='{Binding TimePeriods}'
+                              Background='{x:Null}'
+                              Margin='1' />
+          <TextBlock Grid.Row='2'
+                     Grid.Column='0'
+                     Text='Time Step (Y)'
+                     HorizontalAlignment='Right'
+                     VerticalAlignment='Center'
+                     Margin='1' />
+          <xctk:DoubleUpDown Grid.Row='2'
+                             Grid.Column='1'
+                             Value='{Binding TimeStep, Mode=OneWay}'
+                             FormatString='F2'
+                             IsReadOnly='True'
+                             Background='{x:Null}'
+                             Margin='1' />
+          </Grid>
         </RibbonGroup>
       </RibbonTab>
       <RibbonTab Header="View"

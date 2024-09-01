@@ -30,8 +30,8 @@ namespace DeltaTests.Derivatives.Factory.Enhancers
       foreach (var node in tree.Where(n => n.Heads != null && n.Tails != null))
       {
         Assert.Equal(node.Data.UnderlyingValue, node.Data.DiscountRate * node.Data.Expected.UnderlyingValue); //eq (2.3.5)
-        Assert.Equal(Math.Round(node.Data.UnderlyingValue * Math.Pow(node.Data.DiscountRate, node.Time), 4),
-              Math.Round(node.Data.Expected.UnderlyingValue * Math.Pow(node.Data.DiscountRate, node.Time + 1), 4)); //eq (2.4.5)
+        Assert.Equal(Math.Round(node.Data.UnderlyingValue * Math.Pow(node.Data.DiscountRate, node.TimeStep), 4),
+              Math.Round(node.Data.Expected.UnderlyingValue * Math.Pow(node.Data.DiscountRate, node.TimeStep + 1), 4)); //eq (2.4.5)
       }
     }
   }

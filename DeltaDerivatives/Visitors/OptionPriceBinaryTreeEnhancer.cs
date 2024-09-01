@@ -17,11 +17,11 @@ namespace DeltaDerivatives.Visitors
 
     public void Enhance(BinaryTree<Node<State>, State> subject)
     {
-      foreach (var node in subject.OrderByDescending(n => n.Time))
+      foreach (var node in subject.OrderByDescending(n => n.TimeStep))
       {
         if (node?.Data?.PayOff is null) throw new NullReferenceException($"Payoff is null {node.Path}");
 
-        if (node.Time == subject.Time || _optionType == OptionExerciseType.American)
+        if (node.TimeStep == subject.Time || _optionType == OptionExerciseType.American)
         {
           node.Data.OptionValue = _optionPricingStrategy(node);
           continue;
