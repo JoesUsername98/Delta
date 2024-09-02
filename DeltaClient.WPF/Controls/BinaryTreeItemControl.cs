@@ -154,7 +154,7 @@ namespace DeltaClient.WPF.Controls
                 return isHeads ? _upPen : _downPen;
 
             var parent = isHeads ? node.ParentHeads : node.ParentTails;
-            bool parentExercised = parent.Data.OptimalExerciseTime == parent.TimeStep;
+            bool parentExercised = parent.Data.OptimalExerciseTime <= parent.TimeStep;
             if (parentExercised || node.TimeStep > node.Data.OptimalExerciseTime.Value) //exercised
                 return _exercisedPen;
 
