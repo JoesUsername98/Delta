@@ -48,6 +48,7 @@ namespace DeltaClient.Core.ViewModels
                         .WithRiskNuetralProb()
                         .WithPremium(_exerciseType)
                         .WithDelta()
+                        .WithPsuedoOptimalStoppingTime()
                         .Build();
                 }
                 else

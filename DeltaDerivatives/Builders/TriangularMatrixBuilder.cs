@@ -32,7 +32,11 @@ namespace DeltaDerivatives.Builders
     }
     public interface ITriMatBuilderWithDelta
     {
-        public ITriMatBuilderReady WithDelta();
+        public ITriMatBuilderWithPsuedoOptimalStoppingTime WithDelta();
+    }
+    public interface ITriMatBuilderWithPsuedoOptimalStoppingTime
+    {
+        public ITriMatBuilderReady WithPsuedoOptimalStoppingTime();
     }
     public interface ITriMatBuilderReady
     {
@@ -46,6 +50,7 @@ namespace DeltaDerivatives.Builders
         ITriMatBuilderWithRiskNuetralProb,
         ITriMatBuilderWithPremium,
         ITriMatBuilderWithDelta,
+        ITriMatBuilderWithPsuedoOptimalStoppingTime,
         ITriMatBuilderReady
     {
         TriangularMatrix<TriMatNode<State>, State> _result;
@@ -56,6 +61,7 @@ namespace DeltaDerivatives.Builders
         private double _downFactor;
         private double _interestRate;
         Func<State, double, double> _payoffStrategy;
+        private OptionExerciseType _exerciseType;
         Func<State, State?, State?, double> _optionPricingStrategy;
 
         public TriangularMatrixBuilder(int steps, double timeStep)
@@ -146,6 +152,7 @@ namespace DeltaDerivatives.Builders
 
         public ITriMatBuilderWithDelta WithPremium(OptionExerciseType exerciseType)
         {
+            _exerciseType = exerciseType;
             _optionPricingStrategy = GetOptionPricingStrategy(exerciseType);
             for (int step = _result.matrix.Length - 1; step >= 0; step--)
                 for (int downMoves = _result.matrix[step].Length - 1; downMoves >= 0; downMoves--)
@@ -186,7 +193,7 @@ namespace DeltaDerivatives.Builders
             }
         }
 
-        public ITriMatBuilderReady WithDelta()
+        public ITriMatBuilderWithPsuedoOptimalStoppingTime WithDelta()
         {
             for (int step = _result.matrix.Length - 2; step >= 0; step--)
                 for (int downMoves = _result.matrix[step].Length - 1; downMoves >= 0; downMoves--)
@@ -205,9 +212,31 @@ namespace DeltaDerivatives.Builders
             return this;
         }
 
+        public ITriMatBuilderReady WithPsuedoOptimalStoppingTime()
+        {
+            if (_exerciseType != OptionExerciseType.American)
+                return this;
+
+            //Diag Traverseal
+            for (int timeStep = 0; timeStep < _result.matrix.Length; ++timeStep)
+            {
+                int optimalExEarlyPutTimeStep = int.MaxValue;
+                for (int diagMoves = 0; diagMoves < _result.matrix[_result.matrix.Length -1 - timeStep].Length; ++diagMoves)
+                {
+                    var state = _result.matrix[timeStep + diagMoves][diagMoves].Data;
+                    if (state.OptionValue == state.PayOff && optimalExEarlyPutTimeStep == int.MaxValue )
+                            optimalExEarlyPutTimeStep = timeStep + diagMoves;
+                    state.OptimalExerciseTime = optimalExEarlyPutTimeStep;
+                }
+            }
+
+            return this;
+        }
+
         public TriangularMatrix<TriMatNode<State>, State> Build()
         {
             return _result;
         }
+
     }
 }

@@ -102,7 +102,7 @@ namespace DeltaClient.WPF.Controls
                     var parentHeadPoint = parentHeadsVis.TranslatePoint(new Point(parentHeadDiam, parentHeadDiam), this);
                     parentHeadPoint.X += parentHeadsVis.RenderSize.Width / 2;
 
-                    dc.DrawLine(GetColourForLine(true), parentHeadPoint, nodePoint);
+                    dc.DrawLine(GetColourForLine(node , true), parentHeadPoint, nodePoint);
                 }
 
                 if (node.ParentTails is not null)
@@ -113,7 +113,7 @@ namespace DeltaClient.WPF.Controls
                     var parentTailsPoint = parentTailsVis.TranslatePoint(new Point(parentTailsDiam, parentTailsDiam), this);
                     parentTailsPoint.X += parentTailsVis.RenderSize.Width / 2;
 
-                    dc.DrawLine(GetColourForLine(false), parentTailsPoint, nodePoint);
+                    dc.DrawLine(GetColourForLine(node , false), parentTailsPoint, nodePoint);
                 }
             }
         }
@@ -148,9 +148,17 @@ namespace DeltaClient.WPF.Controls
             return node.Path.Last() ? _upPen : _downPen;
         }
 
-        private Pen GetColourForLine(bool isUp)
+        private Pen GetColourForLine(TriMatNode<State> node, bool isHeads)
         {
-            return isUp ? _upPen : _downPen;
+            if (!node.Data.OptimalExerciseTime.HasValue) //European
+                return isHeads ? _upPen : _downPen;
+
+            var parent = isHeads ? node.ParentHeads : node.ParentTails;
+            bool parentExercised = parent.Data.OptimalExerciseTime == parent.TimeStep;
+            if (parentExercised || node.TimeStep > node.Data.OptimalExerciseTime.Value) //exercised
+                return _exercisedPen;
+
+            return isHeads ? _upPen : _downPen;
         }
     }
 }

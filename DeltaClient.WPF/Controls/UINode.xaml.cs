@@ -57,16 +57,22 @@ namespace DeltaClient.WPF.Controls
         public INode<State>? NodeBT { get; set; }
         public TriMatNode<State>? NodeTriMat { get; set; }
         public object Node => _useTriMat ? NodeTriMat : NodeBT;
-        public bool hasOptionalValue => NodeBT?.Data?.OptimalExerciseTime.HasValue ?? false ;
+        public bool hasOptionalValue 
+            => _useTriMat ? 
+            NodeTriMat?.Data?.OptimalExerciseTime.HasValue ?? false :
+            NodeBT?.Data?.OptimalExerciseTime.HasValue  ?? false ;
         #endregion
         #region Public Properties
         public Brush Fill
         {
             get 
             {
-                if (!_useTriMat && hasOptionalValue && NodeBT.Data.OptimalExerciseTime.Value == NodeBT.TimeStep)
+                int? optimalExTime = _useTriMat ? NodeTriMat.Data.OptimalExerciseTime : NodeBT.Data.OptimalExerciseTime;
+                int timeStep = _useTriMat ? NodeTriMat.TimeStep : NodeBT.TimeStep;
+
+                if ( hasOptionalValue && optimalExTime.Value == timeStep)
                     return Brushes.Gold;
-                else if (!_useTriMat && hasOptionalValue && NodeBT.Data.OptimalExerciseTime.Value < NodeBT.TimeStep)
+                else if ( hasOptionalValue && optimalExTime.Value < timeStep)
                     return Brushes.Black;
                 else
                     return Brushes.Orange;
