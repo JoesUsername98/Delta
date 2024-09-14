@@ -22,6 +22,7 @@ namespace DeltaTests.Derivatives.Builder
                             .WithRiskNuetralProb()
                             .WithPremium(OptionExerciseType.European)
                             .WithDelta()
+                            .WithPsuedoOptimalStoppingTime()
                             .Build();
 
             var bTree = BinaryTreeFactory.CreateTree(N, 1D,
@@ -52,6 +53,7 @@ namespace DeltaTests.Derivatives.Builder
                             .WithRiskNuetralProb()
                             .WithPremium(OptionExerciseType.European)
                             .WithDelta()
+                            .WithPsuedoOptimalStoppingTime()
                             .Build();
 
             var bTree = BinaryTreeFactory.CreateTree(N, 1D,
@@ -82,6 +84,7 @@ namespace DeltaTests.Derivatives.Builder
                             .WithRiskNuetralProb()
                             .WithPremium(OptionExerciseType.American)
                             .WithDelta()
+                            .WithPsuedoOptimalStoppingTime()
                             .Build();
 
             var bTree = BinaryTreeFactory.CreateTree(N, 1D,
@@ -112,6 +115,7 @@ namespace DeltaTests.Derivatives.Builder
                             .WithRiskNuetralProb()
                             .WithPremium(OptionExerciseType.American)
                             .WithDelta()
+                            .WithPsuedoOptimalStoppingTime()
                             .Build();
 
             var bTree = BinaryTreeFactory.CreateTree(N, 1D,
