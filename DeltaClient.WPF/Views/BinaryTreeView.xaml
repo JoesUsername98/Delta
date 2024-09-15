@@ -8,7 +8,7 @@
         d:DataContext='{d:DesignInstance Type=viewmodels:BinaryTreeViewModel}'
         mc:Ignorable="d"
         Background='Aquamarine'
-        d:DesignWidth='1000'
+        d:DesignWidth='2000'
         x:Class="DeltaClient.WPF.Views.BinaryTreeView"
         MinHeight='260'
         MinWidth='315'>
@@ -226,7 +226,6 @@
           <Grid.RowDefinitions>
             <RowDefinition Height='Auto' />
             <RowDefinition Height='Auto' />
-            <RowDefinition Height='Auto' />
           </Grid.RowDefinitions>
           <RibbonCheckBox
                   Grid.Row='0'
@@ -243,19 +242,6 @@
                   IsEnabled='{Binding RecalcManually}'
                   Command='{Binding ReCalculateCommand}' />
 
-          <TextBlock Grid.Row='2'
-                     Grid.Column='0'
-                     Text='Option Value'
-                     HorizontalAlignment='Right'
-                     VerticalAlignment='Center'
-                     Margin='1' />
-          <xctk:DoubleUpDown Grid.Row='2'
-                             Grid.Column='1'
-                             FormatString='C2'
-                             Value='{Binding OptionValue, Mode=OneWay}'
-                             IsReadOnly='True'
-                             Background='{x:Null}'
-                             Margin='1' />
           </Grid>
         </RibbonGroup>
         <RibbonGroup x:Name="Model"
@@ -303,6 +289,45 @@
                              IsReadOnly='True'
                              Background='{x:Null}'
                              Margin='1' />
+          </Grid>
+        </RibbonGroup>
+        <RibbonGroup x:Name="Result"
+                     Header="Result">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width='Auto' />
+              <ColumnDefinition Width='Auto' />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height='Auto' />
+              <RowDefinition Height='Auto' />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row='0'
+                       Grid.Column='0'
+                       Text='Option Value'
+                       HorizontalAlignment='Right'
+                       VerticalAlignment='Center'
+                       Margin='1' />
+            <xctk:DoubleUpDown Grid.Row='0'
+                               Grid.Column='1'
+                               FormatString='C2'
+                               Value='{Binding OptionValue, Mode=OneWay}'
+                               IsReadOnly='True'
+                               Background='{x:Null}'
+                               Margin='1' />
+            <TextBlock Grid.Row='1'
+                       Grid.Column='0'
+                       Text='Analytical Value'
+                       HorizontalAlignment='Right'
+                       VerticalAlignment='Center'
+                       Margin='1' />
+            <xctk:DoubleUpDown Grid.Row='1'
+                               Grid.Column='1'
+                               FormatString='C2'
+                               Value='{Binding AnalyticalOptionValue, Mode=OneWay}'
+                               IsReadOnly='True'
+                               Background='{x:Null}'
+                               Margin='1' />
           </Grid>
         </RibbonGroup>
       </RibbonTab>

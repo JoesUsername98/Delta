@@ -1,6 +1,7 @@
 ﻿using DeltaClient.WPF.Commands;
 using DeltaDerivatives.Builders;
 using DeltaDerivatives.Factory;
+using DeltaDerivatives.Maths;
 using DeltaDerivatives.Objects;
 using DeltaDerivatives.Objects.Enums;
 using DeltaDerivatives.Objects.Records;
@@ -67,6 +68,7 @@ namespace DeltaClient.Core.ViewModels
                 }
 
                 OnPropertyChanged(nameof(OptionValue));
+                OnPropertyChanged(nameof(AnalyticalOptionValue));
                 Error = "";
             }
             catch( Exception ex)
@@ -349,7 +351,11 @@ namespace DeltaClient.Core.ViewModels
         public double? OptionValue => 
             UseTriMat ? 
                 Matrix[0,0].Data.OptionValue : 
-                Tree.GetAt(new bool[] { }).Data.OptionValue; 
+                Tree.GetAt(new bool[] { }).Data.OptionValue;
+        public double? AnalyticalOptionValue =>
+            _exerciseType == OptionExerciseType.American ?
+                null : 
+                AnalyticalBlackScholes.Price(PayoffType, UnderlyingPrice, StrikePrice, InterestRate, Maturity, Volatility);
         public IEnumerable<OptionExerciseType> ExerciseTypes =>
     Enum.GetValues(typeof(OptionExerciseType)).Cast<OptionExerciseType>();
         public IEnumerable<OptionPayoffType> PayoffTypes =>
