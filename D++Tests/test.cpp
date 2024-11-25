@@ -53,6 +53,22 @@ TEST( TriMatBldErr, upFactorLessThan1 )
 
 	EXPECT_EQ(buildResult.getErrorMsg(), "upFactor cannot be less than downFactor");
 }
+TEST(TriMatBldErr, irArb)
+{
+	const size_t stepsIn = 2;
+	auto buildResult = TriMatrixBuilder::create(stepsIn, 30. / stepsIn)
+		.withUnderlyingValueAndUpFactor(4, 2)
+		.withInterestRate(25)
+		.withPayoff(OptionPayoffType::Call, 5)
+		.withRiskNuetralProb()
+		.withPremium(OptionExerciseType::European)
+		.withDelta()
+		.withPsuedoOptimalStoppingTime();
+
+	EXPECT_TRUE(buildResult.m_hasError);
+
+	EXPECT_EQ(buildResult.getErrorMsg(), "u > 1 + r to prevent arbitrage");
+}
 #pragma endregion
 #pragma region pricing
 TEST( Pricing, EuroCall)

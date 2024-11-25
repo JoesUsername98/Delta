@@ -90,6 +90,8 @@ namespace DPP
 	{
 		if (m_hasError) return *this;
 
+		if (m_upFactor <= 1 + m_interestRate) { RTN_BUILDER_ERR("u > 1 + r to prevent arbitrage"); }
+
 		const double growthFactor = exp(m_interestRate * m_timeStep); // Hull 12.6
 
 		for (auto& timeStep : m_result.m_matrix)
