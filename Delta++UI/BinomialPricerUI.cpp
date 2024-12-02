@@ -32,40 +32,45 @@ static void HelpMarker(const char* desc)
 	}
 }
 
+struct State 
+{
+	bool valueChanged = false;
+	double underlyingValue = 100.;
+	double vol = 1.2;
+	double interestRate = 0.25;
+	double strike = 105.;
+	int timePeriods = 3;
+	double maturity = 1.5;
+	int optionPayoffIdx = 0;
+	int exerciseTypeIdx = 0;
+	std::optional<double> optionPrice = std::nullopt;
+	std::optional<std::string> error = std::nullopt;
+	std::optional<int> timeTaken = std::nullopt;
+	bool dynamicRecalc = false;
+};
+
 class ExampleLayer : public Walnut::Layer
 {
+private:
+	State state;
+
 public:
 	virtual void OnUIRender() override
 	{
 		ImGui::Begin("Binomial Pricer");
 
-		// Abstract state to a view model
-		static bool valueChanged = false;
-		static double underlyingValue = 100.;
-		static double vol = 1.2;
-		static double interestRate = 0.25;
-		static double strike = 105.;
-		static int timePeriods = 3;
-		static double maturity = 1.5;
-		static int optionPayoffIdx = 0;
-		static int exerciseTypeIdx = 0;
-		static std::optional<double> optionPrice = std::nullopt;
-		static std::optional<std::string> error = std::nullopt;
-		static std::optional<int> timeTaken = std::nullopt;
-		static bool dynamicRecalc = false;
-
-		valueChanged |=	ImGui::Checkbox("Dynamic Recalculation", &dynamicRecalc);
-		valueChanged |=	ImGui::InputInt("Time Periods", &timePeriods);
+		state.valueChanged |=	ImGui::Checkbox("Dynamic Recalculation", &state.dynamicRecalc);
+		state.valueChanged |=	ImGui::InputInt("Time Periods", &state.timePeriods);
 					ImGui::SameLine(); HelpMarker("Number of Nodes");
-		valueChanged |=	ImGui::InputDouble("Maturity (Y)", &maturity, 0.25, 1.0, "%.2f");
+		state.valueChanged |=	ImGui::InputDouble("Maturity (Y)", &state.maturity, 0.25, 1.0, "%.2f");
 					ImGui::SameLine(); HelpMarker("The initital value of the underlying");
-		valueChanged |=	ImGui::InputDouble("Underlying Value", &underlyingValue, 0.01, 1.0, "%.2f");
+		state.valueChanged |=	ImGui::InputDouble("Underlying Value", &state.underlyingValue, 0.01, 1.0, "%.2f");
 					ImGui::SameLine(); HelpMarker("The initital value of the underlying");
-		valueChanged |=	ImGui::InputDouble("Volatility", &vol, 0.01, 1.0, "%.2f");
+		state.valueChanged |=	ImGui::InputDouble("Volatility", &state.vol, 0.01, 1.0, "%.2f");
 					ImGui::SameLine(); HelpMarker("Constant Volatility");
-		valueChanged |=	ImGui::InputDouble("Interest Rate", &interestRate, 0.01, 1.0, "%.2f");
+		state.valueChanged |=	ImGui::InputDouble("Interest Rate", &state.interestRate, 0.01, 1.0, "%.2f");
 					ImGui::SameLine(); HelpMarker("Interest Rate");
-		valueChanged |=  ImGui::InputDouble("Strike Price", &strike, 0.01, 1.0, "%.2f");
+		state.valueChanged |=  ImGui::InputDouble("Strike Price", &state.strike, 0.01, 1.0, "%.2f");
 					ImGui::SameLine(); HelpMarker("Strike Price");
 
 		static constexpr auto optionPayoffKeys = magic_enum::enum_names<DPP::OptionPayoffType>();
@@ -73,57 +78,59 @@ public:
 		static const char* optionPayoffKeys_CArr[optionPayoffSize] = {};
 		for (size_t i = 0; i < optionPayoffSize; ++i) { optionPayoffKeys_CArr[i] = optionPayoffKeys[i].data(); }
         
-		valueChanged |=	ImGui::Combo("Payoff", &optionPayoffIdx, optionPayoffKeys_CArr, IM_ARRAYSIZE(optionPayoffKeys_CArr));
+		state.valueChanged |=	ImGui::Combo("Payoff", &state.optionPayoffIdx, optionPayoffKeys_CArr, IM_ARRAYSIZE(optionPayoffKeys_CArr));
 					ImGui::SameLine(); HelpMarker("Calls pay off when above the strike and Puts payoff when below");
         
 		static constexpr auto exerciseTypeKeys = magic_enum::enum_names<DPP::OptionExerciseType>();
 		static constexpr size_t exerciseTypeKeysSize = std::tuple_size<decltype(exerciseTypeKeys)>::value;
 		static const char* exerciseTypeKeys_CArr[exerciseTypeKeysSize] = {};
 		for (size_t i = 0; i < exerciseTypeKeysSize; ++i) { exerciseTypeKeys_CArr[i] = exerciseTypeKeys[i].data(); }
-		valueChanged |=	ImGui::Combo("Exercise", &exerciseTypeIdx, exerciseTypeKeys_CArr, IM_ARRAYSIZE(exerciseTypeKeys_CArr));
+		state.valueChanged |=	ImGui::Combo("Exercise", &state.exerciseTypeIdx, exerciseTypeKeys_CArr, IM_ARRAYSIZE(exerciseTypeKeys_CArr));
 					ImGui::SameLine(); HelpMarker("Europeans exercises at maturity while Americans can exercise at any timestep");
 
 		bool calculateBtnPressed = false; 
-		if (!dynamicRecalc)
+		if (!state.dynamicRecalc)
 			calculateBtnPressed = ImGui::Button("Calculate");
 
-		valueChanged |= calculateBtnPressed;
-		if ( ( valueChanged && dynamicRecalc ) || ( !dynamicRecalc && calculateBtnPressed ) )
+		state.valueChanged |= calculateBtnPressed;
+		if ( (state.valueChanged && state.dynamicRecalc ) || ( !state.dynamicRecalc && calculateBtnPressed ) )
 		{
 			const auto start = std::chrono::high_resolution_clock::now();
-			DPP::TriMatrixBuilder buildResult = DPP::TriMatrixBuilder::create(timePeriods, maturity/ timePeriods)
-				.withUnderlyingValueAndVolatility(underlyingValue, vol)
-				.withInterestRate(interestRate)
-				.withPayoff(static_cast<DPP::OptionPayoffType>(optionPayoffIdx), strike)
+			DPP::TriMatrixBuilder buildResult = DPP::TriMatrixBuilder::create(state.timePeriods, state.maturity/ state.timePeriods)
+				.withUnderlyingValueAndVolatility(state.underlyingValue, state.vol)
+				.withInterestRate(state.interestRate)
+				.withPayoff(static_cast<DPP::OptionPayoffType>(state.optionPayoffIdx), state.strike)
 				.withRiskNuetralProb()
-				.withPremium(static_cast<DPP::OptionExerciseType>(exerciseTypeIdx))
+				.withPremium(static_cast<DPP::OptionExerciseType>(state.exerciseTypeIdx))
 				.withDelta()
 				.withPsuedoOptimalStoppingTime();
 			const auto end = std::chrono::high_resolution_clock::now();
 			const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-			timeTaken = duration;
+			state.timeTaken = duration;
 
 			if (buildResult.m_hasError) 
 			{
-				optionPrice = std::nullopt;
-				error = "ERROR! : "s + buildResult.getErrorMsg();
+				state.optionPrice = std::nullopt;
+				state.error = "ERROR! : "s + buildResult.getErrorMsg();
 			}
 			else
 			{
 				const DPP::TriMatrix result = buildResult.build();
-				optionPrice = result.getMatrix()[0][0].m_data.m_optionValue;
-				error = std::nullopt;
+				state.optionPrice = result.getMatrix()[0][0].m_data.m_optionValue;
+				state.error = std::nullopt;
 			}
 		}
 
-		if (error.has_value())
-			ImGui::Text( error.value().c_str() );
+		if (state.error.has_value())
+			ImGui::Text(state.error.value().c_str() );
 
-		if( optionPrice.has_value() )
-			ImGui::Text("Option Value: %.6f", optionPrice.value() );
+		if(state.optionPrice.has_value() )
+			ImGui::Text("Option Value: %.6f", state.optionPrice.value() );
 
-		if (timeTaken.has_value())
-			ImGui::Text("Time Taken: %i ms", timeTaken.value());
+		if (state.timeTaken.has_value())
+			ImGui::Text("Time Taken: %i ms", state.timeTaken.value());
+
+		state.valueChanged = false;
 
 		ImGui::End();
 
