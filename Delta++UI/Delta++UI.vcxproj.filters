@@ -18,9 +18,18 @@
     <ClCompile Include="BinomialPricerUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="binomialpricerstate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="magic_enum.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enumcombo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="binomialpricerstate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

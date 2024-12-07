@@ -147,9 +147,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="binomialpricerstate.cpp" />
     <ClCompile Include="BinomialPricerUI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="binomialpricerstate.h" />
+    <ClInclude Include="enumcombo.h" />
     <ClInclude Include="magic_enum.hpp" />
   </ItemGroup>
   <ItemGroup>
