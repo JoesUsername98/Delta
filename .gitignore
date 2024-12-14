@@ -361,3 +361,24 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/CMakeFiles
+/Delta++/CMakeFiles
+/_deps
+/configured
+/Delta++UI/CMakeFiles
+/Delta++UI/src
+/configured_files/include
+/Delta++
+/ALL_BUILD.vcxproj
+/ALL_BUILD.vcxproj.filters
+/ZERO_CHECK.vcxproj.filters
+/ZERO_CHECK.vcxproj
+/INSTALL.vcxproj.filters
+/INSTALL.vcxproj
+/Delta++UI/INSTALL.vcxproj.filters
+/Delta++UI/INSTALL.vcxproj
+/Delta++UI/cmake_install.cmake
+/Delta++.sln
+/cmake_install.cmake
+/CMakeDoxygenDefaults.cmake
+/CMakeDoxyfile.in
