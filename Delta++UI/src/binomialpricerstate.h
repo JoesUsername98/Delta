@@ -2,8 +2,8 @@
 
 #include <chrono>
 
-#include "../Delta++/trimatrixbuilder.h"
-
+// #include <Delta++/inc/trimatrixbuilder.h>
+#include "trimatrixbuilder.h"
 #include "enumcombo.h"
 
 using namespace std::string_literals;

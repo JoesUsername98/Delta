@@ -3,9 +3,9 @@
 //******************************************************
 //*****            SUBMODULES            ***************
 #define WL_PLATFORM_WINDOWS
-#include "Walnut/Application.h"
-#include "Walnut/EntryPoint.h"
-#include "Walnut/Image.h"
+#include "Application.h"
+#include "EntryPoint.h"
+#include "Image.h"
 //*****   ~~~~~~~  SUBMODULES   ~~~~~~  ****************
 //******************************************************
 
