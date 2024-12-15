@@ -26,6 +26,7 @@ FetchContent_MakeAvailable(magic_enum)
 
 file(GLOB_RECURSE ${EXECUTABLE_NAME}_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h
 )
 
 add_executable(${EXECUTABLE_NAME} ${${EXECUTABLE_NAME}_SRC})
