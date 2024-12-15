@@ -311,6 +311,9 @@ GLFW_BUILD_TESTS:BOOL=OFF
 //Build support for Win32
 GLFW_BUILD_WIN32:BOOL=ON
 
+//The directory containing a CMake configuration file for GLFW.
+GLFW_DIR:PATH=GLFW_DIR-NOTFOUND
+
 //Generate installation target
 GLFW_INSTALL:BOOL=ON
 
@@ -397,6 +400,9 @@ Walnut_LIB_DEPENDS:STATIC=general;glfw;general;imgui;general;D:/Vulkan/Lib/vulka
 
 //Value Computed by CMake
 Walnut_SOURCE_DIR:STATIC=C:/projects/Delta/_deps/walnut-cmake-src/Walnut
+
+//The directory containing a CMake configuration file for glfw.
+glfw_DIR:PATH=glfw_DIR-NOTFOUND
 
 //Value Computed by CMake
 glm_BINARY_DIR:STATIC=C:/projects/Delta/_deps/walnut-cmake-build/vendor/glm

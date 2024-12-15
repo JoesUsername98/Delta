@@ -8,24 +8,24 @@
 
 namespace DPP
 {
-	extern DPP_API class TriMatrixBuilder
+	class TriMatrixBuilder
 	{
 	public:
-		static DPP_API TriMatrixBuilder create(const size_t steps, const double timeStep = 1.)
+		static TriMatrixBuilder create(const size_t steps, const double timeStep = 1.)
 		{
 			return TriMatrixBuilder(steps, timeStep);
 		}
 
-		DPP_API TriMatrixBuilder& withUnderlyingValueAndVolatility(const double initialPrice, const double vol);
-		DPP_API TriMatrixBuilder& withUnderlyingValueAndUpFactor(const double initialPrice, const double upFactor);
-		DPP_API TriMatrixBuilder& withInterestRate(const double constantInterestRate);
-		DPP_API TriMatrixBuilder& withPayoff(const OptionPayoffType optionType, const double strikePrice);
-		DPP_API TriMatrixBuilder& withRiskNuetralProb();
-		DPP_API TriMatrixBuilder& withPremium(const OptionExerciseType exerciseType);
-		DPP_API TriMatrixBuilder& withDelta();
-		DPP_API TriMatrixBuilder& withPsuedoOptimalStoppingTime();
-		DPP_API TriMatrix build();
-		DPP_API const std::string& getErrorMsg() const;
+		TriMatrixBuilder& withUnderlyingValueAndVolatility(const double initialPrice, const double vol);
+		TriMatrixBuilder& withUnderlyingValueAndUpFactor(const double initialPrice, const double upFactor);
+		TriMatrixBuilder& withInterestRate(const double constantInterestRate);
+		TriMatrixBuilder& withPayoff(const OptionPayoffType optionType, const double strikePrice);
+		TriMatrixBuilder& withRiskNuetralProb();
+		TriMatrixBuilder& withPremium(const OptionExerciseType exerciseType);
+		TriMatrixBuilder& withDelta();
+		TriMatrixBuilder& withPsuedoOptimalStoppingTime();
+		TriMatrix build();
+		const std::string& getErrorMsg() const;
 	public:
 		bool m_hasError;
 
