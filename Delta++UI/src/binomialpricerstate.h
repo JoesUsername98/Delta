@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-// #include <Delta++/inc/trimatrixbuilder.h>
+// #include <Delta++/trimatrixbuilder.h>
 #include "trimatrixbuilder.h"
 #include "enumcombo.h"
 
