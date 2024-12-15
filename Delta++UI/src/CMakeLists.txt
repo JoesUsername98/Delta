@@ -1,5 +1,3 @@
-
-
 include(FetchContent)
 
 FetchContent_Declare(
@@ -27,35 +25,12 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(magic_enum)
 
-# if(MINGW OR WIN32)
-#     message(STATUS "WalnutApp Windows build")
-#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
-# endif(MINGW OR WIN32)
-
 set(EXE_SOURCES "BinomialPricerUI.cpp" "binomialpricerstate.cpp")
-set(EXE_INCLUDES "magic_enum.hpp" "binomialpricerstate.h")
-
-# file(GLOB_RECURSE WALNUT_INCLUDES
-#     ${Walnut_SOURCE_DIR}/src/**.h
-# )
-# file(GLOB_RECURSE WALNUT_SOURCES
-#     ${Walnut_SOURCE_DIR}/src/**.h
-# )
-add_executable(${EXECUTABLE_NAME} ${EXE_SOURCES}
-${EXE_INCLUDES})
-#${WALNUT_SOURCES}
-
-#message("Walnut srcs are ${WALNUT_SOURCES}")
+set(EXE_INCLUDES "binomialpricerstate.h")
+add_executable(${EXECUTABLE_NAME} ${EXE_SOURCES} ${EXE_INCLUDES})
 target_include_directories(${EXECUTABLE_NAME} PUBLIC 
 "./"
 "${CMAKE_BINARY_DIR}/configured_files/include"
 )
 
-target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} Walnut Vulkan::Vulkan glfw opengl32.lib )
-  
-  #Vulkan::Vulkan
-  #glfw
-    #nlohmann_json::nlohmann_json
-    #fmt::fmt
-    #spdlog::spdlog
-    #cxxopts::cxxopts
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} Walnut Vulkan::Vulkan glfw opengl32.lib magic_enum::magic_enum )
