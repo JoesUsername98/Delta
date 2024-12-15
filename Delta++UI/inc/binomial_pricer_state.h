@@ -2,8 +2,8 @@
 
 #include <chrono>
 
-#include "trimatrixbuilder.h"
-#include "enumcombo.h"
+#include "tri_matrix_builder.h"
+#include "enum_combo.h"
 
 using namespace std::string_literals;
 

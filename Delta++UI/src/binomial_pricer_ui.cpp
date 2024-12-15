@@ -10,7 +10,7 @@
 //*****   ~~~~~~~  SUBMODULES   ~~~~~~  ****************
 //******************************************************
 
-#include "binomialpricerstate.h"
+#include "binomial_pricer_state.h"
 
 static void HelpMarker(const char* desc)
 {
@@ -29,8 +29,14 @@ class BinomialPricerView : public Walnut::Layer
 {
 private:
 	BinomialPricerState m_state;
+	static size_t s_id;
 
 public:
+	BinomialPricerView()
+	{
+			
+	}
+
 	virtual void OnUIRender() override
 	{
 		ImGui::Begin("Binomial Pricer");
@@ -74,6 +80,7 @@ public:
 	}
 };
 
+
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
 	Walnut::ApplicationSpecification spec;
@@ -89,6 +96,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 			{
 				app->Close();
 			}
+
 			ImGui::EndMenu();
 		}
 	});

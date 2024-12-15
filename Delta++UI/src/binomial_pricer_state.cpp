@@ -1,4 +1,4 @@
-#include "binomialpricerstate.h"
+#include "binomial_pricer_state.h"
 
 void BinomialPricerState::reset()
 {

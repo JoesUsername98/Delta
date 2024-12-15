@@ -1,4 +1,4 @@
-#include "triangularmatrix.h"
+#include "triangular_matrix.h"
 
 namespace DPP
 {
