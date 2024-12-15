@@ -1,4 +1,5 @@
 file(GLOB_RECURSE ${DPP_LIB_NAME}_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
