@@ -29,7 +29,6 @@ file(GLOB_RECURSE ${EXECUTABLE_NAME}_INC_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
-message("${EXECUTABLE_NAME}_INC_SRC : ${${EXECUTABLE_NAME}_INC_SRC}")
 add_executable(${EXECUTABLE_NAME} ${${EXECUTABLE_NAME}_INC_SRC})
 target_include_directories(${EXECUTABLE_NAME} PUBLIC 
 "./"
