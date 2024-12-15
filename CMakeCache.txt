@@ -431,6 +431,9 @@ magic_enum_IS_TOP_LEVEL:STATIC=OFF
 //Value Computed by CMake
 magic_enum_SOURCE_DIR:STATIC=C:/projects/Delta/_deps/magic_enum-src
 
+//The directory containing a CMake configuration file for opengl32.
+opengl32_DIR:PATH=opengl32_DIR-NOTFOUND
+
 
 ########################
 # INTERNAL cache entries

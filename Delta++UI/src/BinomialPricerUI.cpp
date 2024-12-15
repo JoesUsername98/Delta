@@ -2,7 +2,7 @@
 
 //******************************************************
 //*****            SUBMODULES            ***************
-#define WL_PLATFORM_WINDOWS
+//#define WL_PLATFORM_WINDOWS
 #include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/Application.h"
 #include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/EntryPoint.h"
 #include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/Image.h"

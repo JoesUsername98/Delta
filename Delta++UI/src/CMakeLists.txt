@@ -27,10 +27,10 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(magic_enum)
 
-if(MINGW OR WIN32)
-    message(STATUS "WalnutApp Windows build")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
-endif(MINGW OR WIN32)
+# if(MINGW OR WIN32)
+#     message(STATUS "WalnutApp Windows build")
+#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows")
+# endif(MINGW OR WIN32)
 
 set(EXE_SOURCES "BinomialPricerUI.cpp" "binomialpricerstate.cpp")
 set(EXE_INCLUDES "magic_enum.hpp" "binomialpricerstate.h")
@@ -51,7 +51,7 @@ target_include_directories(${EXECUTABLE_NAME} PUBLIC
 "${CMAKE_BINARY_DIR}/configured_files/include"
 )
 
-target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} Walnut Vulkan::Vulkan )
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} Walnut Vulkan::Vulkan glfw opengl32.lib )
   
   #Vulkan::Vulkan
   #glfw
