@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-#include "inc\trimatrixbuilder.h"
+#include "trimatrixbuilder.h"
 #include "enumcombo.h"
 
 using namespace std::string_literals;
