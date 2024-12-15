@@ -1,6 +1,7 @@
-#include "pch.h"
-#include "../Delta++/triangularmatrix.h"
-#include "../Delta++/trimatrixbuilder.h"
+#include <gtest/gtest.h>
+
+#include "inc/triangularmatrix.h"
+#include "inc/trimatrixbuilder.h"
 
 using namespace DPP;
 
