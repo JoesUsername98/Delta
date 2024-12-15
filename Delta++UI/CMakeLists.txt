@@ -24,14 +24,13 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(magic_enum)
 
-file(GLOB_RECURSE ${EXECUTABLE_NAME}_INC_SRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/inc/*.h
+file(GLOB_RECURSE ${EXECUTABLE_NAME}_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
-add_executable(${EXECUTABLE_NAME} ${${EXECUTABLE_NAME}_INC_SRC})
+add_executable(${EXECUTABLE_NAME} ${${EXECUTABLE_NAME}_SRC})
 target_include_directories(${EXECUTABLE_NAME} PUBLIC 
-"./"
+"./inc"
 "${CMAKE_BINARY_DIR}/configured_files/include"
 )
 

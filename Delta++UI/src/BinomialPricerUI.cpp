@@ -10,7 +10,7 @@
 //*****   ~~~~~~~  SUBMODULES   ~~~~~~  ****************
 //******************************************************
 
-#include "inc/binomialpricerstate.h"
+#include "binomialpricerstate.h"
 
 static void HelpMarker(const char* desc)
 {
