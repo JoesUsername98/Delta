@@ -3,9 +3,13 @@
 //******************************************************
 //*****            SUBMODULES            ***************
 //#define WL_PLATFORM_WINDOWS
-#include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/Application.h"
-#include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/EntryPoint.h"
-#include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/Image.h"
+// #include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/Application.h"
+// #include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/EntryPoint.h"
+// #include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/Image.h"
+
+#include "Walnut/src/Walnut/Application.h"
+#include "Walnut/src/Walnut/EntryPoint.h"
+#include "Walnut/src/Walnut/Image.h"
 //*****   ~~~~~~~  SUBMODULES   ~~~~~~  ****************
 //******************************************************
 
@@ -82,7 +86,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	app->PushLayer<BinomialPricerView>();
 	app->SetMenubarCallback([app]()
 	{
-		if (ImGui::BeginMenu("File"))
+		if (ImGui::BeginMenu("FileJoe"))
 		{
 			if (ImGui::MenuItem("Exit"))
 			{
