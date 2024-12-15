@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "triangularmatrix.h"
-#include "trimatrixbuilder.h"
+#include "triangular_matrix.h"
+#include "tri_matrix_builder.h"
 
 using namespace DPP;
 

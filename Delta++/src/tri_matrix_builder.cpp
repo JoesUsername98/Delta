@@ -1,4 +1,4 @@
-#include "trimatrixbuilder.h"
+#include "tri_matrix_builder.h"
 
 #include <math.h>
 #include <limits>
