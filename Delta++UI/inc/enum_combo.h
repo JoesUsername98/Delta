@@ -1,10 +1,6 @@
 #pragma once
 
-//******************************************************
-//*****            COPIED FILES            *************
 #include <magic_enum/magic_enum.hpp>
-//*****   ~~~~~~~  COPIED FILES   ~~~~~~  **************
-//******************************************************
 
 template <typename T>
 class EnumCombo
