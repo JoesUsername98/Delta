@@ -19,6 +19,7 @@ struct BinomialPricerState
 	int m_optionPayoffIdx = 0;
 	int m_exerciseTypeIdx = 0;
 	std::optional<double> m_optionPrice = std::nullopt;
+	std::optional<double> m_optionDelta = std::nullopt;
 	std::optional<std::string> m_error = std::nullopt;
 	std::optional<int> m_timeTaken = std::nullopt;
 
@@ -31,6 +32,6 @@ struct BinomialPricerState
 	bool m_btn_calcPressed = false;
 
 	void reset();
-	bool needsRecal();
+	bool needsRecalc();
 	bool recalcIfRequired();
 };

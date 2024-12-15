@@ -36,6 +36,9 @@ void BinomialPricerView::OnUIRender()
     if(m_state.m_optionPrice.has_value() )
         ImGui::Text("Option Value: %.6f", m_state.m_optionPrice.value() );
 
+    if(m_state.m_optionDelta.has_value() )
+        ImGui::Text("Option Delta: %.6f", m_state.m_optionDelta.value() );
+
     if (m_state.m_timeTaken.has_value())
         ImGui::Text("Time Taken: %i ms", m_state.m_timeTaken.value());
 
