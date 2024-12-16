@@ -5,6 +5,8 @@
 #include <exception>
 #include <string>
 
+#include "enums.h"
+
 namespace DPP
 {
 	struct ExpectableState
@@ -34,20 +36,6 @@ namespace DPP
 		State m_data;
 		size_t m_timeStep;
 		size_t m_downMoves;
-	};
-
-	enum class OptionPayoffType
-	{
-		Call,
-		Put,
-		//TODO add more
-	};
-
-	enum class OptionExerciseType
-	{
-		European,
-		American,
-		//TODO add more
 	};
 
 	class TriMatrix

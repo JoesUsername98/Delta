@@ -4,6 +4,7 @@ file(GLOB_RECURSE ${DPP_LIB_NAME}_SRC
 )
 
 add_library(${DPP_LIB_NAME} STATIC ${${DPP_LIB_NAME}_SRC})
+target_link_libraries(${DPP_LIB_NAME} magic_enum::magic_enum )
 
 target_include_directories(${DPP_LIB_NAME} PUBLIC
     "./inc"

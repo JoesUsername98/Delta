@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-#include "tri_matrix_builder.h"
+#include "engine.h"
 #include "enum_combo.h"
 
 using namespace std::string_literals;
@@ -34,4 +34,6 @@ struct BinomialPricerState
 	void reset();
 	bool needsRecalc();
 	bool recalcIfRequired();
+
+	// TODO Link up these members to TradeData, MarketData and CalcData
 };
