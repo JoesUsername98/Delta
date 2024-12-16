@@ -12,8 +12,6 @@ namespace DPP
 		m_errorMsg = std::string( msg ); \
 		return *this;  
 
-
-
 	TriMatrixBuilder::TriMatrixBuilder( const size_t steps, const double timeStep ) :
 		m_timeSteps(steps),
 		m_timeStep(timeStep),
