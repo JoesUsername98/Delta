@@ -12,6 +12,10 @@ private:
 	static size_t s_type_count;
 	const size_t M_ID;
 	const std::string M_NAME;
+	void renderTradeParams();
+	void renderMarketParams();
+	void renderCalcParams();
+	void renderResults();
 
 public:
 	BinomialPricerView() : M_ID( s_type_count++ ), M_NAME( "Binomial Pricer " + std::to_string(M_ID)  ) {};
