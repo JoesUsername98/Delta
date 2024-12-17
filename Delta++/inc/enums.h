@@ -18,19 +18,20 @@ namespace DPP
 
     enum class CalculationMethod
 	{
-		None = 0,
+		_NONE = 0,
 		Binomial,
 		//TODO add more
 	};
 
     enum class Calculation
 	{
-		None = 0,
+		_NONE = 0,
 		PV,
         Delta,
         Gamma,
         Vega,
         Rho,
+		_SIZE,
 		//TODO add more
 	};
 
