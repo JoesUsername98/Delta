@@ -7,6 +7,21 @@ void BinomialPricerView::OnUIRender()
 {
     ImGui::Begin( M_NAME.c_str() );
 
+    renderTradeParams();
+    renderMarketParams();
+    renderCalcParams();
+
+    m_state.recalcIfRequired();
+
+    renderResults();
+    
+    m_state.reset();
+    ImGui::End();
+
+}
+
+void BinomialPricerView::renderTradeParams() 
+{
     if( ImGui::CollapsingHeader("Trade", ImGuiTreeNodeFlags_DefaultOpen) )
     {
             m_state.m_valueChanged |=	ImGui::Combo("Exercise", &m_state.m_exerciseTypeIdx, m_state.m_exerciseCombo.m_keysCArray, IM_ARRAYSIZE(m_state.m_exerciseCombo.m_keysCArray));
@@ -23,6 +38,9 @@ void BinomialPricerView::OnUIRender()
             m_state.m_valueChanged |=  ImGui::InputDouble("Strike Price", &m_state.m_trd.m_strike, 0.25, 1.0, "%.2f");
                 ImGui::SameLine(); HelpMarker("Strike Price");
     }
+}
+void BinomialPricerView::renderMarketParams()
+{
     if( ImGui::CollapsingHeader("Market", ImGuiTreeNodeFlags_DefaultOpen) )
     {
         m_state.m_valueChanged |=	ImGui::InputDouble("Underlying Value", &m_state.m_mkt.m_underlyingPrice, 0.01, 1.0, "%.2f");
@@ -32,6 +50,9 @@ void BinomialPricerView::OnUIRender()
         m_state.m_valueChanged |=	ImGui::InputDouble("Interest Rate", &m_state.m_mkt.m_interestRate, 0.01, 1.0, "%.2f");
                     ImGui::SameLine(); HelpMarker("Interest Rate");
     }
+}
+void BinomialPricerView::renderCalcParams()
+{
     if( ImGui::CollapsingHeader("Calculation", ImGuiTreeNodeFlags_DefaultOpen) )
     {
         m_state.m_valueChanged |=	ImGui::Checkbox("Dynamic Recalculation", &m_state.m_dynamicRecalc);
@@ -53,9 +74,9 @@ void BinomialPricerView::OnUIRender()
         if (!m_state.m_dynamicRecalc)
             m_state.m_btn_calcPressed = ImGui::Button("Calculate");
     }
-
-    m_state.recalcIfRequired();
-
+}
+void BinomialPricerView::renderResults()
+{
     if (ImGui::BeginTable("Results", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV ) )
     {
         for( const auto& calc : m_state.m_calcs )
@@ -76,8 +97,4 @@ void BinomialPricerView::OnUIRender()
 
     if (m_state.m_timeTaken.has_value())
         ImGui::Text("Time Taken: %i ms", m_state.m_timeTaken.value());
-
-    m_state.reset();
-    ImGui::End();
-
 }
