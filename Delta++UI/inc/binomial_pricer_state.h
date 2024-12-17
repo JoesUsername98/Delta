@@ -6,25 +6,23 @@
 #include "enum_combo.h"
 
 using namespace std::string_literals;
+using namespace DPP;
 
 struct BinomialPricerState
 {
 	//MODEL
-	double m_underlyingValue = 100.;
-	double m_vol = 1.2;
-	double m_interestRate = 0.25;
-	double m_strike = 105.;
-	int m_timePeriods = 3;
-	double m_maturity = 1.5;
+	TradeData m_trd;
 	int m_optionPayoffIdx = 0;
 	int m_exerciseTypeIdx = 0;
-	std::optional<double> m_optionPrice = std::nullopt;
-	std::optional<double> m_optionDelta = std::nullopt;
-	std::optional<std::string> m_error = std::nullopt;
+	MarketData m_mkt;
+	int m_steps = 3;
+	std::vector<CalcData> m_calcs;
+	std::unique_ptr<Engine> m_engine;
+	std::array<bool, (int)Calculation::_SIZE> m_calcsToDo;
 	std::optional<int> m_timeTaken = std::nullopt;
 
-	const EnumCombo< DPP::OptionPayoffType> m_payoffCombo;
-	const EnumCombo< DPP::OptionExerciseType> m_exerciseCombo;
+	const EnumCombo< OptionPayoffType > m_payoffCombo;
+	const EnumCombo< OptionExerciseType > m_exerciseCombo;
 
 	//VIEW_MODEL
 	bool m_valueChanged = false;
@@ -35,5 +33,15 @@ struct BinomialPricerState
 	bool needsRecalc();
 	bool recalcIfRequired();
 
-	// TODO Link up these members to TradeData, MarketData and CalcData
+	BinomialPricerState( ) :
+	 m_trd( OptionExerciseType::European, OptionPayoffType::Call, 105., 1.5 ),
+	 m_mkt( 1.2, 100., 0.25 ) 
+	 {
+		m_calcsToDo[ (int)Calculation::PV ] = true;
+		m_calcsToDo[ (int)Calculation::Delta ] = false;
+		m_calcsToDo[ (int)Calculation::Gamma ] = false;
+		m_calcsToDo[ (int)Calculation::Vega ] = false;
+		m_calcsToDo[ (int)Calculation::Rho ] = false;
+		m_calcsToDo[ (int)Calculation::Delta ] = false;
+	 }
 };

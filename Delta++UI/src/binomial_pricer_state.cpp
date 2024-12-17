@@ -18,66 +18,22 @@ bool BinomialPricerState::recalcIfRequired()
 	if (!needsRecalc())
 		return false;
 
+	m_calcs.clear();
+	for( int i = (int)Calculation::PV; i < (int)Calculation::_SIZE; ++i )
+	{
+		if( !m_calcsToDo[i] )
+			continue;
+
+		m_calcs.emplace_back( (Calculation)i, m_steps, CalculationMethod::Binomial );
+	}
+
 	const auto start = std::chrono::high_resolution_clock::now();
 
-	DPP::TriMatrixBuilder buildResult = DPP::TriMatrixBuilder::create(m_timePeriods, m_maturity / m_timePeriods)
-		.withUnderlyingValueAndVolatility(m_underlyingValue, m_vol)
-		.withInterestRate(m_interestRate)
-		.withPayoff(static_cast<DPP::OptionPayoffType>(m_optionPayoffIdx), m_strike)
-		.withRiskNuetralProb()
-		.withPremium(static_cast<DPP::OptionExerciseType>(m_exerciseTypeIdx))
-		.withDelta()
-		.withPsuedoOptimalStoppingTime();
-
-	if( !buildResult.m_hasError )
-	{
-		DPP::TriMatrixBuilder buildResultUp = DPP::TriMatrixBuilder::create(m_timePeriods, m_maturity / m_timePeriods)
-			.withUnderlyingValueAndVolatility(m_underlyingValue * 1.005, m_vol)
-			.withInterestRate(m_interestRate)
-			.withPayoff(static_cast<DPP::OptionPayoffType>(m_optionPayoffIdx), m_strike)
-			.withRiskNuetralProb()
-			.withPremium(static_cast<DPP::OptionExerciseType>(m_exerciseTypeIdx))
-			.withDelta()
-			.withPsuedoOptimalStoppingTime();
-
-		DPP::TriMatrixBuilder buildResultDown = DPP::TriMatrixBuilder::create(m_timePeriods, m_maturity / m_timePeriods)
-			.withUnderlyingValueAndVolatility(m_underlyingValue * .995, m_vol)
-			.withInterestRate(m_interestRate)
-			.withPayoff(static_cast<DPP::OptionPayoffType>(m_optionPayoffIdx), m_strike)
-			.withRiskNuetralProb()
-			.withPremium(static_cast<DPP::OptionExerciseType>(m_exerciseTypeIdx))
-			.withDelta()
-			.withPsuedoOptimalStoppingTime();
-
-		if ( buildResultUp.m_hasError || buildResultUp.m_hasError  )
-		{
-			m_error = "ERROR! : Delta UP:"s + buildResultUp.getErrorMsg() + " DOWN: " + buildResultDown.getErrorMsg();
-			m_optionDelta = std::nullopt;
-		}
-		else
-		{
-			const double up = buildResultUp.build().getMatrix()[0][0].m_data.m_optionValue;
-			const double down = buildResultDown.build().getMatrix()[0][0].m_data.m_optionValue;
-			m_optionDelta = up - down;
-		}
- 
-	}
+	m_engine = std::make_unique<Engine>( m_mkt, m_trd, m_calcs );
+	m_engine->run();
 
 	const auto end = std::chrono::high_resolution_clock::now();
 	m_timeTaken = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-	if (buildResult.m_hasError)
-	{
-		m_optionPrice = std::nullopt;
-		m_error = "ERROR! : "s + buildResult.getErrorMsg();
-	}
-	else
-	{
-		const DPP::TriMatrix result = buildResult.build();
-		m_optionPrice = result.getMatrix()[0][0].m_data.m_optionValue;
-		m_error = std::nullopt;
-		m_optionDelta = std::nullopt;
-	}
 
 	return true;
 }

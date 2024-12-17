@@ -5,6 +5,7 @@
 #include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/Image.h"
 
 #include "binomial_pricer_view.h"
+#include "demo_view.h"
 
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
@@ -17,9 +18,18 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	{
 		if (ImGui::BeginMenu("File"))
 		{
-			if (ImGui::MenuItem("New Window"))
+			if (ImGui::BeginMenu("New"))
 			{
-				app->PushLayer<BinomialPricerView>();
+				if (ImGui::MenuItem("Binomial Pricer Window"))
+				{
+					app->PushLayer<BinomialPricerView>();
+				}
+				if( ImGui::MenuItem("Demo Window") )
+				{
+					app->PushLayer<DemoWindow>();
+				}
+				
+				ImGui::EndMenu();
 			}
 			if (ImGui::MenuItem("Exit"))
 			{

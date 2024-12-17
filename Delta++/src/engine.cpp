@@ -14,19 +14,19 @@ namespace DPP
                 switch (calc.m_calc)
                 {
                 case Calculation::PV :
-                    runBinomial_PV( calc );
+                    calcPV( calc );
                     break;
                 case Calculation::Delta :
-                    runBinomial_Delta( calc );
+                   calcDelta( calc );
                     break;
                 case Calculation::Gamma :
-                    runBinomial_Gamma( calc );
+                    calcGamma( calc );
                     break;
                 case Calculation::Rho :
-                    runBinomial_Rho( calc );
+                    calcRho( calc );
                     break;
                 case Calculation::Vega :
-                    runBinomial_Vega( calc );
+                    calcVega( calc );
                     break;
                 default:
                     break;
@@ -36,14 +36,14 @@ namespace DPP
             }
             default:
             {
-                 m_errors.emplace( Calculation::None , 
+                 m_errors.emplace( Calculation::_NONE , 
                  "Calculation type ["s + magic_enum::enum_name( calc.m_method ).data() + "] unsupported!");
                 return;
             }
             }
     }
 
-    void Engine::runBinomial_PV( const CalcData& calc )
+    void Engine::calcPV( const CalcData& calc )
     {
             TriMatrixBuilder buildResult = 
             TriMatrixBuilder::create( calc.m_steps, m_trd.m_maturity / calc.m_steps )
@@ -60,7 +60,7 @@ namespace DPP
 
     }
 
-    void Engine::runBinomial_Delta( const CalcData& calc )
+    void Engine::calcDelta( const CalcData& calc )
     {
         CalcData pvOnly = calc;
         pvOnly.m_calc = Calculation::PV;
@@ -93,7 +93,7 @@ namespace DPP
         m_results.emplace( calc.m_calc, pvUp - pvDown );
     }
 
-    void Engine::runBinomial_Rho( const CalcData& calc )
+    void Engine::calcRho( const CalcData& calc )
     {
         CalcData pvOnly = calc;
         pvOnly.m_calc = Calculation::PV;
@@ -126,7 +126,7 @@ namespace DPP
         m_results.emplace( calc.m_calc, pvUp - pvDown );
     }
 
-    void Engine::runBinomial_Vega( const CalcData& calc )
+    void Engine::calcVega( const CalcData& calc )
     {
         CalcData pvOnly = calc;
         pvOnly.m_calc = Calculation::PV;
@@ -159,7 +159,7 @@ namespace DPP
         m_results.emplace( calc.m_calc, pvUp - pvDown );
     }
 
-    void Engine::runBinomial_Gamma( const CalcData& calc )
+    void Engine::calcGamma( const CalcData& calc )
     {
         CalcData deltaOnly = calc;
         deltaOnly.m_calc = Calculation::Delta;

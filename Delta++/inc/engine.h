@@ -29,13 +29,11 @@ namespace DPP
             ScalarErrorMap m_errors;
 
         private:
-            void runBinomial( const CalcData& calc );
-            // TODO clean up aftermath of function explicit specialisation templating
-            void runBinomial_PV( const CalcData& calc );
-            void runBinomial_Delta( const CalcData& calc );
-            void runBinomial_Rho( const CalcData& calc );
-            void runBinomial_Vega( const CalcData& calc );
-            void runBinomial_Gamma( const CalcData& calc );
+            void calcPV( const CalcData& calc );
+            void calcDelta( const CalcData& calc );
+            void calcRho( const CalcData& calc );
+            void calcVega( const CalcData& calc );
+            void calcGamma( const CalcData& calc );
 
         public:
             Engine( MarketData mkt, TradeData trd, CalcData calc ) :
@@ -45,6 +43,6 @@ namespace DPP
             m_mkt( mkt ), m_trd ( trd ), m_calcs ( calc )
             {}
 
-            void run();      
+            void run();   
     };
 }
