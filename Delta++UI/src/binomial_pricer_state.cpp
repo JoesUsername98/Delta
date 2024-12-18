@@ -24,12 +24,12 @@ bool BinomialPricerState::recalcIfRequired()
 		if( !m_calcsToDo[i] )
 			continue;
 
-		m_calcs.emplace_back( (Calculation)i, m_steps, CalculationMethod::Binomial );
+		m_calcs.emplace_back( (Calculation)i, m_steps );
 	}
 
 	const auto start = std::chrono::high_resolution_clock::now();
 
-	m_engine = std::make_unique<Engine>( m_mkt, m_trd, m_calcs );
+	m_engine = AbstractEngine::getEngine<BinomialEngine>( m_mkt, m_trd, m_calcs );
 	m_engine->run();
 
 	const auto end = std::chrono::high_resolution_clock::now();

@@ -14,7 +14,7 @@ void BinomialPricerView::OnUIRender()
     m_state.recalcIfRequired();
 
     renderResults();
-    
+
     m_state.reset();
     ImGui::End();
 

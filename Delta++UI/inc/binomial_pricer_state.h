@@ -17,7 +17,7 @@ struct BinomialPricerState
 	MarketData m_mkt;
 	int m_steps = 3;
 	std::vector<CalcData> m_calcs;
-	std::unique_ptr<Engine> m_engine;
+	std::unique_ptr<AbstractEngine> m_engine;
 	std::array<bool, (int)Calculation::_SIZE> m_calcsToDo;
 	std::optional<int> m_timeTaken = std::nullopt;
 
