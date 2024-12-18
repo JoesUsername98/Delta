@@ -9,10 +9,9 @@ namespace DPP
     {
         Calculation m_calc;
         size_t m_steps;
-        CalculationMethod m_method;
 
-        explicit CalcData ( Calculation calc, size_t steps, CalculationMethod method ) :
-        m_calc( calc ), m_steps ( steps ), m_method ( method )
+        explicit CalcData ( Calculation calc, size_t steps ) :
+        m_calc( calc ), m_steps ( steps )
         {}
     };
 }
