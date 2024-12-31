@@ -70,7 +70,7 @@ TEST(TriMatBldErr, irArb)
 	EXPECT_EQ(buildResult.getErrorMsg(), "u > 1 + r to prevent arbitrage");
 }
 #pragma endregion
-#pragma region pricing
+#pragma region Pricing
 TEST( Pricing, EuroCall)
 {
 	const size_t stepsIn = 3;
@@ -149,6 +149,7 @@ TEST(pricing, AmerPut)
 }
 #pragma endregion
 #pragma region Engine
+#pragma region Binomial
 #pragma region PV
 TEST( engine, EuroCallPV )
 {
@@ -205,6 +206,38 @@ TEST( engine, AmerPutPV )
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::PV ) != engine->m_results.end() );
 	EXPECT_EQ( engine->m_results.at( Calculation::PV ), 48.758203318346808 );
+}
+#pragma endregion
+#pragma endregion
+#pragma region BlackScholes
+#pragma region PV
+TEST(engine_BS, EuroCallPV)
+{
+	TradeData trd( OptionExerciseType::European, OptionPayoffType::Call, 5., 3. );
+	MarketData mkt(.2, 4., .25);
+	CalcData calc( Calculation::PV, 69 /*doesn't matter*/ );
+
+	auto engine = AbstractEngine::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	engine->run();
+
+	EXPECT_TRUE(engine->m_errors.empty());
+	EXPECT_EQ(engine->m_results.size(), 1);
+	EXPECT_TRUE(engine->m_results.find(Calculation::PV) != engine->m_results.end());
+	EXPECT_EQ(engine->m_results.at(Calculation::PV), 1.6675924577040089);
+}
+TEST(engine_BS, EuroPutPV)
+{
+	TradeData trd(OptionExerciseType::European, OptionPayoffType::Put, 5., 3.);
+	MarketData mkt(.2, 4., .25);
+	CalcData calc(Calculation::PV, 69 /*doesn't matter*/);
+
+	auto engine = AbstractEngine::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	engine->run();
+
+	EXPECT_TRUE(engine->m_errors.empty());
+	EXPECT_EQ(engine->m_results.size(), 1);
+	EXPECT_TRUE(engine->m_results.find(Calculation::PV) != engine->m_results.end());
+	EXPECT_EQ(engine->m_results.at(Calculation::PV), 0.029425221409081936);
 }
 #pragma endregion
 #pragma endregion
