@@ -29,7 +29,8 @@ bool BinomialPricerState::recalcIfRequired()
 
 	const auto start = std::chrono::high_resolution_clock::now();
 
-	m_engine = AbstractEngine::getEngine<BinomialEngine>( m_mkt, m_trd, m_calcs );
+	const auto engType = static_cast<DPP::CalculationMethod>(m_calculationMethodIdx);
+	m_engine = EngineFactory::getEngine( engType, m_mkt, m_trd, m_calcs );
 	m_engine->run();
 
 	const auto end = std::chrono::high_resolution_clock::now();

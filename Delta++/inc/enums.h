@@ -18,7 +18,7 @@ namespace DPP
 
     enum class CalculationMethod
 	{
-		_NONE = 0,
+		//_NONE = 0,
 		Binomial,
 		BlackScholes,
 		//TODO add more
