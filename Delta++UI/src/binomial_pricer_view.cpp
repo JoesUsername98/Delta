@@ -57,6 +57,9 @@ void BinomialPricerView::renderCalcParams()
     {
         m_state.m_valueChanged |=	ImGui::Checkbox("Dynamic Recalculation", &m_state.m_dynamicRecalc);
         
+        m_state.m_valueChanged |= ImGui::Combo("Engine", &m_state.m_calculationMethodIdx, m_state.m_calculationMethodCombo.m_keysCArray, IM_ARRAYSIZE(m_state.m_calculationMethodCombo.m_keysCArray));
+                    ImGui::SameLine(); HelpMarker("Engines determine the calculation techinique");
+
         m_state.m_valueChanged |=	ImGui::InputInt("Time Periods", &m_state.m_steps);
                     ImGui::SameLine(); HelpMarker("Number of Nodes");
         

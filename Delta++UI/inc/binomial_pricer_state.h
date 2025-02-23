@@ -12,8 +12,6 @@ struct BinomialPricerState
 {
 	//MODEL
 	TradeData m_trd;
-	int m_optionPayoffIdx = 0;
-	int m_exerciseTypeIdx = 0;
 	MarketData m_mkt;
 	int m_steps = 3;
 	std::vector<CalcData> m_calcs;
@@ -21,8 +19,12 @@ struct BinomialPricerState
 	std::array<bool, (int)Calculation::_SIZE> m_calcsToDo;
 	std::optional<int> m_timeTaken = std::nullopt;
 
+	int m_optionPayoffIdx = 0;
+	int m_exerciseTypeIdx = 0;
+	int m_calculationMethodIdx = 0;
 	const EnumCombo< OptionPayoffType > m_payoffCombo;
 	const EnumCombo< OptionExerciseType > m_exerciseCombo;
+	const EnumCombo< CalculationMethod > m_calculationMethodCombo;
 
 	//VIEW_MODEL
 	bool m_valueChanged = false;
