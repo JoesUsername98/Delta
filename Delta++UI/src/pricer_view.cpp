@@ -1,9 +1,9 @@
-#include "binomial_pricer_view.h"
+#include "pricer_view.h"
 
 
-size_t BinomialPricerView::s_type_count = 0;
+size_t PricerView::s_type_count = 0;
 
-void BinomialPricerView::OnUIRender()
+void PricerView::OnUIRender()
 {
     ImGui::Begin( M_NAME.c_str() );
 
@@ -20,7 +20,7 @@ void BinomialPricerView::OnUIRender()
 
 }
 
-void BinomialPricerView::renderTradeParams() 
+void PricerView::renderTradeParams() 
 {
     if( ImGui::CollapsingHeader("Trade", ImGuiTreeNodeFlags_DefaultOpen) )
     {
@@ -39,7 +39,7 @@ void BinomialPricerView::renderTradeParams()
                 ImGui::SameLine(); HelpMarker("Strike Price");
     }
 }
-void BinomialPricerView::renderMarketParams()
+void PricerView::renderMarketParams()
 {
     if( ImGui::CollapsingHeader("Market", ImGuiTreeNodeFlags_DefaultOpen) )
     {
@@ -51,7 +51,7 @@ void BinomialPricerView::renderMarketParams()
                     ImGui::SameLine(); HelpMarker("Interest Rate");
     }
 }
-void BinomialPricerView::renderCalcParams()
+void PricerView::renderCalcParams()
 {
     if( ImGui::CollapsingHeader("Calculation", ImGuiTreeNodeFlags_DefaultOpen) )
     {
@@ -78,7 +78,7 @@ void BinomialPricerView::renderCalcParams()
             m_state.m_btn_calcPressed = ImGui::Button("Calculate");
     }
 }
-void BinomialPricerView::renderResults()
+void PricerView::renderResults()
 {
     if (ImGui::BeginTable("Results", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV ) )
     {

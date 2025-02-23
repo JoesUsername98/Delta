@@ -4,7 +4,7 @@
 #include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/EntryPoint.h"
 #include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/Image.h"
 
-#include "binomial_pricer_view.h"
+#include "pricer_view.h"
 #include "demo_view.h"
 
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
@@ -13,16 +13,16 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.Name = "Delta++";
 
 	Walnut::Application* app = new Walnut::Application(spec);
-	app->PushLayer<BinomialPricerView>();
+	app->PushLayer<PricerView>();
 	app->SetMenubarCallback([app]()
 	{
 		if (ImGui::BeginMenu("File"))
 		{
 			if (ImGui::BeginMenu("New"))
 			{
-				if (ImGui::MenuItem("Binomial Pricer Window"))
+				if (ImGui::MenuItem("Pricer Window"))
 				{
-					app->PushLayer<BinomialPricerView>();
+					app->PushLayer<PricerView>();
 				}
 				if( ImGui::MenuItem("Demo Window") )
 				{

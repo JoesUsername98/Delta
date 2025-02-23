@@ -8,7 +8,7 @@
 using namespace std::string_literals;
 using namespace DPP;
 
-struct BinomialPricerState
+struct PricerState
 {
 	//MODEL
 	TradeData m_trd;
@@ -35,7 +35,7 @@ struct BinomialPricerState
 	bool needsRecalc();
 	bool recalcIfRequired();
 
-	BinomialPricerState( ) :
+	PricerState( ) :
 	 m_trd( OptionExerciseType::European, OptionPayoffType::Call, 105., 1.5 ),
 	 m_mkt( 1.2, 100., 0.25 ) 
 	 {
