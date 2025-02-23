@@ -28,7 +28,6 @@ namespace DPP
             default:
                 break;
             }
-            
         }
     }
 
@@ -202,6 +201,12 @@ namespace DPP
         return 0.5 * (1.0 + sign * erf);
     }
 
+    double BlackScholesEngine::probDensity( double z ) const
+    {
+        const double inv_sqrt_2pi = 0.3989422804014337; // 1 / sqrt(2 * pi)
+        return inv_sqrt_2pi * exp( -0.5 * z * z );
+    }
+
     double BlackScholesEngine::getD1() const
     {
         return ( log( m_mkt.m_underlyingPrice / m_trd.m_strike ) + ( m_mkt.m_interestRate + m_mkt.m_vol * m_mkt.m_vol * .5 ) * m_trd.m_maturity ) /
@@ -247,133 +252,81 @@ namespace DPP
     // TODO A lot of duplicated code here... use analytical solution here.
     void BlackScholesEngine::calcDelta(const CalcData& calc)
     {
-        CalcData pvOnly = calc;
-        pvOnly.m_calc = Calculation::PV;
-
-        MarketData bumpUp = m_mkt.bumpUnderlying(1.005);
-        BlackScholesEngine upCalc(bumpUp, m_trd, pvOnly);
-        upCalc.run();
-
-        if (!upCalc.m_errors.empty())
+        if ( m_trd.m_optionExerciseType != OptionExerciseType::European )
         {
-            for (const auto& [upCalc, err] : upCalc.m_errors)
-                m_errors[calc.m_calc] += " "s + err;
-
+            m_errors.emplace(calc.m_calc, "BlackScholes can only handle European Exercise");
             return;
         }
 
-        MarketData bumpDown = m_mkt.bumpUnderlying(.995);
-        BlackScholesEngine downCalc(bumpDown, m_trd, pvOnly);
-        downCalc.run();
-        if (!downCalc.m_errors.empty())
+        switch ( m_trd.m_optionPayoffType )
         {
-            for (const auto& [downCalc, err] : downCalc.m_errors)
-                m_errors[calc.m_calc] += " "s + err;
-
-            return;
+        case OptionPayoffType::Call:
+            m_results.emplace( calc.m_calc, cumDensity( getD1() ) );
+            break;
+        case OptionPayoffType::Put:
+            m_results.emplace( calc.m_calc, cumDensity( getD1() ) - 1. );
+            break;
+        default:
+            m_errors.emplace( calc.m_calc, "Only Call and Put are supported PayoffTypes" );
         }
-
-        const double pvUp = upCalc.m_results.at(Calculation::PV);
-        const double pvDown = downCalc.m_results.at(Calculation::PV);
-        m_results.emplace(calc.m_calc, pvUp - pvDown);
     }
 
     void BlackScholesEngine::calcRho(const CalcData& calc)
     {
-        CalcData pvOnly = calc;
-        pvOnly.m_calc = Calculation::PV;
-
-        MarketData bumpUp = m_mkt.bumpInterestRate(1.005);
-        BlackScholesEngine upCalc(bumpUp, m_trd, pvOnly);
-        upCalc.run();
-
-        if (!upCalc.m_errors.empty())
+        if ( m_trd.m_optionExerciseType != OptionExerciseType::European )
         {
-            for (const auto& [upCalc, err] : upCalc.m_errors)
-                m_errors[calc.m_calc] += " "s + err;
-
+            m_errors.emplace( calc.m_calc, "BlackScholes can only handle European Exercise" );
             return;
         }
 
-        MarketData bumpDown = m_mkt.bumpInterestRate(.995);
-        BlackScholesEngine downCalc(bumpDown, m_trd, pvOnly);
-        downCalc.run();
-        if (!downCalc.m_errors.empty())
+        switch ( m_trd.m_optionPayoffType )
         {
-            for (const auto& [downCalc, err] : downCalc.m_errors)
-                m_errors[calc.m_calc] += " "s + err;
-
-            return;
+        case OptionPayoffType::Call:
+            m_results.emplace( calc.m_calc, m_trd.m_strike * m_trd.m_maturity * exp( -m_mkt.m_interestRate * m_trd.m_maturity ) * cumDensity( getD2() ) );
+            break;
+        case OptionPayoffType::Put:
+            m_results.emplace( calc.m_calc, -m_trd.m_strike * m_trd.m_maturity * exp( -m_mkt.m_interestRate * m_trd.m_maturity ) * cumDensity( -getD2() ) );
+            break;
+        default:
+            m_errors.emplace( calc.m_calc, "Only Call and Put are supported PayoffTypes" );
         }
-
-        const double pvUp = upCalc.m_results.at(Calculation::PV);
-        const double pvDown = downCalc.m_results.at(Calculation::PV);
-        m_results.emplace(calc.m_calc, pvUp - pvDown);
     }
 
     void BlackScholesEngine::calcVega(const CalcData& calc)
     {
-        CalcData pvOnly = calc;
-        pvOnly.m_calc = Calculation::PV;
-
-        MarketData bumpUp = m_mkt.bumpVol(1.005);
-        BlackScholesEngine upCalc(bumpUp, m_trd, pvOnly);
-        upCalc.run();
-
-        if (!upCalc.m_errors.empty())
+        if ( m_trd.m_optionExerciseType != OptionExerciseType::European )
         {
-            for (const auto& [upCalc, err] : upCalc.m_errors)
-                m_errors[calc.m_calc] += " "s + err;
-
+            m_errors.emplace( calc.m_calc, "BlackScholes can only handle European Exercise" );
             return;
         }
-
-        MarketData bumpDown = m_mkt.bumpVol(.995);
-        BlackScholesEngine downCalc(bumpDown, m_trd, pvOnly);
-        downCalc.run();
-        if (!downCalc.m_errors.empty())
+        
+        switch ( m_trd.m_optionPayoffType )
         {
-            for (const auto& [downCalc, err] : downCalc.m_errors)
-                m_errors[calc.m_calc] += " "s + err;
-
-            return;
+        case OptionPayoffType::Call:
+        case OptionPayoffType::Put:
+            m_results.emplace( calc.m_calc, m_mkt.m_underlyingPrice * probDensity( getD1() ) * sqrt( m_trd.m_maturity ) );
+            break;
+        default:
+            m_errors.emplace( calc.m_calc, "Only Call and Put are supported PayoffTypes" );
         }
-
-        const double pvUp = upCalc.m_results.at(Calculation::PV);
-        const double pvDown = downCalc.m_results.at(Calculation::PV);
-        m_results.emplace(calc.m_calc, pvUp - pvDown);
     }
 
     void BlackScholesEngine::calcGamma(const CalcData& calc)
     {
-        CalcData deltaOnly = calc;
-        deltaOnly.m_calc = Calculation::Delta;
-
-        MarketData bumpUp = m_mkt.bumpUnderlying(1.005);
-        BlackScholesEngine upCalc(bumpUp, m_trd, deltaOnly);
-        upCalc.run();
-
-        if (!upCalc.m_errors.empty())
+        if ( m_trd.m_optionExerciseType != OptionExerciseType::European )
         {
-            for (const auto& [upCalc, err] : upCalc.m_errors)
-                m_errors[calc.m_calc] += " "s + err;
-
+            m_errors.emplace( calc.m_calc, "BlackScholes can only handle European Exercise" );
             return;
         }
 
-        MarketData bumpDown = m_mkt.bumpUnderlying(.995);
-        BlackScholesEngine downCalc(bumpDown, m_trd, deltaOnly);
-        downCalc.run();
-        if (!downCalc.m_errors.empty())
+        switch ( m_trd.m_optionPayoffType )
         {
-            for (const auto& [downCalc, err] : downCalc.m_errors)
-                m_errors[calc.m_calc] += " "s + err;
-
-            return;
+        case OptionPayoffType::Call:
+        case OptionPayoffType::Put:
+            m_results.emplace( calc.m_calc, probDensity( getD1() ) / ( m_mkt.m_underlyingPrice * m_mkt.m_vol * sqrt( m_trd.m_maturity ) ) );
+            break;
+        default:
+            m_errors.emplace( calc.m_calc, "Only Call and Put are supported PayoffTypes" );
         }
-
-        const double deltaUp = upCalc.m_results.at(Calculation::Delta);
-        const double deltaDown = downCalc.m_results.at(Calculation::Delta);
-        m_results.emplace(calc.m_calc, deltaUp - deltaDown);
     }
 }

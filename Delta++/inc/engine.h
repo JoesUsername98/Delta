@@ -105,5 +105,6 @@ namespace DPP
 
         //TODO abstract out to a Math library
         double cumDensity(double z) const;
+        double probDensity(double z) const;
     };
 }
