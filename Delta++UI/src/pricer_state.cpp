@@ -1,19 +1,19 @@
-#include "binomial_pricer_state.h"
+#include "pricer_state.h"
 
-void BinomialPricerState::reset()
+void PricerState::reset()
 {
 	m_btn_calcPressed = false;
 	m_valueChanged = false;
 }
 
-bool BinomialPricerState::needsRecalc()
+bool PricerState::needsRecalc()
 {
 	m_valueChanged |= m_btn_calcPressed;
 	bool needsRecalc = (m_valueChanged && m_dynamicRecalc) || (!m_dynamicRecalc && m_btn_calcPressed);
 	return needsRecalc;
 }
 
-bool BinomialPricerState::recalcIfRequired()
+bool PricerState::recalcIfRequired()
 {
 	if (!needsRecalc())
 		return false;
