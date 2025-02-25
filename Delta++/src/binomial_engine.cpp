@@ -90,7 +90,7 @@ namespace DPP
         CalcData pvOnly = calc;
         pvOnly.m_calc = Calculation::PV;
 
-        MarketData bumpUp = m_mkt.bumpVol( 1.005 );
+        MarketData bumpUp = m_mkt.bumpVol( 0.005 );
         BinomialEngine upCalc ( bumpUp, m_trd, pvOnly );
         upCalc.run();
 
@@ -102,7 +102,7 @@ namespace DPP
             return;
         }
 
-        MarketData bumpDown = m_mkt.bumpVol( .995 );
+        MarketData bumpDown = m_mkt.bumpVol( -0.005 );
         BinomialEngine downCalc ( bumpDown, m_trd, pvOnly );
         downCalc.run();
         if( !downCalc.m_errors.empty() ) 
@@ -115,7 +115,7 @@ namespace DPP
 
         const double pvUp = upCalc.m_results.at( Calculation::PV );
         const double pvDown = downCalc.m_results.at( Calculation::PV );
-        m_results.emplace( calc.m_calc, pvUp - pvDown );
+        m_results.emplace( calc.m_calc, (pvUp - pvDown)*100 );
     }
 
     void BinomialEngine::calcGamma( const CalcData& calc )
