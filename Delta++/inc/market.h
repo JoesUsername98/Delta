@@ -29,7 +29,7 @@ namespace DPP
         MarketData bumpInterestRate ( double bump )
         {
             MarketData bumpee = *this;
-            bumpee.m_interestRate *= bump;
+            bumpee.m_interestRate += bump;
             return bumpee;
         }
     };
