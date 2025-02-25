@@ -15,7 +15,7 @@ namespace DPP
         MarketData bumpVol ( double bump )
         {
             MarketData bumpee = *this;
-            bumpee.m_vol *= bump;
+            bumpee.m_vol += bump;
             return bumpee;
         }
 

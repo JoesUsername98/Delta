@@ -72,7 +72,6 @@ namespace DPP
         }
     }
 
-    // TODO A lot of duplicated code here... use analytical solution here.
     void BlackScholesEngine::calcDelta(const CalcData& calc)
     {
         if ( m_trd.m_optionExerciseType != OptionExerciseType::European )
