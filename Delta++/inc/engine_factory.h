@@ -19,7 +19,7 @@ namespace DPP
             case CalculationMethod::BlackScholes:
                 return getEngine<BlackScholesEngine>(mkt, trd, calc);
             default:
-                throw std::exception("Undefined engine type requested");
+                throw std::runtime_error("Undefined engine type requested");
             }
         }
         static std::unique_ptr<AbstractEngine> getEngine(CalculationMethod engType, MarketData mkt, TradeData trd, CalcData calc)

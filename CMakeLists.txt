@@ -22,7 +22,16 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+FetchContent_Declare(
+    magic_enum
+    GIT_REPOSITORY https://github.com/Neargye/magic_enum/
+    GIT_TAG v0.9.7
+    GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(magic_enum)
+
 include(AddGitSubmodule)
 add_subdirectory(configured)
 add_subdirectory(Delta++)
-add_subdirectory(Delta++UI)
+if (WIN32)
+  add_subdirectory(Delta++UI)
+endif (WIN32)

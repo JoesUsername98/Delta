@@ -2,7 +2,7 @@
 
 #include <math.h>
 #include <limits>
-#include <exception>
+#include <stdexcept>
 
 namespace DPP
 {
@@ -191,7 +191,7 @@ namespace DPP
 	TriMatrix TriMatrixBuilder::build()
 	{
 		if (m_hasError)
-			throw std::exception( m_errorMsg.c_str() );
+			throw std::runtime_error( m_errorMsg );
 
 		return std::move(m_result);
 	}

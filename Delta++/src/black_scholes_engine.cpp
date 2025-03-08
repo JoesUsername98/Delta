@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "black_scholes_engine.h"
 
 namespace DPP
