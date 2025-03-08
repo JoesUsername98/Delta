@@ -4,67 +4,63 @@
 
 using namespace DPP;
 
-TEST( TriMatBldErr, initialPrice)
+#pragma region Binomial
+#pragma region PV
+TEST( engine, EuroCallPV )
 {
-	const size_t stepsIn = 2;
-	auto buildResult = TriMatrixBuilder::create(stepsIn, 30. / stepsIn)
-		.withUnderlyingValueAndVolatility(-4, 0.2)
-		.withInterestRate(0.25)
-		.withPayoff(OptionPayoffType::Call, 5)
-		.withRiskNuetralProb()
-		.withPremium(OptionExerciseType::European)
-		.withDelta()
-		.withPsuedoOptimalStoppingTime();
+	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::PV, 3 );
 
-	EXPECT_TRUE( buildResult.m_hasError );
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
 
-	EXPECT_EQ( buildResult.getErrorMsg(), "initialPrice cannot be 0");
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::PV ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::PV ), 48.170795535239122 );
 }
-TEST( TriMatBldErr, upFactorLessThan0 )
+TEST( engine, EuroPutPV )
 {
-	const size_t stepsIn = 2;
-	auto buildResult = TriMatrixBuilder::create(stepsIn, 30. / stepsIn)
-		.withUnderlyingValueAndUpFactor( 4, -1.)
-		.withInterestRate(0.25)
-		.withPayoff(OptionPayoffType::Call, 5)
-		.withRiskNuetralProb()
-		.withPremium(OptionExerciseType::European)
-		.withDelta()
-		.withPsuedoOptimalStoppingTime();
+	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::PV, 3 );
 
-	EXPECT_TRUE(buildResult.m_hasError);
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
 
-	EXPECT_EQ(buildResult.getErrorMsg(), "upFactor cannot be 0 or less");
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::PV ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::PV ), 48.049738737522595 );
 }
-TEST( TriMatBldErr, upFactorLessThan1 )
+TEST( engine, AmerCallPV )
 {
-	const size_t stepsIn = 2;
-	auto buildResult = TriMatrixBuilder::create(stepsIn, 30. / stepsIn)
-		.withUnderlyingValueAndUpFactor(4, .1)
-		.withInterestRate(0.25)
-		.withPayoff(OptionPayoffType::Call, 5)
-		.withRiskNuetralProb()
-		.withPremium(OptionExerciseType::European)
-		.withDelta()
-		.withPsuedoOptimalStoppingTime();
+	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::PV, 3 );
 
-	EXPECT_TRUE(buildResult.m_hasError);
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
 
-	EXPECT_EQ(buildResult.getErrorMsg(), "upFactor cannot be less than downFactor");
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::PV ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::PV ), 48.170795535239122 );
 }
-TEST(TriMatBldErr, irArb)
+TEST( engine, AmerPutPV )
 {
-	const size_t stepsIn = 2;
-	auto buildResult = TriMatrixBuilder::create(stepsIn, 30. / stepsIn)
-		.withUnderlyingValueAndUpFactor(4, 2)
-		.withInterestRate(25)
-		.withPayoff(OptionPayoffType::Call, 5)
-		.withRiskNuetralProb()
-		.withPremium(OptionExerciseType::European)
-		.withDelta()
-		.withPsuedoOptimalStoppingTime();
+	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::PV, 3 );
 
-	EXPECT_TRUE(buildResult.m_hasError);
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
 
-	EXPECT_EQ(buildResult.getErrorMsg(), "u > 1 + r to prevent arbitrage");
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::PV ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::PV ), 48.758203318346808 );
 }
+#pragma endregion
+#pragma endregion
