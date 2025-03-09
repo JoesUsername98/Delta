@@ -29,7 +29,18 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(magic_enum)
 
+# CMake tools
 include(AddGitSubmodule)
+include(CodeCoverage)
+
+# Options
+option(ENABLE_COVERAGE "Enable a code coverage build." ON)
+
+if ( ENABLE_COVERAGE )
+  include( CodeCoverage )
+  append_coverage_compiler_flags()
+endif ( ENABLE_COVERAGE )
+
 add_subdirectory(configured)
 add_subdirectory(Delta++)
 if (WIN32)

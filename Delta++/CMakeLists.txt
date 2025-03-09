@@ -22,11 +22,27 @@ add_executable(
     ${DPP_LIB_NAME}_Test
     ${${DPP_LIB_NAME}_TEST_FILES}
 )
-target_link_libraries(
-    ${DPP_LIB_NAME}_Test
-    ${DPP_LIB_NAME}
-    GTest::gtest_main
-)
+target_link_libraries(${DPP_LIB_NAME}_Test PUBLIC ${DPP_LIB_NAME})
+target_link_libraries(${DPP_LIB_NAME}_Test PRIVATE GTest::gtest_main)
 
 include(GoogleTest)
 gtest_discover_tests(${DPP_LIB_NAME}_Test)
+
+if(ENABLE_COVERAGE)
+    set(COVERAGE_MAIN "coverage")
+     set(COVERAGE_EXCLUDES 
+         #"${CMAKE_BINARY_DIR}/dirs_to_exclude/*"
+         "${CMAKE_BINARY_DIR}/_deps/google*"
+         "/usr/include/*" )
+    set(COVERAGE_EXTRA_FLAGS)
+    set(COVERAGE_DEPENDENCIES ${DPP_LIB_NAME}_Test)
+
+    setup_target_for_coverage_gcovr_html(
+        NAME 
+        ${COVERAGE_MAIN} 
+        EXECUTABLE 
+        ${COVERAGE_DEPENDENCIES} 
+        BASE_DIRECTORY 
+        ${CMAKE_SOURCE_DIR}
+    )
+endif( ENABLE_COVERAGE )
