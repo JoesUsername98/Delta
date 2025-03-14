@@ -31,10 +31,13 @@ FetchContent_MakeAvailable(magic_enum)
 
 # CMake tools
 include(AddGitSubmodule)
-include(CodeCoverage)
 
 # Options
-option(ENABLE_COVERAGE "Enable a code coverage build." ON)
+if(WIN32)
+  option(ENABLE_COVERAGE "Enable a code coverage build." OFF)
+else()  
+  option(ENABLE_COVERAGE "Enable a code coverage build." ON)
+endif ()
 
 if ( ENABLE_COVERAGE )
   include( CodeCoverage )
