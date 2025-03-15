@@ -63,4 +63,236 @@ TEST( engine, AmerPutPV )
 	EXPECT_EQ( engine->m_results.at( Calculation::PV ), 48.758203318346808 );
 }
 #pragma endregion
+#pragma region Delta
+TEST( engine, EuroCallDelta )
+{
+	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Delta, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Delta ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Delta ), 0.75613560127931123 );
+}
+TEST( engine, EuroPutDelta )
+{
+	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Delta, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Delta ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Delta ), -0.24507496669782114 );
+}
+TEST( engine, AmerCallDelta )
+{
+	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Delta, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Delta ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Delta ), 0.75613560127931123 );
+}
+TEST( engine, AmerPutDelta )
+{
+	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Delta, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Delta ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Delta ), -0.24503301188877202 );
+}
+#pragma endregion
+#pragma region Gamma
+TEST( engine, EuroCallGamma )
+{
+	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Gamma, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Gamma ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Gamma ), 0.0075613560128005020 );
+}
+TEST( engine, EuroPutGamma )
+{
+	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Gamma, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Gamma ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Gamma ), -0.0024507496669698980 );
+}
+TEST( engine, AmerCallGamma )
+{
+	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Gamma, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Gamma ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Gamma ), 0.0075613560128005020 );
+}
+TEST( engine, AmerPutGamma )
+{
+	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Gamma, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Gamma ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Gamma ), -0.0024503301188687487 );
+}
+#pragma endregion
+#pragma region Rho
+TEST( engine, EuroCallRho )
+{
+	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Rho, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Rho ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Rho ), 27.795392260804164 );
+}
+TEST( engine, EuroPutRho )
+{
+	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Rho, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Rho ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Rho ), -72.211865338645254 );
+}
+TEST( engine, AmerCallRho )
+{
+	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Rho, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Rho ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Rho ), 27.795392260804164 );
+}
+TEST( engine, AmerPutRho )
+{
+	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Rho, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Rho ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Rho ), -59.348811877772789 );
+}
+#pragma endregion
+#pragma region PV
+TEST( engine, EuroCallVega )
+{
+	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Vega, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Vega ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Vega ), 34.296496709994528 );
+}
+TEST( engine, EuroPutVega )
+{
+	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Vega, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Vega ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Vega ), 34.296496709992397 );
+}
+TEST( engine, AmerCallVega )
+{
+	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Vega, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Vega ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Vega ), 34.296496709994528 );
+}
+TEST( engine, AmerPutVega )
+{
+	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
+	MarketData mkt ( 1.2, 100., 0.05 );
+	CalcData calc ( Calculation::Vega, 3 );
+
+	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	engine->run();
+
+	EXPECT_TRUE( engine->m_errors.empty() );
+	EXPECT_EQ( engine->m_results.size() , 1 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::Vega ) != engine->m_results.end() );
+	EXPECT_EQ( engine->m_results.at( Calculation::Vega ), 34.592394876462151 );
+}
+#pragma endregion
 #pragma endregion
