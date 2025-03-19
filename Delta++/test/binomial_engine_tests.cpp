@@ -237,7 +237,7 @@ TEST( engine, AmerPutRho )
 	EXPECT_EQ( engine->m_results.at( Calculation::Rho ), -59.348811877772789 );
 }
 #pragma endregion
-#pragma region PV
+#pragma region Vega
 TEST( engine, EuroCallVega )
 {
 	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
