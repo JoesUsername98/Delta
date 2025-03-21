@@ -21,7 +21,7 @@ TEST( Pricing, EuroCall)
 
 	const auto result = buildResult.build();
 	const auto mat = result.getMatrix();
-	EXPECT_EQ( mat[0][0].m_data.m_optionValue, 48.170795535239122 );
+	EXPECT_EQ( mat[0].m_data.m_optionValue, 48.170795535239122 );
 }
 TEST( Pricing, EuroPut)
 {
@@ -40,7 +40,7 @@ TEST( Pricing, EuroPut)
 
 	const auto result = buildResult.build();
 	const auto mat = result.getMatrix();
-	EXPECT_EQ(mat[0][0].m_data.m_optionValue, 48.049738737522595);
+	EXPECT_EQ(mat[0].m_data.m_optionValue, 48.049738737522595);
 }
 TEST(pricing, AmerCall)
 {
@@ -59,7 +59,7 @@ TEST(pricing, AmerCall)
 
 	const auto result = buildResult.build();
 	const auto mat = result.getMatrix();
-	EXPECT_EQ(mat[0][0].m_data.m_optionValue, 48.170795535239122);
+	EXPECT_EQ(mat[0].m_data.m_optionValue, 48.170795535239122);
 }
 TEST(pricing, AmerPut)
 {
@@ -78,7 +78,7 @@ TEST(pricing, AmerPut)
 
 	const auto result = buildResult.build();
 	const auto mat = result.getMatrix();
-	EXPECT_EQ(mat[0][0].m_data.m_optionValue, 48.758203318346808);
+	EXPECT_EQ(mat[0].m_data.m_optionValue, 48.758203318346808);
 }
 
 
