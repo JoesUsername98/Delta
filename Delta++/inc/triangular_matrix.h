@@ -6,6 +6,7 @@
 #include <string>
 
 #include "enums.h"
+#include <stdexcept>
 
 namespace DPP
 {
@@ -43,15 +44,19 @@ namespace DPP
 	public:
 		friend class TriMatrixBuilder;
 
-		const std::vector< std::vector< Node > >& getMatrix() const;
+		const std::vector< Node > & getMatrix() const;
 		double getDt() const;
-		size_t getSteps() const;
+		const size_t m_steps;
 
 	private:
 		const double m_dt;
-		std::vector< std::vector< Node > > m_matrix;
+		std::vector< Node > m_matrix;
 
 		TriMatrix( const size_t steps, const double timeStep = 1. );
+
+		size_t index(const size_t row, const size_t col) const;
+		Node& at(const size_t row, const size_t col) const;
+
 		const Node* getParentHeads( const Node& thisNode ) const;
 		const Node* getHeads( const Node& thisNode ) const;
 		const Node* getParentTails( const Node& thisNode ) const;

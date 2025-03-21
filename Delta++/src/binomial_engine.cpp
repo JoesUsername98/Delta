@@ -16,7 +16,7 @@ namespace DPP
         if( buildResult.m_hasError )
             m_errors.emplace( calc.m_calc , buildResult.getErrorMsg() );
         else
-            m_results.emplace( calc.m_calc , buildResult.build().getMatrix()[0][0].m_data.m_optionValue );
+            m_results.emplace( calc.m_calc , buildResult.build().getMatrix()[ 0 ].m_data.m_optionValue );
     }
 
     void BinomialEngine::calcDelta( const CalcData& calc )
