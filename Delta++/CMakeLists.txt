@@ -7,9 +7,8 @@ file(GLOB_RECURSE ${DPP_LIB_NAME}_TEST_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp
 )
 
-message(STATUS "Found test files: ${${DPP_LIB_NAME}_TEST_FILES}")
-
 add_library(${DPP_LIB_NAME} STATIC ${${DPP_LIB_NAME}_SRC})
+target_link_libraries(${DPP_LIB_NAME} ${DPP_MATH_LIB_NAME} )
 target_link_libraries(${DPP_LIB_NAME} magic_enum::magic_enum )
 
 target_include_directories(${DPP_LIB_NAME} PUBLIC

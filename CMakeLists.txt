@@ -7,10 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS        OFF)
 
 set(DPP_LIB_NAME "Delta++")
+set(DPP_MATH_LIB_NAME "Delta++Math")
 set(EXECUTABLE_NAME "Delta++UI")
 set(TEST_NAME "D++Tests")
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 
 include(FetchContent)
@@ -45,6 +45,7 @@ if ( ENABLE_COVERAGE )
 endif ( ENABLE_COVERAGE )
 
 add_subdirectory(configured)
+add_subdirectory(Delta++Math)
 add_subdirectory(Delta++)
 if (WIN32)
   add_subdirectory(Delta++UI)
