@@ -29,10 +29,6 @@ namespace DPP
 
         double callPrice() const;
         double putPrice() const;
-
-        //TODO abstract out to a Math library
-        double cumDensity(double z) const;
-        double probDensity(double z) const;
     };
 
 }
