@@ -24,3 +24,7 @@ target_link_libraries(${DPP_MATH_LIB_NAME}_Test PRIVATE GTest::gtest_main)
 
 include(GoogleTest)
 gtest_discover_tests(${DPP_MATH_LIB_NAME}_Test)
+
+set_target_properties(${DPP_MATH_LIB_NAME} PROPERTIES FOLDER "Delat++/Lib")
+set_target_properties(${DPP_MATH_LIB_NAME}_Test  PROPERTIES FOLDER "Delat++/Test")
+# set_target_properties(${DPP_MATH_LIB_NAME}_Bench PROPERTIES FOLDER "Delat++/Bench")

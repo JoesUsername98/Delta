@@ -12,6 +12,7 @@ set(EXECUTABLE_NAME "Delta++UI")
 set(TEST_NAME "D++Tests")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(FetchContent)
 FetchContent_Declare(

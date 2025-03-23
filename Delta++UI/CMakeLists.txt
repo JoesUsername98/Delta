@@ -32,3 +32,5 @@ target_include_directories(${EXECUTABLE_NAME} PUBLIC
 )
 
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} Walnut Vulkan::Vulkan glfw opengl32.lib magic_enum::magic_enum )
+
+set_target_properties(${EXECUTABLE_NAME} PROPERTIES FOLDER "Delat++")
