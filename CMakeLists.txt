@@ -23,6 +23,13 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 FetchContent_Declare(
+  benchmark
+  GIT_REPOSITORY https://github.com/google/benchmark/
+  GIT_TAG v1.9.1
+  GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(benchmark)
+
+FetchContent_Declare(
     magic_enum
     GIT_REPOSITORY https://github.com/Neargye/magic_enum/
     GIT_TAG v0.9.7

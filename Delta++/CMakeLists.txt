@@ -7,6 +7,12 @@ file(GLOB_RECURSE ${DPP_LIB_NAME}_TEST_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp
 )
 
+file(GLOB_RECURSE ${DPP_LIB_NAME}_BENCH_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/bench/*.cpp
+)
+
+message("Benchmark files" ${${DPP_LIB_NAME}_BENCH_FILES})
+
 add_library(${DPP_LIB_NAME} STATIC ${${DPP_LIB_NAME}_SRC})
 target_link_libraries(${DPP_LIB_NAME} ${DPP_MATH_LIB_NAME} )
 target_link_libraries(${DPP_LIB_NAME} magic_enum::magic_enum )
@@ -21,8 +27,24 @@ add_executable(
     ${DPP_LIB_NAME}_Test
     ${${DPP_LIB_NAME}_TEST_FILES}
 )
+
 target_link_libraries(${DPP_LIB_NAME}_Test PUBLIC ${DPP_LIB_NAME})
 target_link_libraries(${DPP_LIB_NAME}_Test PRIVATE GTest::gtest_main)
+
+add_executable(
+    ${DPP_LIB_NAME}_Bench
+    ${${DPP_LIB_NAME}_BENCH_FILES}
+)
+
+set(BENCHMARK_ENABLE_TESTING off)
+
+target_link_libraries(
+    ${DPP_LIB_NAME}_Bench 
+    PRIVATE 
+        ${DPP_LIB_NAME} 
+        benchmark::benchmark
+        benchmark::benchmark_main
+)
 
 include(GoogleTest)
 gtest_discover_tests(${DPP_LIB_NAME}_Test)
@@ -32,6 +54,7 @@ if(ENABLE_COVERAGE)
      set(COVERAGE_EXCLUDES 
          #"${CMAKE_BINARY_DIR}/dirs_to_exclude/*"
          "${CMAKE_BINARY_DIR}/_deps/google*"
+         "${CMAKE_BINARY_DIR}/_deps/benchmark*"
          "/usr/include/*" )
     set(COVERAGE_EXTRA_FLAGS)
     set(COVERAGE_DEPENDENCIES ${DPP_LIB_NAME}_Test)
