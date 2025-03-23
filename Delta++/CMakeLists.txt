@@ -17,6 +17,8 @@ add_library(${DPP_LIB_NAME} STATIC ${${DPP_LIB_NAME}_SRC})
 target_link_libraries(${DPP_LIB_NAME} ${DPP_MATH_LIB_NAME} )
 target_link_libraries(${DPP_LIB_NAME} magic_enum::magic_enum )
 
+
+
 target_include_directories(${DPP_LIB_NAME} PUBLIC
     "./inc"
     "${CMAKE_BINARY_DIR}/configured_files/include")
@@ -68,3 +70,7 @@ if(ENABLE_COVERAGE)
         ${CMAKE_SOURCE_DIR}
     )
 endif( ENABLE_COVERAGE )
+
+set_target_properties(${DPP_LIB_NAME} PROPERTIES FOLDER "Delat++/Lib")
+set_target_properties(${DPP_LIB_NAME}_Test  PROPERTIES FOLDER "Delat++/Test")
+set_target_properties(${DPP_LIB_NAME}_Bench PROPERTIES FOLDER "Delat++/Bench")
