@@ -2,7 +2,7 @@
 
 namespace DPP
 {
-	double ExpectableState::getDiscountRate() const { return 1. / (1. + m_interestRate); }
+	double State::getDiscountRate() const { return 1. / (1. + m_interestRate); }
 	double State::getProbabilityTails() const { return 1. - m_probabilityHeads; }
 
 	TriMatrix::TriMatrix(const size_t steps, const double timeStep ) :
