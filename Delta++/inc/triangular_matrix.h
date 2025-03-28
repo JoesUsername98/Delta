@@ -10,26 +10,20 @@
 
 namespace DPP
 {
-	struct ExpectableState
+
+	struct State
 	{
-		double m_underlyingValue;
 		double m_payoff;
 		double m_interestRate;
-
-		double getDiscountRate() const;
-
-	};
-	
-	struct State : ExpectableState
-	{
-		double m_payoff;
 		double m_optionValue;
 		double m_deltaHedging;
 		double m_probabilityHeads;
+		double m_underlyingValue;
+
 		std::optional<size_t> m_optimalExerciseTime;
-		ExpectableState m_expected;
 
 		double getProbabilityTails() const;
+		double getDiscountRate() const;
 	};
 
 	struct Node
