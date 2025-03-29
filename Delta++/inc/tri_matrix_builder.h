@@ -30,8 +30,8 @@ namespace DPP
 		explicit TriMatrixBuilder(const size_t steps, const double timeStep = 1.);
 
 	private:
-		size_t m_timeSteps;
-		double m_timeStep;
+		const size_t m_timeSteps;
+		const double m_timeStep;
 		double m_initialPrice;
 		double m_upFactor;
 		double m_downFactor;
