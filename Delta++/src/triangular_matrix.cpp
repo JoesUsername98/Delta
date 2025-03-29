@@ -2,13 +2,10 @@
 
 namespace DPP
 {
-	double State::getDiscountRate() const { return 1. / (1. + m_interestRate); }
-	double State::getProbabilityTails() const { return 1. - m_probabilityHeads; }
-
 	TriMatrix::TriMatrix(const size_t steps, const double timeStep ) :
 		m_dt( timeStep ),
 		m_steps( steps ),
-		m_matrix( std::vector< Node >( index( steps, steps) + 1 ) )
+		m_matrix( std::vector< Node >( index( steps, steps ) + 1 ) )
 	{};
 	
 	std::size_t TriMatrix::index(const std::size_t row, const std::size_t col) const

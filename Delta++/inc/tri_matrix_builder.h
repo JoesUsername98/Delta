@@ -1,6 +1,7 @@
 #pragma once
 
 #include "triangular_matrix.h"
+#include <functional>
 
 namespace DPP
 {
@@ -29,13 +30,29 @@ namespace DPP
 		explicit TriMatrixBuilder(const size_t steps, const double timeStep = 1.);
 
 	private:
-		TriMatrix m_result;
 		size_t m_timeSteps;
 		double m_timeStep;
+		double m_initialPrice;
 		double m_upFactor;
 		double m_downFactor;
 		double m_interestRate;
+		double m_discountRate;
+		double m_strikePrice;
+		OptionPayoffType m_optionType;
+		double m_probabilityHeads;
 		OptionExerciseType m_exerciseType;
 		std::string m_errorMsg;
+
+		bool m_mustCalcDeltaHedging;
+		bool m_mustCalcOptiomalStoppingTime;
+
+		// Todo move to BAMP engine
+		void calcDeltaHedging( TriMatrix& result );
+		// Todo move to BAMP engine
+		void calcOptiomalStoppingTime( TriMatrix& result ) const;
+
+		std::function< void( Node& )> m_setPayoff;
+		std::function< void( Node&, const Node*, const Node* )> m_setExerciseValue;
+		std::function< double( const Node*, const Node* )> m_calcExpPV;
 	};
 }

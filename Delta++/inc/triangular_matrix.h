@@ -14,16 +14,11 @@ namespace DPP
 	struct State
 	{
 		double m_payoff;
-		double m_interestRate;
 		double m_optionValue;
 		double m_deltaHedging;
-		double m_probabilityHeads;
 		double m_underlyingValue;
 
 		std::optional<size_t> m_optimalExerciseTime;
-
-		double getProbabilityTails() const;
-		double getDiscountRate() const;
 	};
 
 	struct Node
@@ -49,7 +44,6 @@ namespace DPP
 		TriMatrix( const size_t steps, const double timeStep = 1. );
 
 		size_t index(const size_t row, const size_t col) const;
-		Node& at(const size_t row, const size_t col) const;
 
 		const Node* getParentHeads( const Node& thisNode ) const;
 		const Node* getHeads( const Node& thisNode ) const;
