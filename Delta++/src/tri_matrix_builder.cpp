@@ -14,11 +14,13 @@ namespace DPP
 	TriMatrixBuilder::TriMatrixBuilder( const size_t steps, const double timeStep ) :
 		m_timeSteps( steps ),
 		m_timeStep( timeStep ),
-		m_result( steps, timeStep ),
 		m_hasError( false ),
-		m_errorMsg( "" )
+		m_errorMsg( "" ),
+		m_mustCalcDeltaHedging( false ),
+		m_mustCalcOptiomalStoppingTime( false )
 	{
 	}
+
 	TriMatrixBuilder& TriMatrixBuilder::withUnderlyingValueAndVolatility( const double initialPrice, const double vol )
 	{
 		const double upFactor = exp( vol * sqrt( m_timeStep ) );
@@ -29,44 +31,37 @@ namespace DPP
 		if ( m_hasError ) 
 			return *this;
 
-		if ( initialPrice < 0 )
+		m_initialPrice = initialPrice;
+
+		if (m_initialPrice < 0 )
 		{
 			RTN_BUILDER_ERR( "initialPrice cannot be 0" );
 		}
 
-		if ( upFactor <= 0 )
+		m_upFactor = upFactor;
+
+		if (m_upFactor <= 0 )
 		{
 			RTN_BUILDER_ERR( "upFactor cannot be 0 or less" );
 		}
 
-		if ( upFactor < 1 / upFactor )
+		m_downFactor = 1 / m_upFactor;
+
+		if (m_upFactor < m_downFactor)
 		{
 			RTN_BUILDER_ERR( "upFactor cannot be less than downFactor" );
 		}
-
-		m_upFactor = upFactor;
-		m_downFactor = 1 / m_upFactor;
-
-		for ( int step = m_timeSteps; step >= 0; step-- )
-			for ( int downMoves = step ; downMoves >= 0; downMoves-- )
-			{
-				const size_t noOfHeads = step - downMoves;
-				Node& node = m_result.m_matrix[ m_result.index ( downMoves, step ) ];
-				node.m_timeStep = step;
-				node.m_downMoves = downMoves;
-				node.m_data.m_underlyingValue = initialPrice * pow( m_upFactor, noOfHeads ) * pow( m_downFactor, downMoves );
-			}
 
 		return *this;
 	}
 	TriMatrixBuilder& TriMatrixBuilder::withInterestRate(const double constantInterestRate)
 	{
-		if ( m_hasError ) return *this;
+		if ( m_hasError ) 
+			return *this;
 
 		m_interestRate = constantInterestRate;
-
-		for ( auto& node : m_result.m_matrix )
-			node.m_data.m_interestRate = pow( 1. + constantInterestRate, m_timeStep ) - 1.;
+		const double interestRate = pow(1. + constantInterestRate, m_timeStep) - 1.;
+		m_discountRate = 1. / (1. + interestRate);
 
 		return *this;
 	}
@@ -75,24 +70,20 @@ namespace DPP
 		if ( m_hasError ) 
 			return *this;
 
-		for ( auto& node : m_result.m_matrix )
-			switch (optionType)
-			{
+		m_strikePrice = strikePrice; 
+		m_optionType = optionType;
+		
+		switch (m_optionType) 
+		{
 			case OptionPayoffType::Call:
-			{
-				node.m_data.m_payoff = node.m_data.m_underlyingValue - strikePrice;
+				m_setPayoff = [strike = m_strikePrice] (Node& node) { node.m_data.m_payoff = node.m_data.m_underlyingValue - strike; };
 				break;
-			}
 			case OptionPayoffType::Put:
-			{
-				node.m_data.m_payoff = strikePrice - node.m_data.m_underlyingValue;
+				m_setPayoff = [strike = m_strikePrice](Node& node) { node.m_data.m_payoff = strike - node.m_data.m_underlyingValue; };
 				break;
-			}
 			default:
-			{
 				RTN_BUILDER_ERR( "Invalid payoff strategy" );
-			}
-			}
+		}
 
 		return *this;
 	}
@@ -107,55 +98,35 @@ namespace DPP
 		}
 
 		const double growthFactor = exp( m_interestRate * m_timeStep ); // Hull 12.6
-
-		for ( auto& node : m_result.m_matrix )
-			node.m_data.m_probabilityHeads = ( growthFactor - m_downFactor ) / ( m_upFactor - m_downFactor ); // Hull 12.5
+		m_probabilityHeads = (growthFactor - m_downFactor) / (m_upFactor - m_downFactor); // Hull 12.5
 
 		return *this;
 	}
-	TriMatrixBuilder& TriMatrixBuilder::withPremium(const OptionExerciseType exerciseType)
+	TriMatrixBuilder& TriMatrixBuilder::withPremium( const OptionExerciseType exerciseType )
 	{
 		if ( m_hasError )
 			return *this;
 
 		m_exerciseType = exerciseType;
-		for ( int step = m_timeSteps ; step >= 0; step-- )
-			for ( int downMoves = step; downMoves >= 0; downMoves-- )
-			{
-				Node& node = m_result.m_matrix[ m_result.index( downMoves, step ) ];
-				const Node* heads = m_result.getHeads( node );
-				const Node* tails = m_result.getTails( node );
 
-				if ( node.m_timeStep == m_timeSteps || exerciseType == OptionExerciseType::American )
-				{
-					switch ( exerciseType )
-					{
-					case OptionExerciseType::European:
-					{
-						node.m_data.m_optionValue = std::max( node.m_data.m_payoff, 0. );
-						break;
-					}
-					case OptionExerciseType::American:
-					{
-						node.m_data.m_optionValue = std::max( node.m_data.m_payoff, ( !heads || !tails ) ? 0. :
-							node.m_data.getDiscountRate() *
-							( heads->m_data.m_optionValue * node.m_data.m_probabilityHeads +
-								tails->m_data.m_optionValue * node.m_data.getProbabilityTails() ) );
-						break;
-					}
-					default:
-					{
-						RTN_BUILDER_ERR( "Invalid option pricing strategy" );
-					}
-					}
+		m_calcExpPV = [discountRate = m_discountRate, pHeads = m_probabilityHeads] ( const Node* heads, const Node* tails )
+		{ 
+			return discountRate * ( heads->m_data.m_optionValue * pHeads + tails->m_data.m_optionValue * ( 1. - pHeads ) ); 
+		};
 
-					continue;
-				}
-
-				node.m_data.m_optionValue = node.m_data.getDiscountRate() *
-					( heads->m_data.m_optionValue * node.m_data.m_probabilityHeads +
-						tails->m_data.m_optionValue * node.m_data.getProbabilityTails() );
-			}
+		switch ( m_exerciseType )
+		{
+			case OptionExerciseType::European:
+				m_setExerciseValue = [discountRate = m_discountRate] (Node& node, const Node* heads, const Node* tails ) { node.m_data.m_optionValue = std::max(node.m_data.m_payoff, 0.); };
+				break;
+			case OptionExerciseType::American:
+				m_setExerciseValue = [discountRate = m_discountRate, pHeads = m_probabilityHeads, expPV = m_calcExpPV]
+					(Node& node, const Node* heads, const Node* tails) 
+					{ node.m_data.m_optionValue = std::max( node.m_data.m_payoff, (!heads || !tails) ? 0. : expPV( heads, tails ) ); };
+				break;
+			default:
+				RTN_BUILDER_ERR("Invalid payoff strategy");
+		}
 
 		return *this;
 	}
@@ -164,23 +135,33 @@ namespace DPP
 		if ( m_hasError ) 
 			return *this;
 
+		m_mustCalcDeltaHedging = true;
+
+		return *this;
+	}
+
+	// Todo move to BAMP engine
+	void TriMatrixBuilder::calcDeltaHedging( TriMatrix& result )
+	{
 		for ( int step = m_timeSteps - 2; step >= 0; step-- )
 			for ( int downMoves = step; downMoves >= 0; downMoves-- )
 			{
-				Node& node = m_result.m_matrix[ m_result.index( downMoves, step ) ];
-				const Node* heads = m_result.getHeads( node );
-				const Node* tails = m_result.getTails( node );
+				Node& node = result.m_matrix[result.index( downMoves, step ) ];
+				const Node* heads = result.getHeads( node );
+				const Node* tails = result.getTails( node );
 
 				if ( heads->m_data.m_underlyingValue == tails->m_data.m_underlyingValue )
 				{
-					RTN_BUILDER_ERR( "Underlying Value of heads and tails node are the same leading to a divide by 0 error" );
+					m_hasError = true;
+					m_errorMsg = "Underlying Value of heads and tails node are the same leading to a divide by 0 error"; 
+					return;
 				}
 
 				node.m_data.m_deltaHedging = ( heads->m_data.m_optionValue - tails->m_data.m_optionValue )
 					/ ( heads->m_data.m_underlyingValue - tails->m_data.m_underlyingValue );
 			}
-		return *this;
 	}
+
 	TriMatrixBuilder& TriMatrixBuilder::withPsuedoOptimalStoppingTime()
 	{
 		if ( m_hasError ) 
@@ -189,27 +170,63 @@ namespace DPP
 		if ( m_exerciseType != OptionExerciseType::American )
 			return *this;
 
+		m_mustCalcOptiomalStoppingTime = true;
+
+		return *this;
+	}
+
+	// Todo move to BAMP engine
+	void TriMatrixBuilder::calcOptiomalStoppingTime( TriMatrix& result ) const
+	{
 		//Diag Traverseal
 		for ( size_t timeStep = 0; timeStep < m_timeSteps; ++timeStep )
 		{
 			size_t optimalExEarlyPutTimeStep = std::numeric_limits<size_t>::max();
 			for ( size_t diagMoves = 0; diagMoves < m_timeSteps - 1 - timeStep ; ++diagMoves )
 			{
-				State& state = m_result.m_matrix[ m_result.index( diagMoves, timeStep + diagMoves ) ].m_data;
+				State& state = result.m_matrix[ result.index( diagMoves, timeStep + diagMoves ) ].m_data;
 				if ( state.m_optionValue == state.m_payoff && optimalExEarlyPutTimeStep == std::numeric_limits<size_t>::max() )
 					optimalExEarlyPutTimeStep = timeStep + diagMoves;
 				state.m_optimalExerciseTime = optimalExEarlyPutTimeStep;
 			}
 		}
-
-		return *this;
 	}
+
 	TriMatrix TriMatrixBuilder::build()
 	{
+		TriMatrix result( m_timeSteps, m_timeStep );
+
+		for ( int step = m_timeSteps; step >= 0; step-- )
+			for ( int downMoves = step; downMoves >= 0; downMoves-- )
+			{
+				const size_t noOfHeads = step - downMoves;
+				Node& node = result.m_matrix[ result.index( downMoves, step ) ];
+
+				node.m_timeStep = step;
+				node.m_downMoves = downMoves;
+
+				node.m_data.m_underlyingValue = m_initialPrice * pow( m_upFactor, noOfHeads ) * pow( m_downFactor, downMoves );
+
+				m_setPayoff(node);
+
+				const Node* heads = result.getHeads( node );
+				const Node* tails = result.getTails( node );
+				if ( node.m_timeStep == m_timeSteps || m_exerciseType == OptionExerciseType::American )
+					m_setExerciseValue( node, heads, tails );
+				else
+					node.m_data.m_optionValue = m_calcExpPV( heads, tails );
+			}
+
+		if( m_mustCalcDeltaHedging )
+			calcDeltaHedging( result );
+
+		if ( m_mustCalcOptiomalStoppingTime )
+			calcOptiomalStoppingTime( result );
+
 		if ( m_hasError )
 			throw std::runtime_error( m_errorMsg );
 
-		return std::move( m_result );
+		return result;
 	}
 	const std::string& TriMatrixBuilder::getErrorMsg() const
 	{
