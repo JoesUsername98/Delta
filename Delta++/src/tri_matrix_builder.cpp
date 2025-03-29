@@ -117,7 +117,7 @@ namespace DPP
 		switch ( m_exerciseType )
 		{
 			case OptionExerciseType::European:
-				m_setExerciseValue = [discountRate = m_discountRate] (Node& node, const Node* heads, const Node* tails ) { node.m_data.m_optionValue = std::max(node.m_data.m_payoff, 0.); };
+				m_setExerciseValue = [] (Node& node, const Node* heads, const Node* tails ) { node.m_data.m_optionValue = std::max(node.m_data.m_payoff, 0.); };
 				break;
 			case OptionExerciseType::American:
 				m_setExerciseValue = [discountRate = m_discountRate, pHeads = m_probabilityHeads, expPV = m_calcExpPV]
