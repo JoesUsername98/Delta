@@ -10,7 +10,7 @@ namespace DPP
     class EngineFactory
     {
     public:
-        static std::unique_ptr<AbstractEngine> getEngine(CalculationMethod engType, MarketData mkt, TradeData trd, std::vector<CalcData> calc)
+        static std::unique_ptr<AbstractEngine> getEngine(CalculationMethod engType, const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc)
         {
             switch (engType)
             {
@@ -22,18 +22,18 @@ namespace DPP
                 throw std::runtime_error("Undefined engine type requested");
             }
         }
-        static std::unique_ptr<AbstractEngine> getEngine(CalculationMethod engType, MarketData mkt, TradeData trd, CalcData calc)
+        static std::unique_ptr<AbstractEngine> getEngine(CalculationMethod engType, const MarketData& mkt, const TradeData& trd, const CalcData& calc)
         {
             return getEngine(engType, mkt, trd, std::vector<CalcData>{ calc });
         }
 
         template <typename EngType>
-        static std::unique_ptr<AbstractEngine> getEngine(MarketData mkt, TradeData trd, CalcData calc)
+        static std::unique_ptr<AbstractEngine> getEngine(const MarketData& mkt, const TradeData& trd, const CalcData& calc)
         {
             return getEngine<EngType>(mkt, trd, std::vector<CalcData>{calc});
         }
         template <typename EngType>
-        static std::unique_ptr<AbstractEngine> getEngine(MarketData mkt, TradeData trd, std::vector<CalcData> calc)
+        static std::unique_ptr<AbstractEngine> getEngine(const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc)
         {
             static_assert(std::is_convertible<EngType*, AbstractEngine*>::value, "EngType must be derived from Abstract Engine");
             return std::make_unique<EngType>(mkt, trd, calc);
