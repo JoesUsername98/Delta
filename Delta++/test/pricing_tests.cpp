@@ -15,7 +15,7 @@ TEST( Pricing, EuroCall)
 		.withPremium(OptionExerciseType::European)
 		.withDelta()
 		.withPsuedoOptimalStoppingTime();
-		;
+		
 
 	EXPECT_TRUE(!buildResult.m_hasError);
 	EXPECT_EQ(buildResult.getErrorMsg(), "");
@@ -35,7 +35,7 @@ TEST( Pricing, EuroPut)
 		.withPremium(OptionExerciseType::European)
 		.withDelta()
 		.withPsuedoOptimalStoppingTime();
-		;
+		
 
 	EXPECT_TRUE(!buildResult.m_hasError);
 	EXPECT_EQ(buildResult.getErrorMsg(), "");
@@ -55,7 +55,7 @@ TEST( Pricing, AmerCall)
 		.withPremium(OptionExerciseType::American)
 		.withDelta()
 		.withPsuedoOptimalStoppingTime();
-		;
+		
 
 	EXPECT_TRUE(!buildResult.m_hasError);
 	EXPECT_EQ(buildResult.getErrorMsg(), "");
@@ -75,7 +75,7 @@ TEST( Pricing, AmerPut)
 		.withPremium(OptionExerciseType::American)
 		.withDelta()
 		.withPsuedoOptimalStoppingTime();
-		;
+		
 
 	EXPECT_TRUE(!buildResult.m_hasError);
 	EXPECT_EQ(buildResult.getErrorMsg(), "");
