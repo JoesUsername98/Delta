@@ -117,10 +117,10 @@ namespace DPP
 		switch ( m_exerciseType )
 		{
 			case OptionExerciseType::European:
-				m_setExerciseValue = [] (Node& node, const Node* heads, const Node* tails ) { node.m_data.m_optionValue = std::max(node.m_data.m_payoff, 0.); };
+				m_setExerciseValue = [] (Node& node, const Node* heads, const Node* tails ) { node.m_data.m_optionValue = std::max( node.m_data.m_payoff, 0. ); };
 				break;
 			case OptionExerciseType::American:
-				m_setExerciseValue = [discountRate = m_discountRate, pHeads = m_probabilityHeads, expPV = m_calcExpPV]
+				m_setExerciseValue = [ expPV = m_calcExpPV ]
 					(Node& node, const Node* heads, const Node* tails) 
 					{ node.m_data.m_optionValue = std::max( node.m_data.m_payoff, (!heads || !tails) ? 0. : expPV( heads, tails ) ); };
 				break;
@@ -195,6 +195,13 @@ namespace DPP
 	TriMatrix TriMatrixBuilder::build()
 	{
 		TriMatrix result( m_timeSteps, m_timeStep );
+		std::vector< double > upFactorToPowerOfI ( m_timeSteps + 1 );
+		std::vector< double > downFactorToPowerOfI( m_timeSteps + 1 );
+		for (int i = 0; i <= m_timeSteps; ++i)
+		{
+			upFactorToPowerOfI[i] = pow ( m_upFactor, i );
+			downFactorToPowerOfI[i] = pow( m_downFactor, i );
+		}
 
 		for ( int step = m_timeSteps; step >= 0; step-- )
 			for ( int downMoves = step; downMoves >= 0; downMoves-- )
@@ -205,9 +212,9 @@ namespace DPP
 				node.m_timeStep = step;
 				node.m_downMoves = downMoves;
 
-				node.m_data.m_underlyingValue = m_initialPrice * pow( m_upFactor, noOfHeads ) * pow( m_downFactor, downMoves );
+				node.m_data.m_underlyingValue = m_initialPrice * upFactorToPowerOfI [ noOfHeads ] * downFactorToPowerOfI [ downMoves ];
 
-				m_setPayoff(node);
+				m_setPayoff( node );
 
 				const Node* heads = result.getHeads( node );
 				const Node* tails = result.getTails( node );
