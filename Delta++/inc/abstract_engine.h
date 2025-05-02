@@ -17,17 +17,18 @@ namespace DPP
     class AbstractEngine
     {
     public:
-        const MarketData& m_mkt;
-        const TradeData& m_trd;
-        const std::vector<CalcData>& m_calcs;
+        MarketData m_mkt;
+        TradeData m_trd;
+        std::vector<CalcData> m_calcs;
         ScalarResultMap m_results;
         ScalarErrorMap m_errors;
 
     public:
-        AbstractEngine( const MarketData& mkt, const TradeData& trd, const CalcData& calc ) :
+    //Const ref?
+        AbstractEngine( MarketData mkt, TradeData trd, CalcData calc ) :
         m_mkt( mkt ), m_trd ( trd ), m_calcs { calc }
         {}
-        AbstractEngine( const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc ) :
+        AbstractEngine( MarketData mkt, TradeData trd, std::vector<CalcData> calc ) :
         m_mkt( mkt ), m_trd ( trd ), m_calcs ( calc )
         {}
         virtual ~AbstractEngine() = default;
