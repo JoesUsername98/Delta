@@ -7,10 +7,11 @@ namespace DPP
     class BlackScholesEngine : public AbstractEngine
     {
     public:
-        BlackScholesEngine(const MarketData& mkt, const TradeData& trd, const CalcData& calc) :
+        //Const ref?
+        BlackScholesEngine(MarketData mkt, TradeData trd, CalcData calc) :
             AbstractEngine(mkt, trd, calc)
         {}
-        BlackScholesEngine(const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc) :
+        BlackScholesEngine(MarketData mkt, TradeData trd, std::vector<CalcData> calc) :
             AbstractEngine(mkt, trd, calc)
         {}
         virtual ~BlackScholesEngine() = default;

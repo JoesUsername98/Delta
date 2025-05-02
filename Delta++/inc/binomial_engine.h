@@ -7,10 +7,11 @@ namespace DPP
     class BinomialEngine : public AbstractEngine
     {
     public:
-        BinomialEngine( const MarketData& mkt, const TradeData& trd, const CalcData& calc ) :
+    //Const ref?
+        BinomialEngine( MarketData mkt, TradeData trd, CalcData calc ) :
         AbstractEngine( mkt, trd, calc )
         {}
-        BinomialEngine( const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc ) :
+        BinomialEngine( MarketData mkt, TradeData trd, std::vector<CalcData> calc ) :
         AbstractEngine( mkt, trd, calc )
         {}
         virtual ~BinomialEngine() = default;
