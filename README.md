@@ -35,56 +35,41 @@ $ cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5" -DCMAKE_BUILD_TYPE=Release
 
 ## Most Recent Benchmarks
 
-CPU: AMD Ryzen AI 9 365 
-OPTIONS: --benchmark_min_time=10s
-OS: WSL
+CPU: AMD Ryzen AI 9 365  
+OPTIONS: --benchmark_min_time=10s  
+OS: WSL  
 
-Running /mnt/c/repos/Delta/buildWSL/Delta++/Delta++_Bench
-Run on (20 X 1996.2 MHz CPU s)
-CPU Caches:
-  L1 Data 48 KiB (x10)
-  L1 Instruction 32 KiB (x10)
-  L2 Unified 1024 KiB (x10)
-  L3 Unified 16384 KiB (x1)
-Load Average: 0.27, 0.19, 0.08
-----------------------------------------------------------------------
-Benchmark                            Time             CPU   Iterations
-----------------------------------------------------------------------
-BM_BAMP_EuroCall_Steps/8         0.001 ms        0.001 ms     18673861 bytes: 2Kib       val: 43.221599
-BM_BAMP_EuroCall_Steps/16        0.003 ms        0.003 ms      5563558 bytes: 9Kib       val: 43.755127
-BM_BAMP_EuroCall_Steps/32        0.011 ms        0.010 ms      1319385 bytes: 35Kib      val: 43.989970
-BM_BAMP_EuroCall_Steps/64        0.040 ms        0.037 ms       319955 bytes: 134Kib     val: 44.082850
-BM_BAMP_EuroCall_Steps/128       0.126 ms        0.116 ms       111112 bytes: 524Kib     val: 44.111583
-BM_BAMP_EuroCall_Steps/256       0.416 ms        0.384 ms        32318 bytes: 2Mib       val: 44.113373
-BM_BAMP_EuroCall_Steps/512        1.70 ms         1.57 ms         8068 bytes: 8Mib       val: 44.105370
-BM_BAMP_EuroCall_Steps/1024       9.15 ms         8.44 ms         1487 bytes: 32Mib      val: 44.095078
-BM_BAMP_EuroCall_Steps/2048       42.9 ms         39.5 ms          437 bytes: 128Mib     val: 44.085486
-BM_BAMP_EuroCall_Steps/4096        183 ms          168 ms           88 bytes: 512Mib     val: 44.089530
-BM_BAMP_EuroCall_Steps/8192        539 ms          497 ms           28 bytes: 2Gib       val: 44.088074
+| Benchmark                          | Time     | CPU     | Iterations | Bytes       | Val       |
+|------------------------------------|----------|---------|------------|-------------|-----------|
+| BM_BAMP_EuroCall_Steps/8           | 0.001 ms | 0.001 ms| 18673861   | 2Kib        | 43.221599 |
+| BM_BAMP_EuroCall_Steps/16          | 0.003 ms | 0.003 ms| 5563558    | 9Kib        | 43.755127 |
+| BM_BAMP_EuroCall_Steps/32          | 0.011 ms | 0.010 ms| 1319385    | 35Kib       | 43.989970 |
+| BM_BAMP_EuroCall_Steps/64          | 0.040 ms | 0.037 ms| 319955     | 134Kib      | 44.082850 |
+| BM_BAMP_EuroCall_Steps/128         | 0.126 ms | 0.116 ms| 111112     | 524Kib      | 44.111583 |
+| BM_BAMP_EuroCall_Steps/256         | 0.416 ms | 0.384 ms| 32318      | 2Mib        | 44.113373 |
+| BM_BAMP_EuroCall_Steps/512         | 1.70 ms  | 1.57 ms | 8068       | 8Mib        | 44.105370 |
+| BM_BAMP_EuroCall_Steps/1024        | 9.15 ms  | 8.44 ms | 1487       | 32Mib       | 44.095078 |
+| BM_BAMP_EuroCall_Steps/2048        | 42.9 ms  | 39.5 ms | 437        | 128Mib      | 44.085486 |
+| BM_BAMP_EuroCall_Steps/4096        | 183 ms   | 168 ms  | 88         | 512Mib      | 44.089530 |
+| BM_BAMP_EuroCall_Steps/8192        | 539 ms   | 497 ms  | 28         | 2Gib        | 44.088074 |
 
-CPU: AMD Ryzen AI 9 365 
-OPTIONS: --benchmark_min_time=10s
-OS: Windows11
-Run on (20 X 1996 MHz CPU s)
-CPU Caches:
-  L1 Data 48 KiB (x10)
-  L1 Instruction 32 KiB (x10)
-  L2 Unified 1024 KiB (x10)
-  L3 Unified 16384 KiB (x2)
-----------------------------------------------------------------------
-Benchmark                            Time             CPU   Iterations
-----------------------------------------------------------------------
-BM_BAMP_EuroCall_Steps/8         0.003 ms        0.003 ms      4186916 bytes: 2Kib       val: 43.221599
-BM_BAMP_EuroCall_Steps/16        0.004 ms        0.004 ms      3780591 bytes: 9Kib       val: 43.755127
-BM_BAMP_EuroCall_Steps/32        0.009 ms        0.009 ms      1357576 bytes: 35Kib      val: 43.989970
-BM_BAMP_EuroCall_Steps/64        0.032 ms        0.031 ms       466667 bytes: 134Kib     val: 44.082850
-BM_BAMP_EuroCall_Steps/128       0.164 ms        0.160 ms       106667 bytes: 524Kib     val: 44.111583
-BM_BAMP_EuroCall_Steps/256        1.86 ms         1.82 ms         7467 bytes: 2Mib       val: 44.113373
-BM_BAMP_EuroCall_Steps/512        5.35 ms         5.23 ms         2651 bytes: 8Mib       val: 44.105370
-BM_BAMP_EuroCall_Steps/1024       24.4 ms         24.0 ms          467 bytes: 32Mib      val: 44.095078
-BM_BAMP_EuroCall_Steps/2048       82.7 ms         81.6 ms          240 bytes: 128Mib     val: 44.085486
-BM_BAMP_EuroCall_Steps/4096        297 ms          287 ms           44 bytes: 512Mib     val: 44.089530
-BM_BAMP_EuroCall_Steps/8192       1284 ms         1259 ms            9 bytes: 2Gib       val: 44.088074
+CPU: AMD Ryzen AI 9 365  
+OPTIONS: --benchmark_min_time=10s  
+OS: Windows11  
+
+| Benchmark                          | Time     | CPU     | Iterations | Bytes       | Val       |
+|------------------------------------|----------|---------|------------|-------------|-----------|
+| BM_BAMP_EuroCall_Steps/8           | 0.003 ms | 0.003 ms| 4186916    | 2Kib        | 43.221599 |
+| BM_BAMP_EuroCall_Steps/16          | 0.004 ms | 0.004 ms| 3780591    | 9Kib        | 43.755127 |
+| BM_BAMP_EuroCall_Steps/32          | 0.009 ms | 0.009 ms| 1357576    | 35Kib       | 43.989970 |
+| BM_BAMP_EuroCall_Steps/64          | 0.032 ms | 0.031 ms| 466667     | 134Kib      | 44.082850 |
+| BM_BAMP_EuroCall_Steps/128         | 0.164 ms | 0.160 ms| 106667     | 524Kib      | 44.111583 |
+| BM_BAMP_EuroCall_Steps/256         | 1.86 ms  | 1.82 ms | 7467       | 2Mib        | 44.113373 |
+| BM_BAMP_EuroCall_Steps/512         | 5.35 ms  | 5.23 ms | 2651       | 8Mib        | 44.105370 |
+| BM_BAMP_EuroCall_Steps/1024        | 24.4 ms  | 24.0 ms | 467        | 32Mib       | 44.095078 |
+| BM_BAMP_EuroCall_Steps/2048        | 82.7 ms  | 81.6 ms | 240        | 128Mib      | 44.085486 |
+| BM_BAMP_EuroCall_Steps/4096        | 297 ms   | 287 ms  | 44         | 512Mib      | 44.089530 |
+| BM_BAMP_EuroCall_Steps/8192        | 1284 ms  | 1259 ms | 9          | 2Gib        | 44.088074 |
 
 # Delta
 
