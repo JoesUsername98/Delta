@@ -35,56 +35,41 @@ $ cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5" -DCMAKE_BUILD_TYPE=Release
 
 ## Most Recent Benchmarks
 
-CPU: AMD Ryzen AI 9 365 
-OPTIONS: --benchmark_min_time=10s
-OS: WSL
+CPU: AMD Ryzen AI 9 365
 
-Running /mnt/c/repos/Delta/buildWSL/Delta++/Delta++_Bench
-Run on (20 X 1996.2 MHz CPU s)
-CPU Caches:
-  L1 Data 48 KiB (x10)
-  L1 Instruction 32 KiB (x10)
-  L2 Unified 1024 KiB (x10)
-  L3 Unified 16384 KiB (x1)
-Load Average: 0.27, 0.19, 0.08
-----------------------------------------------------------------------
-Benchmark                            Time             CPU   Iterations
-----------------------------------------------------------------------
-BM_BAMP_EuroCall_Steps/8         0.001 ms        0.001 ms     18673861 bytes: 2Kib       val: 43.221599
-BM_BAMP_EuroCall_Steps/16        0.003 ms        0.003 ms      5563558 bytes: 9Kib       val: 43.755127
-BM_BAMP_EuroCall_Steps/32        0.011 ms        0.010 ms      1319385 bytes: 35Kib      val: 43.989970
-BM_BAMP_EuroCall_Steps/64        0.040 ms        0.037 ms       319955 bytes: 134Kib     val: 44.082850
-BM_BAMP_EuroCall_Steps/128       0.126 ms        0.116 ms       111112 bytes: 524Kib     val: 44.111583
-BM_BAMP_EuroCall_Steps/256       0.416 ms        0.384 ms        32318 bytes: 2Mib       val: 44.113373
-BM_BAMP_EuroCall_Steps/512        1.70 ms         1.57 ms         8068 bytes: 8Mib       val: 44.105370
-BM_BAMP_EuroCall_Steps/1024       9.15 ms         8.44 ms         1487 bytes: 32Mib      val: 44.095078
-BM_BAMP_EuroCall_Steps/2048       42.9 ms         39.5 ms          437 bytes: 128Mib     val: 44.085486
-BM_BAMP_EuroCall_Steps/4096        183 ms          168 ms           88 bytes: 512Mib     val: 44.089530
-BM_BAMP_EuroCall_Steps/8192        539 ms          497 ms           28 bytes: 2Gib       val: 44.088074
-
-CPU: AMD Ryzen AI 9 365 
 OPTIONS: --benchmark_min_time=10s
-OS: Windows11
-Run on (20 X 1996 MHz CPU s)
-CPU Caches:
-  L1 Data 48 KiB (x10)
-  L1 Instruction 32 KiB (x10)
-  L2 Unified 1024 KiB (x10)
-  L3 Unified 16384 KiB (x2)
-----------------------------------------------------------------------
-Benchmark                            Time             CPU   Iterations
-----------------------------------------------------------------------
-BM_BAMP_EuroCall_Steps/8         0.003 ms        0.003 ms      4186916 bytes: 2Kib       val: 43.221599
-BM_BAMP_EuroCall_Steps/16        0.004 ms        0.004 ms      3780591 bytes: 9Kib       val: 43.755127
-BM_BAMP_EuroCall_Steps/32        0.009 ms        0.009 ms      1357576 bytes: 35Kib      val: 43.989970
-BM_BAMP_EuroCall_Steps/64        0.032 ms        0.031 ms       466667 bytes: 134Kib     val: 44.082850
-BM_BAMP_EuroCall_Steps/128       0.164 ms        0.160 ms       106667 bytes: 524Kib     val: 44.111583
-BM_BAMP_EuroCall_Steps/256        1.86 ms         1.82 ms         7467 bytes: 2Mib       val: 44.113373
-BM_BAMP_EuroCall_Steps/512        5.35 ms         5.23 ms         2651 bytes: 8Mib       val: 44.105370
-BM_BAMP_EuroCall_Steps/1024       24.4 ms         24.0 ms          467 bytes: 32Mib      val: 44.095078
-BM_BAMP_EuroCall_Steps/2048       82.7 ms         81.6 ms          240 bytes: 128Mib     val: 44.085486
-BM_BAMP_EuroCall_Steps/4096        297 ms          287 ms           44 bytes: 512Mib     val: 44.089530
-BM_BAMP_EuroCall_Steps/8192       1284 ms         1259 ms            9 bytes: 2Gib       val: 44.088074
+
+### WSL
+
+| Benchmark                        | Time     | CPU      | Iterations | Allocated | Value     |
+|----------------------------------|----------:|---------:|----------:|---------:|----------:|
+| BM_BAMP_EuroCall_Steps/8         | 0.001 ms  | 0.001 ms | 20,266,945 | 2 KiB    | 43.221599 |
+| BM_BAMP_EuroCall_Steps/16        | 0.002 ms  | 0.002 ms | 7,628,125  | 9 KiB    | 43.755127 |
+| BM_BAMP_EuroCall_Steps/32        | 0.006 ms  | 0.006 ms | 2,451,821  | 35 KiB   | 43.989970 |
+| BM_BAMP_EuroCall_Steps/64        | 0.019 ms  | 0.020 ms | 703,138    | 134 KiB  | 44.082850 |
+| BM_BAMP_EuroCall_Steps/128       | 0.072 ms  | 0.074 ms | 188,749    | 524 KiB  | 44.111583 |
+| BM_BAMP_EuroCall_Steps/256       | 0.285 ms  | 0.291 ms | 48,148     | 2 MiB    | 44.113373 |
+| BM_BAMP_EuroCall_Steps/512       | 1.11 ms   | 1.13 ms  | 12,314     | 8 MiB    | 44.105370 |
+| BM_BAMP_EuroCall_Steps/1024      | 6.25 ms   | 6.43 ms  | 2,208      | 32 MiB   | 44.095078 |
+| BM_BAMP_EuroCall_Steps/2048      | 25.1 ms   | 25.6 ms  | 552        | 128 MiB  | 44.085486 |
+| BM_BAMP_EuroCall_Steps/4096      | 107 ms    | 110 ms   | 135        | 512 MiB  | 44.089530 |
+| BM_BAMP_EuroCall_Steps/8192      | 420 ms    | 431 ms   | 32         | 2 GiB    | 44.088074 |
+
+### Windows 11
+
+| Benchmark                        | Time     | CPU      | Iterations | Allocated | Value     |
+|----------------------------------|----------:|---------:|----------:|---------:|----------:|
+| BM_BAMP_EuroCall_Steps/8         | 0.001 ms  | 0.001 ms | 15,368,782 | 2 KiB    | 43.221599 |
+| BM_BAMP_EuroCall_Steps/16        | 0.002 ms  | 0.002 ms | 7,724,138  | 9 KiB    | 43.755127 |
+| BM_BAMP_EuroCall_Steps/32        | 0.005 ms  | 0.005 ms | 2,567,335  | 35 KiB   | 43.989970 |
+| BM_BAMP_EuroCall_Steps/64        | 0.018 ms  | 0.018 ms | 779,130    | 134 KiB  | 44.082850 |
+| BM_BAMP_EuroCall_Steps/128       | 0.067 ms  | 0.067 ms | 208,858    | 524 KiB  | 44.111583 |
+| BM_BAMP_EuroCall_Steps/256       | 0.563 ms  | 0.563 ms | 25,455     | 2 MiB    | 44.113373 |
+| BM_BAMP_EuroCall_Steps/512       | 2.18 ms   | 2.17 ms  | 6,446      | 8 MiB    | 44.105370 |
+| BM_BAMP_EuroCall_Steps/1024      | 9.41 ms   | 9.38 ms  | 1,491      | 32 MiB   | 44.095078 |
+| BM_BAMP_EuroCall_Steps/2048      | 39.4 ms   | 39.3 ms  | 358        | 128 MiB  | 44.085486 |
+| BM_BAMP_EuroCall_Steps/4096      | 187 ms    | 187 ms   | 85         | 512 MiB  | 44.089530 |
+| BM_BAMP_EuroCall_Steps/8192      | 671 ms    | 670 ms   | 20         | 2 GiB    | 44.088074 |
 
 # Delta
 
