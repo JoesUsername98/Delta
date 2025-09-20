@@ -1,8 +1,8 @@
 #include <string>
 
-#include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/Application.h"
-#include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/EntryPoint.h"
-#include "../../_deps/walnut-cmake-src/Walnut/src/Walnut/Image.h"
+#include <Walnut/Application.h>
+#include <Walnut/EntryPoint.h>
+#include <Walnut/Image.h>
 
 #include "pricer_view.h"
 #include "demo_view.h"
