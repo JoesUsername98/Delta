@@ -12,23 +12,28 @@ namespace DPP
         m_vol( vol ), m_underlyingPrice( underlyingPrice ), m_interestRate( interestRate )
         {}
 
-        MarketData bumpVol ( double bump )
+        MarketData copy() const
         {
-            MarketData bumpee = *this;
+            return MarketData( m_vol, m_underlyingPrice, m_interestRate );
+		}
+        
+        MarketData bumpVol ( double bump ) const 
+        {
+            MarketData bumpee = copy();
             bumpee.m_vol += bump;
             return bumpee;
         }
 
-        MarketData bumpUnderlying ( double bump )
+        MarketData bumpUnderlying ( double bump ) const 
         {
-            MarketData bumpee = *this;
+            MarketData bumpee = copy();
             bumpee.m_underlyingPrice *= bump;
             return bumpee;
         }
         
-        MarketData bumpInterestRate ( double bump )
+        MarketData bumpInterestRate ( double bump ) const 
         {
-            MarketData bumpee = *this;
+            MarketData bumpee = copy();
             bumpee.m_interestRate += bump;
             return bumpee;
         }
