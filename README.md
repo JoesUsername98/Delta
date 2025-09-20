@@ -70,6 +70,7 @@ OPTIONS: --benchmark_min_time=10s
 | BM_BAMP_EuroCall_Steps/2048      | 39.4 ms   | 39.3 ms  | 358        | 128 MiB  | 44.085486 |
 | BM_BAMP_EuroCall_Steps/4096      | 187 ms    | 187 ms   | 85         | 512 MiB  | 44.089530 |
 | BM_BAMP_EuroCall_Steps/8192      | 671 ms    | 670 ms   | 20         | 2 GiB    | 44.088074 |
+=======
 
 # Delta
 
