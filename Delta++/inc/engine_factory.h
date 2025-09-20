@@ -4,6 +4,7 @@
 
 #include "binomial_engine.h"
 #include "black_scholes_engine.h"
+#include "monte_carlo_engine.h"
 
 namespace DPP
 {
@@ -18,6 +19,8 @@ namespace DPP
                 return getEngine<BinomialEngine>(mkt, trd, calc);
             case CalculationMethod::BlackScholes:
                 return getEngine<BlackScholesEngine>(mkt, trd, calc);
+            case CalculationMethod::MonteCarlo:
+                return getEngine<MonteCarloEngine>(mkt, trd, calc);
             default:
                 throw std::runtime_error("Undefined engine type requested");
             }
