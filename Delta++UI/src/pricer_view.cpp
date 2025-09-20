@@ -59,9 +59,15 @@ void PricerView::renderCalcParams()
         
         m_state.m_valueChanged |= ImGui::Combo("Engine", &m_state.m_calculationMethodIdx, m_state.m_calculationMethodCombo.m_keysCArray, IM_ARRAYSIZE(m_state.m_calculationMethodCombo.m_keysCArray));
                     ImGui::SameLine(); HelpMarker("Engines determine the calculation techinique");
-
-        m_state.m_valueChanged |=	ImGui::InputInt("Time Periods", &m_state.m_steps);
-                    ImGui::SameLine(); HelpMarker("Number of Nodes");
+        
+        m_state.m_calculationMethod = static_cast<DPP::CalculationMethod>(m_state.m_calculationMethodIdx);
+        if( m_state.m_calculationMethod != DPP::CalculationMethod::BlackScholes )
+            m_state.m_valueChanged |=	ImGui::InputInt("Time Periods", &m_state.m_steps);
+                     ImGui::SameLine(); HelpMarker("Number of Nodes / Time steps");
+        
+		if ( m_state.m_calculationMethod == DPP::CalculationMethod::MonteCarlo )
+            m_state.m_valueChanged |= ImGui::InputInt("Sims", &m_state.m_sims );
+                    ImGui::SameLine(); HelpMarker("Number of simulations");
         
         m_state.m_valueChanged |= ImGui::Checkbox("PV", &m_state.m_calcsToDo[ (int)Calculation::PV ] );
                     ImGui::SameLine(); HelpMarker("Present Value of the option");

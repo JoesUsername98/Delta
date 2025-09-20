@@ -24,13 +24,12 @@ bool PricerState::recalcIfRequired()
 		if( !m_calcsToDo[i] )
 			continue;
 
-		m_calcs.emplace_back( (Calculation)i, m_steps );
+		m_calcs.emplace_back( (Calculation)i, m_steps, m_sims );
 	}
 
 	const auto start = std::chrono::high_resolution_clock::now();
 
-	const auto engType = static_cast<DPP::CalculationMethod>(m_calculationMethodIdx);
-	m_engine = EngineFactory::getEngine( engType, m_mkt, m_trd, m_calcs );
+	m_engine = EngineFactory::getEngine( m_calculationMethod, m_mkt, m_trd, m_calcs );
 	m_engine->run();
 
 	const auto end = std::chrono::high_resolution_clock::now();

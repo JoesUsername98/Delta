@@ -13,7 +13,9 @@ struct PricerState
 	//MODEL
 	TradeData m_trd;
 	MarketData m_mkt;
-	int m_steps = 3;
+	int m_steps = 1'000;
+	int m_sims = 1'000;
+	CalculationMethod m_calculationMethod = CalculationMethod::MonteCarlo;
 	std::vector<CalcData> m_calcs;
 	std::unique_ptr<AbstractEngine> m_engine;
 	std::array<bool, (int)Calculation::_SIZE> m_calcsToDo;

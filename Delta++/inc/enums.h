@@ -21,6 +21,7 @@ namespace DPP
 		//_NONE = 0,
 		Binomial,
 		BlackScholes,
+		MonteCarlo,
 		//TODO add more
 	};
 
