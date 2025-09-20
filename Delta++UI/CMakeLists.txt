@@ -31,6 +31,22 @@ target_include_directories(${EXECUTABLE_NAME} PUBLIC
 "${CMAKE_BINARY_DIR}/configured_files/include"
 )
 
+# Add Walnut/ImGui vendor include so sources can use angle-bracket includes like <imgui.h>
+set(WALNUT_DEPS_IMGUI_DIR "${CMAKE_BINARY_DIR}/_deps/walnut-cmake-src/vendor/imgui")
+if(EXISTS ${WALNUT_DEPS_IMGUI_DIR})
+  target_include_directories(${EXECUTABLE_NAME} PUBLIC ${WALNUT_DEPS_IMGUI_DIR})
+else()
+  message(STATUS "Walnut ImGui include dir not found at ${WALNUT_DEPS_IMGUI_DIR}; falling back to existing includes")
+endif()
+
+# Add Walnut root include so we can use includes like <Walnut/Layer.h>
+set(WALNUT_ROOT_INCLUDE "${CMAKE_BINARY_DIR}/_deps/walnut-cmake-src/Walnut/src")
+if(EXISTS ${WALNUT_ROOT_INCLUDE})
+  target_include_directories(${EXECUTABLE_NAME} PUBLIC ${WALNUT_ROOT_INCLUDE})
+else()
+  message(STATUS "Walnut root include not found at ${WALNUT_ROOT_INCLUDE}; falling back to existing includes")
+endif()
+
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} Walnut Vulkan::Vulkan glfw opengl32.lib magic_enum::magic_enum )
 
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES FOLDER "Delat++")

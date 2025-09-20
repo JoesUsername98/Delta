@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../_deps/walnut-cmake-src/vendor/imgui/imgui.h"
+#include <imgui.h>
 
 static void HelpMarker(const char* desc)
 {
