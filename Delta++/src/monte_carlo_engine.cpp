@@ -16,51 +16,57 @@ namespace DPP
         // Euler scheme
         // S = S * ( 1 + m_mkt.m_interestRate * dt + m_mkt.m_vol * dW );
         // Milstein scheme
-        S = S * (1 + m_mkt.m_interestRate * dt + m_mkt.m_vol * dW + 0.5 * m_mkt.m_vol * m_mkt.m_vol * (dW * dW - dt));
+        S = S * ( 1 + m_mkt.m_interestRate * dt + m_mkt.m_vol * dW + 0.5 * m_mkt.m_vol * m_mkt.m_vol * ( dW * dW - dt ) );
     }
     void MonteCarloEngine::calcPV( const CalcData& calc )
     {
-        const auto dt =  m_trd.m_maturity / calc.m_steps;
+        const auto dt =  m_trd.m_maturity / static_cast<double>( calc.m_steps );
+        const auto sqrt_dt =  std::sqrt( dt );
         std::seed_seq seed{ 42 };
         std::mt19937_64 rng{ seed };
         std::normal_distribution<double> norm{ 0., 1. };
-        std::vector<double> normal_numbers( calc.m_sims *calc.m_steps, 0 );
-        std::generate( normal_numbers.begin(), normal_numbers.end(), [&]() { return norm( rng ); });
+        std::vector<double> sims( calc.m_sims * calc.m_steps );
 
-        std::vector<double> sims( calc.m_sims *calc.m_steps, 0 );
-        for( size_t simIdx = 0; simIdx <calc.m_sims; ++simIdx )
+        for ( size_t sim_idx = 0; sim_idx < calc.m_sims; ++sim_idx )
         {
             double S = m_mkt.m_underlyingPrice;
-            for( size_t stepIdx = 0; stepIdx <calc.m_steps; ++stepIdx )
+            for ( size_t step_index = 0; step_index < calc.m_steps; ++step_index )
             {
-                const auto idx = simIdx *calc.m_steps + stepIdx;
-                const double dW = std::sqrt( dt ) * normal_numbers[ idx ];
-				updatePrice(S, dW, dt);
-                sims[idx] =  S;
+                const auto idx = sim_idx * calc.m_steps + step_index;
+                const double dW = sqrt_dt * norm( rng );
+                updatePrice( S, dW, dt );
+                sims[ idx ] = S;
             }
         }
 
-        const auto& maturityPrice = sims | std::views::drop( calc.m_steps - 1 ) |  std::views::stride( calc.m_steps );
-        std::vector<double> payoff( maturityPrice.begin(), maturityPrice.end() );
-        
-        switch( m_trd.m_optionPayoffType )
+        const auto maturity_prices = sims
+            | std::views::drop( calc.m_steps - 1 )
+            | std::views::stride( calc.m_steps );
+
+        double sum = 0.0;
+        switch (m_trd.m_optionPayoffType)
         {
-        case OptionPayoffType::Call: 
-            std::for_each( payoff.begin(), payoff.end(),[ strike = m_trd.m_strike ]( double &val ) { val = std::max(val - strike, 0.0); } );
-			break;
+        case OptionPayoffType::Call:
+            sum = std::ranges::fold_left(
+                maturity_prices
+                | std::views::transform( [strike = m_trd.m_strike](double val) { return std::max( val - strike, 0.0 ); }), 0.0, std::plus{} );
+            break;
+
         case OptionPayoffType::Put:
-            std::for_each( payoff.begin(), payoff.end(),[ strike = m_trd.m_strike ]( double &val ) { val = std::max(strike - val, 0.0); } );
-			break;
+            sum = std::ranges::fold_left(
+                maturity_prices
+                | std::views::transform( [strike = m_trd.m_strike](double val) { return std::max( strike - val, 0.0 ); }), 0.0, std::plus{} );
+            break;
+
         default:
             m_errors.emplace( calc.m_calc, "Unsupported option payoff type" );
-			return;
-		}
+            return;
+        }
 
-        const double sum = std::accumulate( payoff.begin(), payoff.end(), 0.0 );
-        const double avgPayoff = sum / static_cast<double>( calc.m_sims );
-        const double pv = std::exp( -m_mkt.m_interestRate * m_trd.m_maturity ) * avgPayoff;
-        
-        m_results.emplace( calc.m_calc , pv );
+        const double mean_payoff = sum / std::ranges::distance( maturity_prices );
+        const double pv = std::exp( -m_mkt.m_interestRate * m_trd.m_maturity ) * mean_payoff;
+
+        m_results.emplace( calc.m_calc, pv );
     }
 
     void MonteCarloEngine::calcDelta( const CalcData& calc )
