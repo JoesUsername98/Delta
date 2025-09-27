@@ -25,10 +25,10 @@ namespace DPP
         const auto dt =  m_trd.m_maturity / static_cast<double>( calc.m_steps );
         const auto sqrt_dt =  std::sqrt( dt );
         std::vector<double> sims( calc.m_sims * calc.m_steps, m_mkt.m_underlyingPrice );
-
-        auto worker = [&](size_t start_sim, size_t end_sim) {
-            thread_local std::mt19937_64 rng{ };
-            std::normal_distribution<double> norm{ 0., 1. };
+        auto worker = [&](size_t start_sim, size_t end_sim, size_t thread_id) {
+            static thread_local std::seed_seq seq{ 42 + thread_id };
+            static thread_local std::mt19937_64 rng{ seq };
+            static thread_local std::normal_distribution<double> norm{ 0., 1. };
 
             for ( size_t sim_idx = start_sim; sim_idx < end_sim; ++sim_idx ) 
             {
@@ -51,7 +51,7 @@ namespace DPP
         for ( size_t t = 0; t < n_threads; ++t )
         {
             size_t end = ( t == n_threads - 1 ) ? calc.m_sims : start + sims_per_thread;
-            threads.emplace_back( std::thread( worker, start, end ) );
+            threads.emplace_back( std::thread( worker, start, end, t ) );
             start = std::min( end, calc.m_sims );
         }
 		for( auto& t : threads) { t.join(); } ;
