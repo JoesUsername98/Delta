@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <numeric>
 #include <ranges>
+#include <future>
+#include <thread>
 
 #include "monte_carlo_engine.h"
 
@@ -22,22 +24,37 @@ namespace DPP
     {
         const auto dt =  m_trd.m_maturity / static_cast<double>( calc.m_steps );
         const auto sqrt_dt =  std::sqrt( dt );
-        std::seed_seq seed{ 42 };
-        std::mt19937_64 rng{ seed };
-        std::normal_distribution<double> norm{ 0., 1. };
-        std::vector<double> sims( calc.m_sims * calc.m_steps );
+        std::vector<double> sims( calc.m_sims * calc.m_steps, m_mkt.m_underlyingPrice );
 
-        for ( size_t sim_idx = 0; sim_idx < calc.m_sims; ++sim_idx )
-        {
-            double S = m_mkt.m_underlyingPrice;
-            for ( size_t step_index = 0; step_index < calc.m_steps; ++step_index )
+        auto worker = [&](size_t start_sim, size_t end_sim) {
+            thread_local std::mt19937_64 rng{ };
+            std::normal_distribution<double> norm{ 0., 1. };
+
+            for ( size_t sim_idx = start_sim; sim_idx < end_sim; ++sim_idx ) 
             {
-                const auto idx = sim_idx * calc.m_steps + step_index;
-                const double dW = sqrt_dt * norm( rng );
-                updatePrice( S, dW, dt );
-                sims[ idx ] = S;
+                double S = m_mkt.m_underlyingPrice;
+                for ( size_t step_index = 1; step_index < calc.m_steps; ++step_index) 
+                {
+                    const auto idx = sim_idx * calc.m_steps + step_index;
+                    const double dW = sqrt_dt * norm( rng );
+                    updatePrice( S, dW, dt );
+                    sims[ idx ] = S;
+                }
             }
+        };
+
+        const size_t n_threads = std::thread::hardware_concurrency();
+        const size_t sims_per_thread = calc.m_sims / n_threads;
+        std::vector<std::thread> threads;
+        threads.reserve( n_threads );
+        size_t start = 0;
+        for ( size_t t = 0; t < n_threads; ++t )
+        {
+            size_t end = ( t == n_threads - 1 ) ? calc.m_sims : start + sims_per_thread;
+            threads.emplace_back( std::thread( worker, start, end ) );
+            start = std::min( end, calc.m_sims );
         }
+		for( auto& t : threads) { t.join(); } ;
 
         const auto maturity_prices = sims
             | std::views::drop( calc.m_steps - 1 )
