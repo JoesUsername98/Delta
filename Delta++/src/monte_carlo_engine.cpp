@@ -5,6 +5,8 @@
 #include <future>
 #include <thread>
 
+#include "distributions.h"
+
 #include "monte_carlo_engine.h"
 
 
@@ -20,19 +22,17 @@ namespace DPP
         // Milstein scheme
         S = S * ( 1 + m_mkt.m_interestRate * dt + m_mkt.m_vol * dW + 0.5 * m_mkt.m_vol * m_mkt.m_vol * ( dW * dW - dt ) );
     }
+
     void MonteCarloEngine::calcPV( const CalcData& calc )
     {
         const auto dt =  m_trd.m_maturity / static_cast<double>( calc.m_steps );
         const auto sqrt_dt =  std::sqrt( dt );
         std::vector<double> sims( calc.m_sims * calc.m_steps, m_mkt.m_underlyingPrice );
 
-        std::seed_seq seed{ 42 };
-        std::mt19937_64 rng{ seed };
-        std::normal_distribution<double> norm{ 0., 1. };
-        std::vector<double> rand_nums(calc.m_sims * calc.m_steps, 0 );
-        std::generate( rand_nums.begin(), rand_nums.end(), [&](){  return norm(rng); });
 
         auto worker = [&](size_t start_sim, size_t end_sim, size_t thread_id) {
+            static thread_local std::seed_seq seq{ 42 + thread_id };
+            static thread_local std::mt19937_64 rng{ seq };
 
             for ( size_t sim_idx = start_sim; sim_idx < end_sim; ++sim_idx ) 
             {
@@ -40,14 +40,14 @@ namespace DPP
                 for ( size_t step_index = 1; step_index < calc.m_steps; ++step_index) 
                 {
                     const auto idx = sim_idx * calc.m_steps + step_index;
-                    const double dW = sqrt_dt * rand_nums[idx];
+                    const double dW = sqrt_dt * DPPMath::box_muller( rng );
                     updatePrice( S, dW, dt );
                     sims[ idx ] = S;
                 }
             }
         };
 
-        const size_t n_threads = 1;
+        const size_t n_threads = std::thread::hardware_concurrency();
         const size_t sims_per_thread = calc.m_sims / n_threads;
         std::vector<std::thread> threads;
         threads.reserve( n_threads );
