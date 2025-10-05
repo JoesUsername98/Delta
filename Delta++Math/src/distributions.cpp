@@ -1,3 +1,5 @@
+#include <numbers>
+
 #include "distributions.h"
 
 namespace DPPMath
@@ -23,6 +25,30 @@ namespace DPPMath
     {
         const double inv_sqrt_2pi = 0.3989422804014337; // 1 / sqrt(2 * pi)
         return inv_sqrt_2pi * std::exp( -0.5 * z * z );
+    }
+
+    double box_muller(std::mt19937_64& rng)
+    {
+        static thread_local bool has_spare = false;
+        static thread_local double spare{};
+
+        if ( has_spare ) {
+            has_spare = false;
+            return spare;
+        }
+
+        std::uniform_real_distribution<double> unif( 0.0, 1.0 );
+
+        const double u1 = unif( rng );
+        const double u2 = unif( rng );
+
+        const double r = std::sqrt( -2.0 * std::log( u1 ) );
+        const double theta = 2.0 * std::numbers::pi_v<double> * u2;
+
+        spare = r * std::sin( theta );
+        has_spare = true;
+
+        return r * std::cos( theta );
     }
 }
 
