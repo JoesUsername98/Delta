@@ -1,7 +1,7 @@
-#include "tri_matrix_builder.h"
-
 #include <math.h>
 #include <limits>
+
+#include "Delta++/tri_matrix_builder.h"
 
 namespace DPP
 {

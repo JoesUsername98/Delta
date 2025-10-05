@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "engine_factory.h"
+#include <Delta++/engine_factory.h>
 
 using namespace DPP;
 

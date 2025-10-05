@@ -5,9 +5,8 @@
 #include <future>
 #include <thread>
 
-#include "distributions.h"
-
-#include "monte_carlo_engine.h"
+#include <Delta++Math/distributions.h>
+#include "Delta++/monte_carlo_engine.h"
 
 
 using namespace std::string_literals;

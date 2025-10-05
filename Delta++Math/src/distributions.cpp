@@ -1,6 +1,6 @@
 #include <numbers>
 
-#include "distributions.h"
+#include "Delta++Math/distributions.h"
 
 namespace DPPMath
 {

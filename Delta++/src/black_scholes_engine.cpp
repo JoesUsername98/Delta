@@ -1,6 +1,6 @@
-#include "distributions.h"
+#include <Delta++Math/distributions.h>
 
-#include "black_scholes_engine.h"
+#include "Delta++/black_scholes_engine.h"
 
 namespace DPP
 {
