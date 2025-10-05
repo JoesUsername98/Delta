@@ -1,4 +1,4 @@
-#include "triangular_matrix.h"
+#include "Delta++/triangular_matrix.h"
 
 namespace DPP
 {

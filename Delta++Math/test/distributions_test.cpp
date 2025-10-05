@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "distributions.h"
+#include <Delta++Math/distributions.h>
 
 using namespace DPPMath;
 
