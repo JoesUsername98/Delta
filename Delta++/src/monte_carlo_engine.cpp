@@ -62,13 +62,14 @@ namespace DPP
         switch (m_trd.m_optionExerciseType)
         {
         case OptionExerciseType::European:
+        {
             const auto maturity_prices =
                 sims
-                | std::views::drop(m_trd.m_optionExerciseType == OptionExerciseType::European ? calc.m_steps - 1 : 0)
-                | std::views::stride(m_trd.m_optionExerciseType == OptionExerciseType::European ? calc.m_steps : 1);
+                | std::views::drop(calc.m_steps - 1)
+                | std::views::stride(calc.m_steps);
 
             double sum = 0.0;
-            switch ( m_trd.m_optionPayoffType )
+            switch (m_trd.m_optionPayoffType)
             {
             case OptionPayoffType::Call:
                 sum = std::ranges::fold_left(
@@ -92,29 +93,44 @@ namespace DPP
 
             m_results.emplace(calc.m_calc, pv);
             return;
-
+        }
         case OptionExerciseType::American:
             double max_so_far = std::numeric_limits<double>::min();
             switch (m_trd.m_optionPayoffType)
             {
             case OptionPayoffType::Call:
-                const auto pvs = sims
+            {
+                auto pvs = sims
                     | std::views::transform([strike = m_trd.m_strike](double val) { return std::max(val - strike, 0.0); })
                     | std::views::enumerate
                     | std::views::transform([&]
                     (const auto& indexed_val)
                         {
                             const auto [idx, payoff] = indexed_val;
-                            const auto time_elapsed = (idx % calc.m_sims) * dt;
-                            const auto df = std::exp(-m_mkt.m_interestRate * time_elapsed);
+                            const auto time_elapsed = (idx % calc.m_steps) * dt;
+                            const auto df = std::exp(-m_mkt.m_interestRate * time_elapsed); // TODO precompute
                             max_so_far = time_elapsed == 0 ?
-                                std::numeric_limits<double>::min() :
+                                payoff * df :
                                 std::max(payoff * df, max_so_far);
                             return max_so_far;
                         });
-                break;
+				std::vector<double> pv_snapShot(pvs.begin(), pvs.end());   
 
+                // the issue lies here
+                const auto pvs_2 = pvs
+                    | std::views::drop(calc.m_steps - 1) 
+                    | std::views::stride(calc.m_steps);
+
+                std::vector<double> pv_snapShot2(pvs_2.begin(), pvs_2.end());
+
+                const double sum_path_pvs = std::ranges::fold_left(pvs_2, 0.0, std::plus{});
+                const double pv = sum_path_pvs / std::ranges::distance(pvs_2);
+
+                m_results.emplace(calc.m_calc, pv);
+                break;
+            }
             case OptionPayoffType::Put:
+            {
                 const auto pvs = sims
                     | std::views::transform([strike = m_trd.m_strike](double val) { return std::max(strike - val, 0.0); })
                     | std::views::enumerate
@@ -122,22 +138,23 @@ namespace DPP
                     (const auto& indexed_val)
                         {
                             const auto [idx, payoff] = indexed_val;
-                            const auto time_elapsed = (idx % calc.m_sims) * dt;
-                            const auto df = std::exp(-m_mkt.m_interestRate * time_elapsed);
+                            const auto time_elapsed = (idx % calc.m_steps) * dt;
+                            const auto df = std::exp(-m_mkt.m_interestRate * time_elapsed); // TODO precompute
                             max_so_far = time_elapsed == 0 ?
-                                std::numeric_limits<double>::min() :
+                                payoff * df :
                                 std::max(payoff * df, max_so_far);
                             return max_so_far;
-                        });
-                const auto max_pv_each_sim = pvs
-                    // split the pvs into each sim
-                    // take the maximum pv for each sim 
-                    // add them up
-                    // divide by number of sims
-                break;
+                        })
+                    | std::views::drop(calc.m_steps - 1)
+                    | std::views::stride(calc.m_steps);
 
+                const double sum_path_pvs = std::ranges::fold_left(pvs, 0.0, std::plus{});
+                const double pv = sum_path_pvs / std::ranges::distance(pvs);
+                m_results.emplace(calc.m_calc, pv);
+                break;
+            }
             default:
-                m_errors.emplace(calc.m_calc, "Unsupported option payoff type");
+                m_errors.emplace(calc.m_calc, "Unsupported option exercise type");
                 return;
             }
 
