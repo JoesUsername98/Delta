@@ -59,34 +59,106 @@ namespace DPP
         }
 		for( auto& t : threads) { t.join(); } ;
 
-        const auto maturity_prices = sims
-            | std::views::drop( calc.m_steps - 1 )
-            | std::views::stride( calc.m_steps );
-
-        double sum = 0.0;
-        switch (m_trd.m_optionPayoffType)
+        switch (m_trd.m_optionExerciseType)
         {
-        case OptionPayoffType::Call:
-            sum = std::ranges::fold_left(
-                maturity_prices
-                | std::views::transform( [strike = m_trd.m_strike](double val) { return std::max( val - strike, 0.0 ); }), 0.0, std::plus{} );
-            break;
+        case OptionExerciseType::European:
+        {
+            const auto maturity_prices =
+                sims
+                | std::views::drop(calc.m_steps - 1)
+                | std::views::stride(calc.m_steps);
 
-        case OptionPayoffType::Put:
-            sum = std::ranges::fold_left(
-                maturity_prices
-                | std::views::transform( [strike = m_trd.m_strike](double val) { return std::max( strike - val, 0.0 ); }), 0.0, std::plus{} );
-            break;
+            double sum = 0.0;
+            switch (m_trd.m_optionPayoffType)
+            {
+            case OptionPayoffType::Call:
+                sum = std::ranges::fold_left(
+                    maturity_prices
+                    | std::views::transform([strike = m_trd.m_strike](double val) { return std::max(val - strike, 0.0); }), 0.0, std::plus{});
+                break;
 
-        default:
-            m_errors.emplace( calc.m_calc, "Unsupported option payoff type" );
+            case OptionPayoffType::Put:
+                sum = std::ranges::fold_left(
+                    maturity_prices
+                    | std::views::transform([strike = m_trd.m_strike](double val) { return std::max(strike - val, 0.0); }), 0.0, std::plus{});
+                break;
+
+            default:
+                m_errors.emplace(calc.m_calc, "Unsupported option payoff type");
+                return;
+            }
+
+            const double mean_payoff = sum / std::ranges::distance(maturity_prices);
+            const double pv = std::exp(-m_mkt.m_interestRate * m_trd.m_maturity) * mean_payoff;
+
+            m_results.emplace(calc.m_calc, pv);
             return;
         }
+        case OptionExerciseType::American:
+            double max_so_far = std::numeric_limits<double>::min();
+            switch (m_trd.m_optionPayoffType)
+            {
+            case OptionPayoffType::Call:
+            {
+                auto pvs = sims
+                    | std::views::transform([strike = m_trd.m_strike](double val) { return std::max(val - strike, 0.0); })
+                    | std::views::enumerate
+                    | std::views::transform([&]
+                    (const auto& indexed_val)
+                        {
+                            const auto [idx, payoff] = indexed_val;
+                            const auto time_elapsed = (idx % calc.m_steps) * dt;
+                            const auto df = std::exp(-m_mkt.m_interestRate * time_elapsed); // TODO precompute
+                            max_so_far = time_elapsed == 0 ?
+                                payoff * df :
+                                std::max(payoff * df, max_so_far);
+                            return max_so_far;
+                        });
+				std::vector<double> pv_snapShot(pvs.begin(), pvs.end());   
 
-        const double mean_payoff = sum / std::ranges::distance( maturity_prices );
-        const double pv = std::exp( -m_mkt.m_interestRate * m_trd.m_maturity ) * mean_payoff;
+                // the issue lies here
+                const auto pvs_2 = pvs
+                    | std::views::drop(calc.m_steps - 1) 
+                    | std::views::stride(calc.m_steps);
 
-        m_results.emplace( calc.m_calc, pv );
+                std::vector<double> pv_snapShot2(pvs_2.begin(), pvs_2.end());
+
+                const double sum_path_pvs = std::ranges::fold_left(pvs_2, 0.0, std::plus{});
+                const double pv = sum_path_pvs / std::ranges::distance(pvs_2);
+
+                m_results.emplace(calc.m_calc, pv);
+                break;
+            }
+            case OptionPayoffType::Put:
+            {
+                const auto pvs = sims
+                    | std::views::transform([strike = m_trd.m_strike](double val) { return std::max(strike - val, 0.0); })
+                    | std::views::enumerate
+                    | std::views::transform([&]
+                    (const auto& indexed_val)
+                        {
+                            const auto [idx, payoff] = indexed_val;
+                            const auto time_elapsed = (idx % calc.m_steps) * dt;
+                            const auto df = std::exp(-m_mkt.m_interestRate * time_elapsed); // TODO precompute
+                            max_so_far = time_elapsed == 0 ?
+                                payoff * df :
+                                std::max(payoff * df, max_so_far);
+                            return max_so_far;
+                        })
+                    | std::views::drop(calc.m_steps - 1)
+                    | std::views::stride(calc.m_steps);
+
+                const double sum_path_pvs = std::ranges::fold_left(pvs, 0.0, std::plus{});
+                const double pv = sum_path_pvs / std::ranges::distance(pvs);
+                m_results.emplace(calc.m_calc, pv);
+                break;
+            }
+            default:
+                m_errors.emplace(calc.m_calc, "Unsupported option exercise type");
+                return;
+            }
+
+        }
     }
 
     void MonteCarloEngine::calcDelta( const CalcData& calc )
