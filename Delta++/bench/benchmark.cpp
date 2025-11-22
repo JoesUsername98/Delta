@@ -48,6 +48,36 @@ static void BM_BAMP_EuroCall_Steps(benchmark::State& state) {
 
 	state.SetLabel("bytes: " + byteStr + "\t val: "+ std::to_string(value));
 }
-BENCHMARK(BM_BAMP_EuroCall_Steps)->Unit( benchmark::TimeUnit::kMillisecond )->RangeMultiplier(2)->Range(8, 1024 * 8);
+ BENCHMARK(BM_BAMP_EuroCall_Steps)->Unit( benchmark::TimeUnit::kMillisecond )->RangeMultiplier(2)->Range(8, 1024 * 8);
+
+static void BM_MC_AmerPut_TimeSteps(benchmark::State& state) {
+	auto stepsIn = state.range(0);
+
+	int64_t bytes = 0;
+	double value = 0.;
+	for (auto s : state)
+	{
+		auto buildResult = TriMatrixBuilder::create(stepsIn, 1. / stepsIn)
+			.withUnderlyingValueAndVolatility(100., 1.2)
+			.withInterestRate(0.01)
+			.withPayoff(OptionPayoffType::Call, 105.)
+			.withRiskNuetralProb()
+			.withPremium(OptionExerciseType::European);
+
+		TradeData trd(OptionExerciseType::American, OptionPayoffType::Put, 100., 1.);
+		MarketData mkt(0.2, 100., 0.05);
+		CalcData calc(Calculation::PV, stepsIn, 1000);
+
+		auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>(mkt, trd, calc);
+		engine_mc->run();
+
+		const auto mat = buildResult.build();
+		const auto& vec = mat.getMatrix();
+
+		value = engine_mc->m_results.at(Calculation::PV);
+	}
+	state.SetLabel("val: " + std::to_string(value));
+}
+BENCHMARK(BM_MC_AmerPut_TimeSteps)->Unit(benchmark::TimeUnit::kMillisecond)->RangeMultiplier(2)->Range(8, 1024 * 8);
 
 BENCHMARK_MAIN();
