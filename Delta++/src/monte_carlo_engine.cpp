@@ -28,7 +28,6 @@ namespace DPP
         const auto sqrt_dt =  std::sqrt( dt );
         std::vector<double> sims( calc.m_sims * calc.m_steps, m_mkt.m_underlyingPrice );
 
-
         auto worker = [&](size_t start_sim, size_t end_sim, size_t thread_id) {
             static thread_local std::seed_seq seq{ 42 + thread_id };
             static thread_local std::mt19937_64 rng{ seq };
@@ -95,61 +94,53 @@ namespace DPP
             return;
         }
         case OptionExerciseType::American:
-            double max_so_far = std::numeric_limits<double>::min();
+            auto dfs_view = std::views::iota(size_t{0}, calc.m_steps)
+                | std::views::transform([&](size_t s) {
+                    return std::exp(-m_mkt.m_interestRate * static_cast<double>(s) * dt);
+                });
+            std::vector<double> dfs;
+            dfs.reserve(calc.m_steps);
+            for (auto df : dfs_view) {
+                dfs.push_back(df);
+            }
+
+            auto compute_american_pv = [&](auto payoff_fn) {
+                auto final_pvs_view =
+                    std::views::iota(size_t{0}, calc.m_sims)
+                    | std::views::transform([&](size_t sim_idx) {
+                        auto S_t0_sim = sims.begin() + sim_idx * calc.m_steps;
+
+                        auto discounted_payoff =
+                            std::views::iota(size_t{0}, calc.m_steps)
+                            | std::views::transform([&](size_t step) {
+                                double S_t_sim = *(S_t0_sim + step);
+                                return payoff_fn(S_t_sim) * dfs[step];
+                            });
+
+                        double sim_max = std::ranges::fold_left(
+                            discounted_payoff,
+                            std::numeric_limits<double>::lowest(),
+                            [](double a, double b) { return std::max(a, b); }
+                        );
+
+                        return sim_max;
+                    });
+
+                const double sum_path_pvs = std::ranges::fold_left(final_pvs_view, 0.0, std::plus{});
+                return sum_path_pvs / calc.m_sims;
+            };
+
             switch (m_trd.m_optionPayoffType)
             {
             case OptionPayoffType::Call:
             {
-                auto pvs = sims
-                    | std::views::transform([strike = m_trd.m_strike](double val) { return std::max(val - strike, 0.0); })
-                    | std::views::enumerate
-                    | std::views::transform([&]
-                    (const auto& indexed_val)
-                        {
-                            const auto [idx, payoff] = indexed_val;
-                            const auto time_elapsed = (idx % calc.m_steps) * dt;
-                            const auto df = std::exp(-m_mkt.m_interestRate * time_elapsed); // TODO precompute
-                            max_so_far = time_elapsed == 0 ?
-                                payoff * df :
-                                std::max(payoff * df, max_so_far);
-                            return max_so_far;
-                        });
-				std::vector<double> pv_snapShot(pvs.begin(), pvs.end());   
-
-                // the issue lies here
-                const auto pvs_2 = pvs
-                    | std::views::drop(calc.m_steps - 1) 
-                    | std::views::stride(calc.m_steps);
-
-                std::vector<double> pv_snapShot2(pvs_2.begin(), pvs_2.end());
-
-                const double sum_path_pvs = std::ranges::fold_left(pvs_2, 0.0, std::plus{});
-                const double pv = sum_path_pvs / std::ranges::distance(pvs_2);
-
+                const double pv = compute_american_pv([strike = m_trd.m_strike](double S) { return std::max(S - strike, 0.0); });
                 m_results.emplace(calc.m_calc, pv);
                 break;
             }
             case OptionPayoffType::Put:
             {
-                const auto pvs = sims
-                    | std::views::transform([strike = m_trd.m_strike](double val) { return std::max(strike - val, 0.0); })
-                    | std::views::enumerate
-                    | std::views::transform([&]
-                    (const auto& indexed_val)
-                        {
-                            const auto [idx, payoff] = indexed_val;
-                            const auto time_elapsed = (idx % calc.m_steps) * dt;
-                            const auto df = std::exp(-m_mkt.m_interestRate * time_elapsed); // TODO precompute
-                            max_so_far = time_elapsed == 0 ?
-                                payoff * df :
-                                std::max(payoff * df, max_so_far);
-                            return max_so_far;
-                        })
-                    | std::views::drop(calc.m_steps - 1)
-                    | std::views::stride(calc.m_steps);
-
-                const double sum_path_pvs = std::ranges::fold_left(pvs, 0.0, std::plus{});
-                const double pv = sum_path_pvs / std::ranges::distance(pvs);
+                const double pv = compute_american_pv([strike = m_trd.m_strike](double S) { return std::max(strike - S, 0.0); });
                 m_results.emplace(calc.m_calc, pv);
                 break;
             }
