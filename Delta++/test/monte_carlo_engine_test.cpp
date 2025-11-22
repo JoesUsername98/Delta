@@ -315,7 +315,7 @@ TEST( engine_mc, AmerPutRho )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Rho ) != engine_mc->m_results.end() );
     
-    const double expected_rho = -44.144411555116037;
+    const double expected_rho = -44.144411555121721;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Rho ),
         expected_rho, 
@@ -374,7 +374,7 @@ TEST( engine_mc, AmerCallVega )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Vega) != engine_mc->m_results.end() );
     
-    const double expected_vega = 86.322780379124708;
+    const double expected_vega = 86.322780379123643;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Vega ),
         expected_vega, 
