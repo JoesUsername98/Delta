@@ -71,7 +71,7 @@ namespace DPP
 
         auto final_pvs_view =
             std::views::iota(size_t{0}, calc.m_sims)
-            | std::views::transform([&](size_t sim_idx) {
+            | std::views::transform( [&](size_t sim_idx) {
                 auto S_t0_sim = sims.begin() + sim_idx * calc.m_steps;
 
                 auto discounted_payoff =
@@ -84,7 +84,7 @@ namespace DPP
                 double sim_max = std::ranges::fold_left(
                     discounted_payoff,
                     std::numeric_limits<double>::lowest(),
-                    [](double a, double b) { return std::max(a, b); }
+                    [](double a, double b) { return (std::max)(a, b); }
                 );
 
                 return sim_max;

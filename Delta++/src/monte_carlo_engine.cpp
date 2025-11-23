@@ -62,51 +62,34 @@ namespace DPP
         const auto dt =  m_trd.m_maturity / static_cast<double>( calc.m_steps );
         std::vector<double> sims = simPaths( calc, dt );
 
-        switch (m_trd.m_optionExerciseType) 
+        auto payoff_call = [strike = m_trd.m_strike](double S) { return std::max(S - strike, 0.0); };
+        auto payoff_put  = [strike = m_trd.m_strike](double S) { return std::max(strike - S, 0.0); };
+
+        auto european_runner = [&](auto&& payoff_fn) {
+            const double pv = calcEuropeanPV(calc, sims, dt, std::forward<decltype(payoff_fn)>(payoff_fn));
+            m_results.emplace(calc.m_calc, pv);
+        };
+
+        auto american_runner = [&](auto&& payoff_fn) {
+            const double pv = calcAmericanPV(calc, sims, dt, std::forward<decltype(payoff_fn)>(payoff_fn));
+            m_results.emplace(calc.m_calc, pv);
+        };
+
+        if (m_trd.m_optionExerciseType == OptionExerciseType::European) 
         {
-        case OptionExerciseType::European: 
+            if      ( m_trd.m_optionPayoffType == OptionPayoffType::Call    )    { european_runner(payoff_call);    }
+            else if ( m_trd.m_optionPayoffType == OptionPayoffType::Put     )    { european_runner(payoff_put);     } 
+            else    { m_errors.emplace(calc.m_calc, "Unsupported option payoff type"); }
+        } 
+        else if (m_trd.m_optionExerciseType == OptionExerciseType::American) 
         {
-            switch (m_trd.m_optionPayoffType) 
-            {
-                case OptionPayoffType::Call: {
-                    const double pv = calcEuropeanPV(calc, sims, dt, [strike = m_trd.m_strike](double S) { return std::max(S - strike, 0.0); });
-                    m_results.emplace(calc.m_calc, pv);
-                    return;
-                }
-                case OptionPayoffType::Put: {
-                    const double pv = calcEuropeanPV(calc, sims, dt, [strike = m_trd.m_strike](double S) { return std::max(strike - S, 0.0); });
-                    m_results.emplace(calc.m_calc, pv);
-                    return;
-                }
-                default: {
-                    m_errors.emplace(calc.m_calc, "Unsupported option payoff type");
-                    return;
-                }
-            }
-        }
-        case OptionExerciseType::American: 
+            if      ( m_trd.m_optionPayoffType == OptionPayoffType::Call    )   { american_runner(payoff_call);     } 
+            else if ( m_trd.m_optionPayoffType == OptionPayoffType::Put     )   { american_runner(payoff_put);      }
+            else    { m_errors.emplace(calc.m_calc, "Unsupported option payoff type"); }
+        } 
+        else 
         {
-            switch (m_trd.m_optionPayoffType) 
-            {
-                case OptionPayoffType::Call: {
-                    const double pv = calcAmericanPV(calc, sims, dt, [strike = m_trd.m_strike](double S) { return std::max(S - strike, 0.0); });
-                    m_results.emplace(calc.m_calc, pv);
-                    return;
-                }
-                case OptionPayoffType::Put: {
-                    const double pv = calcAmericanPV(calc, sims, dt, [strike = m_trd.m_strike](double S) { return std::max(strike - S, 0.0); });
-                    m_results.emplace(calc.m_calc, pv);
-                    return;
-                }
-                default: {
-                    m_errors.emplace(calc.m_calc, "Unsupported option payoff type");
-                    return;
-                }
-            }
-        }
-        default:
             m_errors.emplace(calc.m_calc, "Unsupported option exercise type");
-            return;
         }
     }
 
