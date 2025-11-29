@@ -28,7 +28,7 @@ namespace DPP
         auto worker = [&](size_t start_sim, size_t end_sim, size_t thread_id) {
             static thread_local std::seed_seq seq{ 42 + thread_id };
             static thread_local std::mt19937_64 rng{ seq };
-            std::uniform_real_distribution<double> unif(0.0, 1.0);
+            static thread_local std::uniform_real_distribution<double> unif(0.0, 1.0);
 
             for (size_t sim_idx = start_sim; sim_idx < end_sim; ++sim_idx)
             {
