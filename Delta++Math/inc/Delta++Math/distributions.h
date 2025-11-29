@@ -10,6 +10,6 @@ namespace DPPMath
 
     // Peter J. Acklam's "Direct" inverse cumulative normal approximation.
     // Returns the z such that Phi(z) = p, where Phi is the standard normal CDF.
-    // For p <= 0 returns -infinity, for p >= 1 returns +infinity.
+    // For p <= 0, clamps to the smallest positive double; for p >= 1, clamps to the largest double less than 1.0.
     double invCumDensity( double p );
 }
