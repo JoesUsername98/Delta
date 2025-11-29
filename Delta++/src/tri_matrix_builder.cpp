@@ -23,8 +23,8 @@ namespace DPP
 
 	TriMatrixBuilder& TriMatrixBuilder::withUnderlyingValueAndVolatility( const double initialPrice, const double vol )
 	{
-		const double upFactor = exp( vol * sqrt( m_timeStep ) );
-		return withUnderlyingValueAndUpFactor( initialPrice, upFactor );
+		const double up_factor = exp( vol * sqrt( m_timeStep ) );
+		return withUnderlyingValueAndUpFactor( initialPrice, up_factor );
 	}
 	TriMatrixBuilder& TriMatrixBuilder::withUnderlyingValueAndUpFactor( const double initialPrice, const double upFactor )
 	{
@@ -60,8 +60,8 @@ namespace DPP
 			return *this;
 
 		m_interestRate = constantInterestRate;
-		const double interestRate = pow(1. + constantInterestRate, m_timeStep) - 1.;
-		m_discountRate = 1. / (1. + interestRate);
+		const double interest_rate = pow(1. + constantInterestRate, m_timeStep) - 1.;
+		m_discountRate = 1. / (1. + interest_rate);
 
 		return *this;
 	}
@@ -97,8 +97,8 @@ namespace DPP
 			RTN_BUILDER_ERR( "u > 1 + r to prevent arbitrage" );
 		}
 
-		const double growthFactor = exp( m_interestRate * m_timeStep ); // Hull 12.6
-		m_probabilityHeads = (growthFactor - m_downFactor) / (m_upFactor - m_downFactor); // Hull 12.5
+		const double growth_factor = exp( m_interestRate * m_timeStep ); // Hull 12.6
+		m_probabilityHeads = (growth_factor - m_downFactor) / (m_upFactor - m_downFactor); // Hull 12.5
 
 		return *this;
 	}
@@ -144,9 +144,9 @@ namespace DPP
 	void TriMatrixBuilder::calcDeltaHedging( TriMatrix& result )
 	{
 		for ( int step = m_timeSteps - 2; step >= 0; step-- )
-			for ( int downMoves = step; downMoves >= 0; downMoves-- )
+			for ( int down_moves = step; down_moves >= 0; down_moves-- )
 			{
-				Node& node = result.m_matrix[result.index( downMoves, step ) ];
+				Node& node = result.m_matrix[result.index( down_moves, step ) ];
 				const Node* heads = result.getHeads( node );
 				const Node* tails = result.getTails( node );
 
@@ -158,7 +158,7 @@ namespace DPP
 				}
 
 				node.m_data.m_deltaHedging = ( heads->m_data.m_optionValue - tails->m_data.m_optionValue )
-					/ ( heads->m_data.m_underlyingValue - tails->m_data.m_underlyingValue );
+						/ ( heads->m_data.m_underlyingValue - tails->m_data.m_underlyingValue );
 			}
 	}
 
@@ -179,15 +179,15 @@ namespace DPP
 	void TriMatrixBuilder::calcOptiomalStoppingTime( TriMatrix& result ) const
 	{
 		//Diag Traverseal
-		for ( size_t timeStep = 0; timeStep < m_timeSteps; ++timeStep )
+		for ( size_t time_step = 0; time_step < m_timeSteps; ++time_step )
 		{
-			size_t optimalExEarlyPutTimeStep = std::numeric_limits<size_t>::max();
-			for ( size_t diagMoves = 0; diagMoves < m_timeSteps - 1 - timeStep ; ++diagMoves )
+			size_t optimal_ex_early_put_time_step = std::numeric_limits<size_t>::max();
+			for ( size_t diag_moves = 0; diag_moves < m_timeSteps - 1 - time_step ; ++diag_moves )
 			{
-				State& state = result.m_matrix[ result.index( diagMoves, timeStep + diagMoves ) ].m_data;
-				if ( state.m_optionValue == state.m_payoff && optimalExEarlyPutTimeStep == std::numeric_limits<size_t>::max() )
-					optimalExEarlyPutTimeStep = timeStep + diagMoves;
-				state.m_optimalExerciseTime = optimalExEarlyPutTimeStep;
+				State& state = result.m_matrix[ result.index( diag_moves, time_step + diag_moves ) ].m_data;
+				if ( state.m_optionValue == state.m_payoff && optimal_ex_early_put_time_step == std::numeric_limits<size_t>::max() )
+					optimal_ex_early_put_time_step = time_step + diag_moves;
+				state.m_optimalExerciseTime = optimal_ex_early_put_time_step;
 			}
 		}
 	}
@@ -195,24 +195,24 @@ namespace DPP
 	TriMatrix TriMatrixBuilder::build()
 	{
 		TriMatrix result( m_timeSteps, m_timeStep );
-		std::vector< double > upFactorToPowerOfI ( m_timeSteps + 1 );
-		std::vector< double > downFactorToPowerOfI( m_timeSteps + 1 );
+		std::vector< double > up_factor_pow_i ( m_timeSteps + 1 );
+		std::vector< double > down_factor_pow_i( m_timeSteps + 1 );
 		for (int i = 0; i <= m_timeSteps; ++i)
 		{
-			upFactorToPowerOfI[i] = pow ( m_upFactor, i );
-			downFactorToPowerOfI[i] = pow( m_downFactor, i );
+			up_factor_pow_i[i] = pow ( m_upFactor, i );
+			down_factor_pow_i[i] = pow( m_downFactor, i );
 		}
 
 		for ( int step = m_timeSteps; step >= 0; step-- )
-			for ( int downMoves = step; downMoves >= 0; downMoves-- )
+			for ( int down_moves = step; down_moves >= 0; down_moves-- )
 			{
-				const size_t noOfHeads = step - downMoves;
-				Node& node = result.m_matrix[ result.index( downMoves, step ) ];
+				const size_t no_of_heads = step - down_moves;
+				Node& node = result.m_matrix[ result.index( down_moves, step ) ];
 
 				node.m_timeStep = step;
-				node.m_downMoves = downMoves;
+				node.m_downMoves = down_moves;
 
-				node.m_data.m_underlyingValue = m_initialPrice * upFactorToPowerOfI [ noOfHeads ] * downFactorToPowerOfI [ downMoves ];
+				node.m_data.m_underlyingValue = m_initialPrice * up_factor_pow_i [ no_of_heads ] * down_factor_pow_i [ down_moves ];
 
 				m_setPayoff( node );
 
