@@ -1,6 +1,7 @@
 #include <random>
 #include <future>
 #include <thread>
+#include <cmath>
 
 #include <Delta++Math/distributions.h>
 #include "Delta++/monte_carlo_engine.h"
@@ -27,6 +28,7 @@ namespace DPP
         auto worker = [&](size_t start_sim, size_t end_sim, size_t thread_id) {
             static thread_local std::seed_seq seq{ 42 + thread_id };
             static thread_local std::mt19937_64 rng{ seq };
+            std::uniform_real_distribution<double> unif(0.0, 1.0);
 
             for (size_t sim_idx = start_sim; sim_idx < end_sim; ++sim_idx)
             {
@@ -34,7 +36,9 @@ namespace DPP
                 for (size_t step_index = 1; step_index < calc.m_steps; ++step_index)
                 {
                     const auto idx = sim_idx * calc.m_steps + step_index;
-                    const double dW = sqrt_dt * DPPMath::box_muller(rng);
+                    const double u = unif(rng);
+                    const double z = DPPMath::invCumDensity(u);
+                    const double dW = sqrt_dt * z;
                     updatePrice(S, dW, dt);
                     sims[idx] = S;
                 }
