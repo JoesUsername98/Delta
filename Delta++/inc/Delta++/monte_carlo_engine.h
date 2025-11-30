@@ -42,18 +42,18 @@ namespace DPP
                 return std::unexpected("Unsupported option exercise type");
             }
 
-            return EngineCreationResult{ std::in_place, std::unique_ptr<MonteCarloEngine>(new MonteCarloEngine(mkt, trd, calc)) };
+            return std::unique_ptr<MonteCarloEngine>(new MonteCarloEngine(mkt, trd, calc));
         }
 
     protected:
         MonteCarloEngine( const MarketData& mkt, const TradeData& trd, const CalcData& calc );
         MonteCarloEngine( const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc );
 
-        CalculationResult calcPV( const CalcData& calc ) override;
-        CalculationResult calcDelta( const CalcData& calc ) override;
-        CalculationResult calcRho( const CalcData& calc ) override;
-        CalculationResult calcVega( const CalcData& calc ) override;
-        CalculationResult calcGamma( const CalcData& calc ) override;
+        CalculationResult calcPV( const CalcData& calc ) const override;
+        CalculationResult calcDelta( const CalcData& calc ) const override;
+        CalculationResult calcRho( const CalcData& calc ) const override;
+        CalculationResult calcVega( const CalcData& calc ) const override;
+        CalculationResult calcGamma( const CalcData& calc ) const override;
 
     private:
         void initStrategies();

@@ -25,7 +25,7 @@ namespace DPP
         return  DPPMath::cumDensity( -getD2() ) * m_trd.m_strike * exp( -m_mkt.m_interestRate * m_trd.m_maturity ) -  DPPMath::cumDensity( -getD1() ) * m_mkt.m_underlyingPrice ;
     }
 
-    CalculationResult BlackScholesEngine::calcPV(const CalcData& calc)
+    CalculationResult BlackScholesEngine::calcPV(const CalcData& calc) const
     {
         switch ( m_trd.m_optionPayoffType )
         {
@@ -38,7 +38,7 @@ namespace DPP
         }
     }
 
-    CalculationResult BlackScholesEngine::calcDelta(const CalcData& calc)
+    CalculationResult BlackScholesEngine::calcDelta(const CalcData& calc) const
     {
         if ( m_trd.m_optionExerciseType != OptionExerciseType::European )
             return std::unexpected("BlackScholes can only handle European Exercise");
@@ -54,7 +54,7 @@ namespace DPP
         }
     }
 
-    CalculationResult BlackScholesEngine::calcRho(const CalcData& calc)
+    CalculationResult BlackScholesEngine::calcRho(const CalcData& calc) const
     {
         switch ( m_trd.m_optionPayoffType )
         {
@@ -67,7 +67,7 @@ namespace DPP
         }
     }
 
-    CalculationResult BlackScholesEngine::calcVega(const CalcData& calc)
+    CalculationResult BlackScholesEngine::calcVega(const CalcData& calc) const
     {
         switch ( m_trd.m_optionPayoffType )
         {
@@ -79,7 +79,7 @@ namespace DPP
         }
     }
 
-    CalculationResult BlackScholesEngine::calcGamma(const CalcData& calc)
+    CalculationResult BlackScholesEngine::calcGamma(const CalcData& calc) const
     {
         switch ( m_trd.m_optionPayoffType )
         {
