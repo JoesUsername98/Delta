@@ -175,3 +175,14 @@ TEST(engine_BS, EuroPutRho)
 	EXPECT_EQ(engine->m_results.at(Calculation::Rho).value(), -0.62974317151260595);
 }
 #pragma endregion
+#pragma region RejectsUnsupported
+TEST(engine_BS, RejectsAmericanOptions) {
+	TradeData trd(OptionExerciseType::American, OptionPayoffType::Call, 5., 3.);
+	MarketData mkt(.2, 4., .25);
+	CalcData calc(Calculation::PV, 69);
+
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_FALSE(engine_res.has_value());
+	EXPECT_EQ(engine_res.error(), "BlackScholes can only handle European Exercise");
+}
+#pragma endregion

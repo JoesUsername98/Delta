@@ -21,7 +21,7 @@ namespace DPP
 
     protected:
         BlackScholesEngine(const MarketData& mkt, const TradeData& trd, const CalcData& calc)
-            : AbstractEngine(mkt, trd, calc) = default;
+            : AbstractEngine(mkt, trd, calc) {}
         BlackScholesEngine(const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc)
             : AbstractEngine(mkt, trd, calc) {
         }
