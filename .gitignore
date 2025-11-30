@@ -382,3 +382,4 @@ FodyWeavers.xsd
 /buildWSL
 *.ini
 *.json
+_codeql_detected_source_root
