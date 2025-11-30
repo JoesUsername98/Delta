@@ -4,7 +4,7 @@
 using namespace std::string_literals;
 namespace DPP
 {
-    CalculationResult BinomialEngine::calcPV( const CalcData& calc )
+    CalculationResult BinomialEngine::calcPV( const CalcData& calc ) const
     {
         TriMatrixBuilder build_result = 
         TriMatrixBuilder::create( calc.m_steps, m_trd.m_maturity / calc.m_steps )
@@ -20,7 +20,7 @@ namespace DPP
             return build_result.build().getMatrix()[ 0 ].m_data.m_optionValue;
     }
 
-    CalculationResult BinomialEngine::calcDelta( const CalcData& calc )
+    CalculationResult BinomialEngine::calcDelta( const CalcData& calc ) const
     {
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
@@ -47,7 +47,7 @@ namespace DPP
         return pv_up - pv_down;
     }
 
-    CalculationResult BinomialEngine::calcRho( const CalcData& calc )
+    CalculationResult BinomialEngine::calcRho( const CalcData& calc ) const
     {
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
@@ -74,7 +74,7 @@ namespace DPP
         return 100. * ( pv_up - pv_down );
     }
 
-    CalculationResult BinomialEngine::calcVega( const CalcData& calc )
+    CalculationResult BinomialEngine::calcVega( const CalcData& calc ) const
     {
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
@@ -101,7 +101,7 @@ namespace DPP
         return ( pv_up - pv_down ) * 100;
     }
 
-    CalculationResult BinomialEngine::calcGamma( const CalcData& calc )
+    CalculationResult BinomialEngine::calcGamma( const CalcData& calc ) const
     {
         CalcData delta_only = calc;
         delta_only.m_calc = Calculation::Delta;

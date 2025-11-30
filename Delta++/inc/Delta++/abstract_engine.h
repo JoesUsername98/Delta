@@ -36,10 +36,10 @@ namespace DPP
         bool hasAnyErrors() const;
 
     protected:
-        virtual CalculationResult calcPV( const CalcData& calc ) = 0;
-        virtual CalculationResult calcDelta( const CalcData& calc ) = 0;
-        virtual CalculationResult calcRho( const CalcData& calc ) = 0;
-        virtual CalculationResult calcVega( const CalcData& calc ) = 0;
-        virtual CalculationResult calcGamma( const CalcData& calc ) = 0;
+        virtual CalculationResult calcPV( const CalcData& calc ) const = 0 ;
+        virtual CalculationResult calcDelta( const CalcData& calc ) const = 0;
+        virtual CalculationResult calcRho( const CalcData& calc ) const = 0;
+        virtual CalculationResult calcVega( const CalcData& calc ) const = 0;
+        virtual CalculationResult calcGamma( const CalcData& calc ) const = 0;
     };
 }

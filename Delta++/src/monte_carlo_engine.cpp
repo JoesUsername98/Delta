@@ -54,7 +54,7 @@ namespace DPP
         }
     }
 
-    CalculationResult MonteCarloEngine::calcPV( const CalcData& calc )
+    CalculationResult MonteCarloEngine::calcPV( const CalcData& calc ) const
     {
         const auto dt =  m_trd.m_maturity / static_cast<double>( calc.m_steps );
 		std::vector<double> sims = m_scheme->simPaths(m_mkt, calc, dt);
@@ -63,7 +63,7 @@ namespace DPP
         return pv;
     }
 
-    CalculationResult MonteCarloEngine::calcDelta( const CalcData& calc )
+    CalculationResult MonteCarloEngine::calcDelta( const CalcData& calc ) const
     {
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
@@ -90,7 +90,7 @@ namespace DPP
         return pv_up - pv_down;
     }
 
-    CalculationResult MonteCarloEngine::calcRho( const CalcData& calc )
+    CalculationResult MonteCarloEngine::calcRho( const CalcData& calc ) const
     {
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
@@ -117,7 +117,7 @@ namespace DPP
         return 100. * ( pv_up - pv_down );
     }
 
-    CalculationResult MonteCarloEngine::calcVega( const CalcData& calc )
+    CalculationResult MonteCarloEngine::calcVega( const CalcData& calc ) const
     {
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
@@ -144,7 +144,7 @@ namespace DPP
         return ( pv_up - pv_down) * 100. ;
     }
 
-    CalculationResult MonteCarloEngine::calcGamma( const CalcData& calc )
+    CalculationResult MonteCarloEngine::calcGamma( const CalcData& calc ) const
     {
         CalcData delta_only = calc;
         delta_only.m_calc = Calculation::Delta;
