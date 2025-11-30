@@ -1,6 +1,7 @@
 #include <ranges>
 #include <algorithm>
 #include <limits>
+#include <cmath>
 
 #include "Delta++/monte_carlo_payoff.h"
 #include "Delta++/monte_carlo_exercise.h"

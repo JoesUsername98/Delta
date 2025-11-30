@@ -1,6 +1,8 @@
 #include <benchmark/benchmark.h>
 
 #include <Delta++/engine_factory.h>
+#include <Delta++/tri_matrix_builder.h>
+
 using namespace DPP;
 using namespace std::string_literals;
 
@@ -68,7 +70,8 @@ static void BM_MC_AmerPut_TimeSteps(benchmark::State& state) {
 		MarketData mkt(0.2, 100., 0.05);
 		CalcData calc(Calculation::PV, stepsIn, 1000);
 
-		auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>(mkt, trd, calc);
+		auto engine_res = EngineFactory::getEngine<MonteCarloEngine>(mkt, trd, calc);
+		auto& engine_mc = engine_res.value();
 		engine_mc->run();
 
 		const auto mat = buildResult.build();

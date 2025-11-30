@@ -230,9 +230,7 @@ namespace DPP
 		if ( m_mustCalcOptiomalStoppingTime )
 			calcOptiomalStoppingTime( result );
 
-		if ( m_hasError )
-			throw std::runtime_error( m_errorMsg );
-
+		// Do not throw on error; caller should inspect m_hasError / getErrorMsg().
 		return result;
 	}
 	const std::string& TriMatrixBuilder::getErrorMsg() const
