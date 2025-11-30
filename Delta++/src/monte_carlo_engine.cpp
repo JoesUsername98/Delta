@@ -54,16 +54,16 @@ namespace DPP
         }
     }
 
-    void MonteCarloEngine::calcPV( const CalcData& calc )
+    CalculationResult MonteCarloEngine::calcPV( const CalcData& calc )
     {
         const auto dt =  m_trd.m_maturity / static_cast<double>( calc.m_steps );
 		std::vector<double> sims = m_scheme->simPaths(m_mkt, calc, dt);
 
         const double pv = m_exercise->price(m_trd, m_mkt, calc, sims, dt, *m_payoff);
-        m_results.emplace(calc.m_calc, pv);
+        return pv;
     }
 
-    void MonteCarloEngine::calcDelta( const CalcData& calc )
+    CalculationResult MonteCarloEngine::calcDelta( const CalcData& calc )
     {
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
@@ -72,31 +72,25 @@ namespace DPP
         MonteCarloEngine up_calc ( bump_up, m_trd, pv_only );
         up_calc.run();
 
-        if( !up_calc.m_errors.empty() ) 
-        {
-            for( const auto& [ key , err ] : up_calc.m_errors )
-                m_errors[ calc.m_calc ] += " "s + err;
-            
-            return;
-        }
+        std::string aggErr = up_calc.getAggregatedErrors();
+        if ( !aggErr.empty() ) 
+            return std::unexpected{ aggErr };
 
         MarketData bump_down = m_mkt.bumpUnderlying( .995 );
         MonteCarloEngine down_calc ( bump_down, m_trd, pv_only );
         down_calc.run();
-        if( !down_calc.m_errors.empty() ) 
-        {
-            for( const auto& [ key , err ] : down_calc.m_errors )
-                m_errors[ calc.m_calc ] += " "s + err;
-            
-            return;
-        }
+        
+		aggErr.clear();
+		aggErr = down_calc.getAggregatedErrors();
+		if ( !aggErr.empty() ) 
+			return std::unexpected{ aggErr };
 
-        const double pv_up = up_calc.m_results.at( Calculation::PV );
-        const double pv_down = down_calc.m_results.at( Calculation::PV );
-        m_results.emplace( calc.m_calc, pv_up - pv_down );
+        const double pv_up = up_calc.m_results.at( Calculation::PV ).value();
+        const double pv_down = down_calc.m_results.at( Calculation::PV ).value();
+        return pv_up - pv_down;
     }
 
-    void MonteCarloEngine::calcRho( const CalcData& calc )
+    CalculationResult MonteCarloEngine::calcRho( const CalcData& calc )
     {
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
@@ -105,31 +99,25 @@ namespace DPP
         MonteCarloEngine up_calc ( bump_up, m_trd, pv_only );
         up_calc.run();
 
-        if( !up_calc.m_errors.empty() ) 
-        {
-            for( const auto& [ key , err ] : up_calc.m_errors )
-                m_errors[ calc.m_calc ] += " "s + err;
-            
-            return;
-        }
+		std::string aggErr = up_calc.getAggregatedErrors();
+        if ( !aggErr.empty() ) 
+            return std::unexpected{ aggErr };
 
         MarketData bump_down = m_mkt.bumpInterestRate (-0.005);
         MonteCarloEngine down_calc ( bump_down, m_trd, pv_only );
         down_calc.run();
-        if( !down_calc.m_errors.empty() ) 
-        {
-            for( const auto& [ key , err ] : down_calc.m_errors )
-                m_errors[ calc.m_calc ] += " "s + err;
-            
-            return;
-        }
 
-        const double pv_up = up_calc.m_results.at( Calculation::PV );
-        const double pv_down = down_calc.m_results.at( Calculation::PV );
-        m_results.emplace( calc.m_calc, 100. * ( pv_up - pv_down ) );
+        aggErr.clear();
+		aggErr = down_calc.getAggregatedErrors();
+        if ( !aggErr.empty() ) 
+            return std::unexpected{ aggErr };
+
+        const double pv_up = up_calc.m_results.at( Calculation::PV ).value();
+        const double pv_down = down_calc.m_results.at( Calculation::PV ).value();
+        return 100. * ( pv_up - pv_down );
     }
 
-    void MonteCarloEngine::calcVega( const CalcData& calc )
+    CalculationResult MonteCarloEngine::calcVega( const CalcData& calc )
     {
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
@@ -138,31 +126,25 @@ namespace DPP
         MonteCarloEngine up_calc ( bump_up, m_trd, pv_only );
         up_calc.run();
 
-        if( !up_calc.m_errors.empty() ) 
-        {
-            for( const auto& [ key , err ] : up_calc.m_errors )
-                m_errors[ calc.m_calc ] += " "s + err;
-            
-            return;
-        }
+		std::string aggErr = up_calc.getAggregatedErrors();
+        if ( !aggErr.empty() )
+            return std::unexpected{ aggErr };
 
         MarketData bump_down = m_mkt.bumpVol( -0.005 );
         MonteCarloEngine down_calc ( bump_down, m_trd, pv_only );
         down_calc.run();
-        if( !down_calc.m_errors.empty() ) 
-        {
-            for( const auto& [ key , err ] : down_calc.m_errors )
-                m_errors[ calc.m_calc ] += " "s + err;
-            
-            return;
-        }
 
-        const double pv_up = up_calc.m_results.at( Calculation::PV );
-        const double pv_down = down_calc.m_results.at( Calculation::PV );
-        m_results.emplace( calc.m_calc, (pv_up - pv_down)*100 );
+        aggErr.clear();
+		aggErr = down_calc.getAggregatedErrors();
+        if (!aggErr.empty())
+            return std::unexpected{ aggErr };
+
+        const double pv_up = up_calc.m_results.at( Calculation::PV ).value();
+        const double pv_down = down_calc.m_results.at( Calculation::PV ).value();
+        return ( pv_up - pv_down) * 100. ;
     }
 
-    void MonteCarloEngine::calcGamma( const CalcData& calc )
+    CalculationResult MonteCarloEngine::calcGamma( const CalcData& calc )
     {
         CalcData delta_only = calc;
         delta_only.m_calc = Calculation::Delta;
@@ -171,27 +153,21 @@ namespace DPP
         MonteCarloEngine up_calc ( bump_up, m_trd, delta_only );
         up_calc.run();
 
-        if( !up_calc.m_errors.empty() ) 
-        {
-            for( const auto& [ key , err ] : up_calc.m_errors )
-                m_errors[ calc.m_calc ] += " "s + err;
-            
-            return;
-        }
+		std::string aggErr = up_calc.getAggregatedErrors();
+        if ( !aggErr.empty() )
+            return std::unexpected{ aggErr };
 
         MarketData bump_down = m_mkt.bumpUnderlying( .995 );
         MonteCarloEngine down_calc ( bump_down, m_trd, delta_only );
         down_calc.run();
-        if( !down_calc.m_errors.empty() ) 
-        {
-            for( const auto& [ key , err ] : down_calc.m_errors )
-                m_errors[ calc.m_calc ] += " "s + err;
-            
-            return;
-        }
 
-        const double delta_up = up_calc.m_results.at( Calculation::Delta );
-        const double delta_down = down_calc.m_results.at( Calculation::Delta );
-        m_results.emplace( calc.m_calc, delta_up - delta_down );
+        aggErr.clear();
+		aggErr = down_calc.getAggregatedErrors();
+        if ( !aggErr.empty() )
+            return std::unexpected{ aggErr };
+
+        const double delta_up = up_calc.m_results.at( Calculation::Delta ).value();
+        const double delta_down = down_calc.m_results.at( Calculation::Delta ).value();
+        return delta_up - delta_down;
     }
 }

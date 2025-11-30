@@ -1,4 +1,5 @@
 #include "Delta++/abstract_engine.h"
+#include <algorithm>
 
 namespace DPP
 {
@@ -9,23 +10,44 @@ namespace DPP
             switch (calc.m_calc)
             {
             case Calculation::PV :
-                calcPV( calc ) ;
+                m_results[ Calculation::PV ] = calcPV( calc ) ;
                 break;
             case Calculation::Delta :
-                calcDelta( calc );
+                m_results[ Calculation::Delta ] = calcDelta( calc );
                 break;
             case Calculation::Gamma :
-                calcGamma( calc );
+                m_results[Calculation::Gamma] = calcGamma( calc );
                 break;
             case Calculation::Rho :
-                calcRho( calc );
+                m_results[Calculation::Rho] = calcRho( calc );
                 break;
             case Calculation::Vega :
-                calcVega( calc );
+                m_results[Calculation::Vega] = calcVega( calc );
                 break;
             default:
                 break;
             }
         }
     }
+
+    std::string AbstractEngine::getAggregatedErrors() const
+    {
+        std::string aggErr;
+        for ( const auto& [ key , res ] : m_results )
+        {
+            if ( !res.has_value() ) 
+            {
+                if ( !aggErr.empty() ) 
+                    aggErr += " ";
+                aggErr += res.error();
+            }
+        }
+        return aggErr;
+	}
+
+    bool AbstractEngine::hasAnyErrors() const
+    { 
+        return std::any_of( m_results.begin(), m_results.end(), [](auto const& kv) { return !kv.second.has_value(); }); 
+    }
+
 }
