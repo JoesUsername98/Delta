@@ -90,6 +90,12 @@ void PricerView::renderCalcParams()
 }
 void PricerView::renderResults()
 {
+	if (!m_state.m_engineBuildError.empty())
+    {
+        ImGui::TextColored( ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Engine Build Error: %s", m_state.m_engineBuildError.c_str() );
+        return;
+    }
+
     if (ImGui::BeginTable("Results", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV ) )
     {
         for( const auto& calc : m_state.m_calcs )

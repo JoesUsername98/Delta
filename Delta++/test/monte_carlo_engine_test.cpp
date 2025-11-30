@@ -17,7 +17,9 @@ TEST( engine_mc, EuroCallPV )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::PV, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -36,7 +38,9 @@ TEST( engine_mc, EuroPutPV )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::PV, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -55,7 +59,9 @@ TEST( engine_mc, AmerCallPV )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::PV, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -74,7 +80,9 @@ TEST( engine_mc, AmerPutPV )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::PV, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -95,7 +103,9 @@ TEST( engine_mc, EuroCallDelta )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Delta, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -114,7 +124,9 @@ TEST( engine_mc, EuroPutDelta )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Delta, STEPS, 100);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -133,7 +145,9 @@ TEST( engine_mc, AmerCallDelta )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Delta, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -152,7 +166,9 @@ TEST( engine_mc, AmerPutDelta )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Delta, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -173,7 +189,9 @@ TEST( engine_mc, EuroCallGamma )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Gamma, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -192,7 +210,9 @@ TEST( engine_mc, EuroPutGamma )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Gamma, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -211,7 +231,9 @@ TEST( engine_mc, AmerCallGamma )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Gamma, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -230,7 +252,9 @@ TEST( engine_mc, AmerPutGamma )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Gamma, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -251,7 +275,9 @@ TEST( engine_mc, EuroCallRho )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Rho, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -270,7 +296,9 @@ TEST( engine_mc, EuroPutRho )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Rho, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -289,7 +317,9 @@ TEST( engine_mc, AmerCallRho )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Rho, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -308,7 +338,9 @@ TEST( engine_mc, AmerPutRho )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Rho, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -329,7 +361,9 @@ TEST( engine_mc, EuroCallVega )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Vega, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -348,7 +382,9 @@ TEST( engine_mc, EuroPutVega )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Vega, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -367,7 +403,9 @@ TEST( engine_mc, AmerCallVega )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Vega, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );
@@ -386,7 +424,9 @@ TEST( engine_mc, AmerPutVega )
     MarketData mkt ( VOL, 100., 0.05 );
     CalcData calc ( Calculation::Vega, STEPS, SIMS);
 
-    auto engine_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
+    EXPECT_TRUE(engine_res_mc.has_value());
+    auto& engine_mc = engine_res_mc.value();
     engine_mc->run();
 
     EXPECT_TRUE( engine_mc->m_errors.empty() );

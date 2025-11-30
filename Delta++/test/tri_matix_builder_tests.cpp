@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <Delta++/engine_factory.h>
+#include <Delta++/tri_matrix_builder.h>
 
 using namespace DPP;
 

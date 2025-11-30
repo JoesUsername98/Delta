@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+#include <memory>
 
 #include "abstract_engine.h"
 
@@ -7,15 +9,21 @@ namespace DPP
     class BinomialEngine : public AbstractEngine
     {
     public:
-        BinomialEngine( const MarketData& mkt, const TradeData& trd, const CalcData& calc ) :
-        AbstractEngine( mkt, trd, calc )
-        {}
-        BinomialEngine( const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc ) :
-        AbstractEngine( mkt, trd, calc )
-        {}
         virtual ~BinomialEngine() = default;
 
+        static EngineCreationResult create(const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc)
+        {
+            return EngineCreationResult{ std::unique_ptr<BinomialEngine>(new BinomialEngine(mkt, trd, calc)) };
+        }
+
     protected:
+        BinomialEngine(const MarketData& mkt, const TradeData& trd, const CalcData& calc) :
+            AbstractEngine(mkt, trd, calc)
+        {}
+        BinomialEngine(const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc) :
+            AbstractEngine(mkt, trd, calc)
+        {}
+
         void calcPV( const CalcData& calc ) override;
         void calcDelta( const CalcData& calc ) override;
         void calcRho( const CalcData& calc ) override;

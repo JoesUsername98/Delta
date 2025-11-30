@@ -1,7 +1,4 @@
 #include <random>
-#include <future>
-#include <stdexcept>
-#include <algorithm>
 
 #include "Delta++/monte_carlo_engine.h"
 
@@ -33,8 +30,6 @@ namespace DPP
         case PathSchemeType::Milstein:
             m_scheme = std::make_unique<MilsteinScheme>();
             break;
-        default:
-            throw std::invalid_argument("Unsupported path scheme type");
         }
 
         switch (m_trd.m_optionPayoffType)
@@ -45,8 +40,6 @@ namespace DPP
         case OptionPayoffType::Put:
             m_payoff = std::make_unique<MCPutPayoff>(m_trd.m_strike);
             break;
-        default:
-            throw std::invalid_argument("Unsupported option payoff type");
         }
 
         switch (m_trd.m_optionExerciseType)
@@ -57,8 +50,7 @@ namespace DPP
         case OptionExerciseType::American:
             m_exercise = std::make_unique<MCAmericanExercise>();
             break;
-        default:
-            throw std::invalid_argument("Unsupported option exercise type");
+        
         }
     }
 
@@ -67,15 +59,8 @@ namespace DPP
         const auto dt =  m_trd.m_maturity / static_cast<double>( calc.m_steps );
 		std::vector<double> sims = m_scheme->simPaths(m_mkt, calc, dt);
 
-        try 
-        {
-            const double pv = m_exercise->price(m_trd, m_mkt, calc, sims, dt, *m_payoff);
-            m_results.emplace(calc.m_calc, pv);
-        }
-        catch (const std::exception& e)
-        {
-            m_errors.emplace(calc.m_calc, e.what());
-        }
+        const double pv = m_exercise->price(m_trd, m_mkt, calc, sims, dt, *m_payoff);
+        m_results.emplace(calc.m_calc, pv);
     }
 
     void MonteCarloEngine::calcDelta( const CalcData& calc )

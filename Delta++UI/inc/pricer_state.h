@@ -18,6 +18,7 @@ struct PricerState
 	int m_sims = 1'000;
 	CalculationMethod m_calculationMethod = CalculationMethod::MonteCarlo;
 	std::vector<CalcData> m_calcs;
+	std::string m_engineBuildError;
 	std::unique_ptr<AbstractEngine> m_engine;
 	std::array<bool, (int)Calculation::_SIZE> m_calcsToDo;
 	std::optional<int> m_timeTaken = std::nullopt;
@@ -41,7 +42,7 @@ struct PricerState
 	bool recalcIfRequired();
 
 	PricerState( ) :
-	 m_trd( OptionExerciseType::European, OptionPayoffType::Call, 100., 1.5 ),
+	 m_trd( OptionExerciseType::European, OptionPayoffType::Call, 100., 1.0 ),
 	 m_mkt( 0.2, 100., 0.05 ) 
 	 {
 		m_calcsToDo[ (int)Calculation::PV ] = true;

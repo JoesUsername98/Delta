@@ -35,7 +35,17 @@ bool PricerState::recalcIfRequired()
 
 	const auto start = std::chrono::high_resolution_clock::now();
 
-	m_engine = EngineFactory::getEngine( m_calculationMethod, m_mkt, m_trd, m_calcs );
+	auto engine_res = EngineFactory::getEngine( m_calculationMethod, m_mkt, m_trd, m_calcs );
+
+	if (!engine_res.has_value())
+	{
+		m_engine.reset();
+		m_engineBuildError = engine_res.error();
+		return false;
+	}
+
+	m_engineBuildError.clear();
+	m_engine = std::move(engine_res.value());
 	m_engine->run();
 
 	const auto end = std::chrono::high_resolution_clock::now();

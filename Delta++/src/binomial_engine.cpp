@@ -1,3 +1,4 @@
+#include "Delta++/tri_matrix_builder.h"
 #include "Delta++/binomial_engine.h"
 
 using namespace std::string_literals;

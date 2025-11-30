@@ -12,7 +12,9 @@ TEST( engine, EuroCallPV )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::PV, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -26,7 +28,9 @@ TEST( engine, EuroPutPV )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::PV, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -40,7 +44,9 @@ TEST( engine, AmerCallPV )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::PV, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -54,7 +60,9 @@ TEST( engine, AmerPutPV )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::PV, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -70,7 +78,9 @@ TEST( engine, EuroCallDelta )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Delta, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -84,7 +94,9 @@ TEST( engine, EuroPutDelta )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Delta, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -98,7 +110,9 @@ TEST( engine, AmerCallDelta )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Delta, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -112,7 +126,9 @@ TEST( engine, AmerPutDelta )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Delta, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -128,7 +144,9 @@ TEST( engine, EuroCallGamma )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Gamma, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -142,7 +160,9 @@ TEST( engine, EuroPutGamma )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Gamma, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -156,7 +176,9 @@ TEST( engine, AmerCallGamma )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Gamma, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -170,7 +192,9 @@ TEST( engine, AmerPutGamma )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Gamma, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -186,7 +210,9 @@ TEST( engine, EuroCallRho )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Rho, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -200,7 +226,9 @@ TEST( engine, EuroPutRho )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Rho, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -214,7 +242,9 @@ TEST( engine, AmerCallRho )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Rho, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -228,7 +258,9 @@ TEST( engine, AmerPutRho )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Rho, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -244,7 +276,9 @@ TEST( engine, EuroCallVega )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Vega, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -258,7 +292,9 @@ TEST( engine, EuroPutVega )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Vega, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -272,7 +308,9 @@ TEST( engine, AmerCallVega )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Vega, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
@@ -286,7 +324,9 @@ TEST( engine, AmerPutVega )
 	MarketData mkt ( 1.2, 100., 0.05 );
 	CalcData calc ( Calculation::Vega, 3 );
 
-	auto engine = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE( engine->m_errors.empty() );
