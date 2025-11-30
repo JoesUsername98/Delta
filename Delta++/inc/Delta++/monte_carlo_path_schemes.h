@@ -48,7 +48,7 @@ namespace DPP
             {
                 size_t end = (t == n_threads - 1) ? calc.m_sims : start + sims_per_thread;
                 threads.emplace_back(worker, start, end, t);
-                start = std::min(end, calc.m_sims);
+                start = (std::min)(end, calc.m_sims);
             }
             for (auto& t : threads) { t.join(); };
 
