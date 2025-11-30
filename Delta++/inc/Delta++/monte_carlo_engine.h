@@ -27,7 +27,6 @@ namespace DPP
 
     private:
         void initStrategies();
-        const PathSchemeType m_pathSchemeType;
 
         std::unique_ptr<IMCPayoff> m_payoff;
         std::unique_ptr<IMCExercise> m_exercise;

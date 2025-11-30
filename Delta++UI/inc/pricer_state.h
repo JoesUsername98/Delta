@@ -25,9 +25,11 @@ struct PricerState
 	int m_optionPayoffIdx = 0;
 	int m_exerciseTypeIdx = 0;
 	int m_calculationMethodIdx = 0;
-	const EnumCombo< OptionPayoffType > m_payoffCombo;
-	const EnumCombo< OptionExerciseType > m_exerciseCombo;
-	const EnumCombo< CalculationMethod > m_calculationMethodCombo;
+	int m_pathSchemeComboIdx = 0;
+	static const EnumCombo< OptionPayoffType > m_payoffCombo;
+	static const EnumCombo< OptionExerciseType > m_exerciseCombo;
+	static const EnumCombo< PathSchemeType > m_pathSchemeCombo;
+	static const EnumCombo< CalculationMethod > m_calculationMethodCombo;
 
 	//VIEW_MODEL
 	bool m_valueChanged = false;
@@ -39,8 +41,8 @@ struct PricerState
 	bool recalcIfRequired();
 
 	PricerState( ) :
-	 m_trd( OptionExerciseType::European, OptionPayoffType::Call, 105., 1.5 ),
-	 m_mkt( 1.2, 100., 0.25 ) 
+	 m_trd( OptionExerciseType::European, OptionPayoffType::Call, 100., 1.5 ),
+	 m_mkt( 0.2, 100., 0.05 ) 
 	 {
 		m_calcsToDo[ (int)Calculation::PV ] = true;
 		m_calcsToDo[ (int)Calculation::Delta ] = false;
