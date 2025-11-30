@@ -2,6 +2,13 @@
 
 namespace DPP
 {
+	enum class PathSchemeType
+	{
+		Exact,
+		Euler,
+		Milstein
+	};
+
     enum class OptionPayoffType
 	{
 		Call,
