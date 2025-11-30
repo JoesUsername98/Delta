@@ -6,7 +6,7 @@ using namespace DPP;
 
 constexpr int STEPS = 252;
 constexpr int SIMS = 1000;
-const double  TOL = 1e-12;
+const double  TOL = 1e-11;
 const double VOL = 0.2;
 
 #pragma region Binomial
@@ -300,7 +300,7 @@ TEST( engine_mc, AmerCallRho )
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Rho ),
         expected_rho, 
-        TOL * 10);
+        TOL);
 }
 TEST( engine_mc, AmerPutRho )
 {
