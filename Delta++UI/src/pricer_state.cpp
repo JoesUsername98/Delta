@@ -1,5 +1,11 @@
 #include "pricer_state.h"
 
+// Define static EnumCombo instances
+const EnumCombo<DPP::OptionPayoffType> PricerState::m_payoffCombo{};
+const EnumCombo<DPP::OptionExerciseType> PricerState::m_exerciseCombo{};
+const EnumCombo<DPP::PathSchemeType> PricerState::m_pathSchemeCombo{};
+const EnumCombo<DPP::CalculationMethod> PricerState::m_calculationMethodCombo{};
+
 void PricerState::reset()
 {
 	m_btn_calcPressed = false;
@@ -24,7 +30,7 @@ bool PricerState::recalcIfRequired()
 		if( !m_calcsToDo[i] )
 			continue;
 
-		m_calcs.emplace_back( (Calculation)i, m_steps, m_sims );
+		m_calcs.emplace_back( (Calculation)i, m_steps, m_sims, static_cast<DPP::PathSchemeType>(m_pathSchemeComboIdx) );
 	}
 
 	const auto start = std::chrono::high_resolution_clock::now();

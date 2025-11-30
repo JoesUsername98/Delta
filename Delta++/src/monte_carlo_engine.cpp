@@ -5,25 +5,24 @@
 
 #include "Delta++/monte_carlo_engine.h"
 
-
 using namespace std::string_literals;
 namespace DPP
 {
     MonteCarloEngine::MonteCarloEngine(const MarketData& mkt, const TradeData& trd, const CalcData& calc)
-		: AbstractEngine(mkt, trd, calc), m_pathSchemeType(PathSchemeType::Milstein)
+		: AbstractEngine(mkt, trd, calc)
     {
         initStrategies();
     }
 
     MonteCarloEngine::MonteCarloEngine(const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc)
-        : AbstractEngine(mkt, trd, calc), m_pathSchemeType(PathSchemeType::Milstein)
+        : AbstractEngine(mkt, trd, calc)
     {
         initStrategies();
     }
 
     void MonteCarloEngine::initStrategies()
     {
-        switch (m_pathSchemeType)
+        switch (m_calcs.front().m_pathSchemeType)
         {
         case PathSchemeType::Exact:
             m_scheme = std::make_unique<ExactScheme>();
