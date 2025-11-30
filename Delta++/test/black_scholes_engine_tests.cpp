@@ -12,7 +12,9 @@ TEST(engine_BS, EuroCallPV)
 	MarketData mkt(.2, 4., .25);
 	CalcData calc( Calculation::PV, 69 /*doesn't matter*/ );
 
-	auto engine = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE(engine->m_errors.empty());
@@ -26,7 +28,9 @@ TEST(engine_BS, EuroPutPV)
 	MarketData mkt(.2, 4., .25);
 	CalcData calc(Calculation::PV, 69 /*doesn't matter*/);
 
-	auto engine = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE(engine->m_errors.empty());
@@ -42,7 +46,9 @@ TEST(engine_BS, EuroCallDelta)
 	MarketData mkt(.2, 4., .25);
 	CalcData calc(Calculation::Delta, 69 /*doesn't matter*/);
 
-	auto engine = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE(engine->m_errors.empty());
@@ -56,7 +62,9 @@ TEST(engine_BS, EuroPutDelta)
 	MarketData mkt(.2, 4., .25);
 	CalcData calc(Calculation::Delta, 69 /*doesn't matter*/);
 
-	auto engine = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE(engine->m_errors.empty());
@@ -72,7 +80,9 @@ TEST(engine_BS, EuroCallGamma)
 	MarketData mkt(.2, 4., .25);
 	CalcData calc(Calculation::Gamma, 69 /*doesn't matter*/);
 
-	auto engine = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE(engine->m_errors.empty());
@@ -86,7 +96,9 @@ TEST(engine_BS, EuroPutGamma)
 	MarketData mkt(.2, 4., .25);
 	CalcData calc(Calculation::Gamma, 69 /*doesn't matter*/);
 
-	auto engine = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE(engine->m_errors.empty());
@@ -102,7 +114,9 @@ TEST(engine_BS, EuroCallVega)
 	MarketData mkt(.2, 4., .25);
 	CalcData calc(Calculation::Vega, 69 /*doesn't matter*/);
 
-	auto engine = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE(engine->m_errors.empty());
@@ -116,7 +130,9 @@ TEST(engine_BS, EuroPutVega)
 	MarketData mkt(.2, 4., .25);
 	CalcData calc(Calculation::Vega, 69 /*doesn't matter*/);
 
-	auto engine = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE(engine->m_errors.empty());
@@ -132,7 +148,9 @@ TEST(engine_BS, EuroCallRho)
 	MarketData mkt(.2, 4., .25);
 	CalcData calc(Calculation::Rho, 69 /*doesn't matter*/);
 
-	auto engine = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE(engine->m_errors.empty());
@@ -146,7 +164,9 @@ TEST(engine_BS, EuroPutRho)
 	MarketData mkt(.2, 4., .25);
 	CalcData calc(Calculation::Rho, 69 /*doesn't matter*/);
 
-	auto engine = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	auto engine_res = EngineFactory::getEngine<BlackScholesEngine>(mkt, trd, calc);
+	EXPECT_TRUE(engine_res.has_value());
+	auto& engine = engine_res.value();
 	engine->run();
 
 	EXPECT_TRUE(engine->m_errors.empty());

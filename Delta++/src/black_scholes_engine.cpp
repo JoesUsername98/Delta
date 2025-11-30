@@ -27,12 +27,6 @@ namespace DPP
 
     void BlackScholesEngine::calcPV(const CalcData& calc)
     {
-        if (m_trd.m_optionExerciseType != OptionExerciseType::European)
-        {
-            m_errors.emplace(calc.m_calc, "BlackScholes can only handle European Exercise");
-            return;
-        }
-
         switch ( m_trd.m_optionPayoffType )
         {
         case OptionPayoffType::Call:

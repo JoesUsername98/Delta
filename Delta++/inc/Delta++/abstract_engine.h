@@ -1,18 +1,21 @@
 #pragma once
 
 #include <unordered_map>
+#include <expected>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "enums.h"
 #include "market.h"
 #include "trade.h"
 #include "calc.h"
 
-#include "tri_matrix_builder.h"
-
 namespace DPP
 {
     using ScalarResultMap = std::unordered_map<Calculation, double>;
     using ScalarErrorMap = std::unordered_map<Calculation, std::string>;
+    using EngineCreationResult = std::expected<std::unique_ptr<class AbstractEngine>, std::string>;
 
     class AbstractEngine
     {
