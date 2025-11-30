@@ -6,21 +6,6 @@
 using namespace DPP;
 using namespace std::string_literals;
 
-//static void BM_StringCreation(benchmark::State& state) {
-//  for (auto _ : state)
-//    std::string empty_string;
-//}
-//// Register the function as a benchmark
-//BENCHMARK(BM_StringCreation);
-//
-//// Define another benchmark
-//static void BM_StringCopy(benchmark::State& state) {
-//  std::string x = "hello";
-//  for (auto _ : state)
-//    std::string copy(x);
-//}
-//BENCHMARK(BM_StringCopy);
-
 // Define another benchmark
 static void BM_BAMP_EuroCall_Steps(benchmark::State& state) {
 	auto stepsIn = state.range(0);
@@ -77,7 +62,7 @@ static void BM_MC_AmerPut_TimeSteps(benchmark::State& state) {
 		const auto mat = buildResult.build();
 		const auto& vec = mat.getMatrix();
 
-		value = engine_mc->m_results.at(Calculation::PV);
+		value = engine_mc->m_results.at(Calculation::PV).value();
 	}
 	state.SetLabel("val: " + std::to_string(value));
 }

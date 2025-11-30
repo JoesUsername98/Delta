@@ -24,10 +24,10 @@ namespace DPP
             AbstractEngine(mkt, trd, calc)
         {}
 
-        void calcPV( const CalcData& calc ) override;
-        void calcDelta( const CalcData& calc ) override;
-        void calcRho( const CalcData& calc ) override;
-        void calcVega( const CalcData& calc ) override;
-        void calcGamma( const CalcData& calc ) override;  
+        CalculationResult calcPV( const CalcData& calc ) override;
+        CalculationResult calcDelta( const CalcData& calc ) override;
+        CalculationResult calcRho( const CalcData& calc ) override;
+        CalculationResult calcVega( const CalcData& calc ) override;
+        CalculationResult calcGamma( const CalcData& calc ) override;
     };
 }
