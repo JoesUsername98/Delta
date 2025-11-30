@@ -86,7 +86,6 @@ namespace DPP
         case OptionPayoffType::Call:
         case OptionPayoffType::Put:
             return DPPMath::probDensity( getD1() ) / ( m_mkt.m_underlyingPrice * m_mkt.m_vol * sqrt( m_trd.m_maturity ) );
-            break;
         default:
             return std::unexpected("Only Call and Put are supported PayoffTypes" );
         }
