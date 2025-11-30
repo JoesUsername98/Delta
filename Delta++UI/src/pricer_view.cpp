@@ -104,11 +104,14 @@ void PricerView::renderResults()
             ImGui::TableSetColumnIndex(0);
             ImGui::Text( magic_enum::enum_name(calc.m_calc).data() );
             ImGui::TableSetColumnIndex(1);
-            if( m_state.m_engine->m_results.contains(calc.m_calc) )
-                ImGui::Text( "%.6f",  m_state.m_engine->m_results.at(calc.m_calc) );
-            else if( m_state.m_engine->m_errors.contains(calc.m_calc) )
-                ImGui::Text( m_state.m_engine->m_errors.at(calc.m_calc).c_str() );
-            else 
+            if( m_state.m_engine->m_results.contains(calc.m_calc) ) {
+                const auto &res = m_state.m_engine->m_results.at(calc.m_calc);
+                if (res.has_value())
+                    ImGui::Text( "%.6f",  res.value() );
+                else
+                    ImGui::Text( "%s", res.error().c_str() );
+            }
+            else
                 ImGui::Text( "No error nor result!" );
         }
         ImGui::EndTable();

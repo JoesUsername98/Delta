@@ -49,11 +49,11 @@ namespace DPP
         MonteCarloEngine( const MarketData& mkt, const TradeData& trd, const CalcData& calc );
         MonteCarloEngine( const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc );
 
-        void calcPV( const CalcData& calc ) override;
-        void calcDelta( const CalcData& calc ) override;
-        void calcRho( const CalcData& calc ) override;
-        void calcVega( const CalcData& calc ) override;
-        void calcGamma( const CalcData& calc ) override;  
+        CalculationResult calcPV( const CalcData& calc ) override;
+        CalculationResult calcDelta( const CalcData& calc ) override;
+        CalculationResult calcRho( const CalcData& calc ) override;
+        CalculationResult calcVega( const CalcData& calc ) override;
+        CalculationResult calcGamma( const CalcData& calc ) override;
 
     private:
         void initStrategies();

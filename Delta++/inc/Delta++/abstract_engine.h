@@ -13,8 +13,8 @@
 
 namespace DPP
 {
-    using ScalarResultMap = std::unordered_map<Calculation, double>;
-    using ScalarErrorMap = std::unordered_map<Calculation, std::string>;
+	using CalculationResult = std::expected<double, std::string>;
+    using ScalarResultMap = std::unordered_map<Calculation, CalculationResult>;
     using EngineCreationResult = std::expected<std::unique_ptr<class AbstractEngine>, std::string>;
 
     class AbstractEngine
@@ -24,7 +24,6 @@ namespace DPP
         const TradeData& m_trd;
         std::vector<CalcData> m_calcs;
         ScalarResultMap m_results;
-        ScalarErrorMap m_errors;
 
     public:
         AbstractEngine(const MarketData& mkt, const TradeData& trd, const CalcData& calc)
@@ -33,12 +32,14 @@ namespace DPP
             : m_mkt(mkt), m_trd(trd), m_calcs(calc) {}
         virtual ~AbstractEngine() = default;
         virtual void run();
+		std::string getAggregatedErrors() const;
+        bool hasAnyErrors() const;
 
     protected:
-        virtual void calcPV( const CalcData& calc ) = 0;
-        virtual void calcDelta( const CalcData& calc ) = 0;
-        virtual void calcRho( const CalcData& calc ) = 0;
-        virtual void calcVega( const CalcData& calc ) = 0;
-        virtual void calcGamma( const CalcData& calc ) = 0;  
+        virtual CalculationResult calcPV( const CalcData& calc ) = 0;
+        virtual CalculationResult calcDelta( const CalcData& calc ) = 0;
+        virtual CalculationResult calcRho( const CalcData& calc ) = 0;
+        virtual CalculationResult calcVega( const CalcData& calc ) = 0;
+        virtual CalculationResult calcGamma( const CalcData& calc ) = 0;
     };
 }
