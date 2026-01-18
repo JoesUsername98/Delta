@@ -76,5 +76,5 @@ endif ()
 
 # Add WebAssembly UI when building with Emscripten
 if (EMSCRIPTEN)
-  add_subdirectory(Delta++WebUI)
+  add_subdirectory(Delta++WebUI WebUI_build)
 endif ()

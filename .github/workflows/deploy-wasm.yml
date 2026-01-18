@@ -4,16 +4,22 @@ on:
   push:
     branches: [ master ]
     paths:
-      - 'Delta++WebUI/**'
-      - 'Delta++/**'
-      - 'Delta++Math/**'
+      - 'Delta++WebUI/*'
+      - 'Delta++WebUI/**/*'
+      - 'Delta++/*'
+      - 'Delta++/**/*'
+      - 'Delta++Math/*'
+      - 'Delta++Math/**/*'
       - '.github/workflows/deploy-wasm.yml'
   pull_request:
     branches: [ master ]
     paths:
-      - 'Delta++WebUI/**'
-      - 'Delta++/**' 
-      - 'Delta++Math/**'
+      - 'Delta++WebUI/*'
+      - 'Delta++WebUI/**/*'
+      - 'Delta++/*' 
+      - 'Delta++/**/*'
+      - 'Delta++Math/*'
+      - 'Delta++Math/**/*'
 
   # Allow manual triggers
   workflow_dispatch:

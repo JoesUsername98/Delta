@@ -10,6 +10,8 @@ Vulkan
 
 Once you have installed Vulkan and cloned the repository run the following commands
 
+### Standard Desktop Build
+
 ```bash
 $ mkdir build
 ```
@@ -22,6 +24,47 @@ $ cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5"
 ```bash
 $ cmake --build . 
 ```
+
+This builds the desktop UI version using Vulkan. The WebAssembly version is automatically excluded from standard builds.
+
+### WebAssembly Build
+
+To build the WebAssembly version with Emscripten:
+
+**Linux/WSL:**
+```bash
+$ mkdir build
+$ cd build
+$ emcmake cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5"
+$ emmake make -j4
+```
+
+**Windows (PowerShell):**
+```powershell
+mkdir build
+cd build
+C:\repos\emsdk\python\3.13.3_64bit\python.exe C:\repos\emsdk\upstream\emscripten\emcmake.py cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5" -G "Ninja"
+ninja
+```
+
+The WebAssembly build will create `DeltaWebUI.js` and `DeltaWebUI.wasm` files in `build/WebUI_build/`.
+
+To test the WebAssembly version:
+```powershell
+cd build/WebUI_build
+python -m http.server 8080
+# Open http://localhost:8080/index.html in your browser
+```
+
+**Note**: The WebAssembly build requires ImGui to be cloned in the project root:
+```bash
+git clone https://github.com/ocornut/imgui.git --depth 1
+```
+
+**WebAssembly Build Notes**:
+- The WebAssembly build focuses on the Black-Scholes engine and basic derivatives pricing
+- Some advanced C++23 features (like `std::views::stride`) may not be fully supported in Emscripten
+- If you encounter build errors related to Monte Carlo components, these don't affect the core WebAssembly UI functionality
 
 To generate the code coverage tool replace step 4 with
 ```bash
@@ -88,13 +131,13 @@ This is a WPF application so I expect you to use a windows based IDE. To that en
 I may end up writing more characters here than in the entire of my project!
 To start, I would like to say that this was designed from inception to be a showcase project with a start and finishing pont. I think I am now at version 1.0. I have a minimum viable "product". It has a UI and it does some maths. The maths was the easy part and the UI was essential to keep your ape brain stimulated. Something this project was never meant to be was perfect.
 
-From inception of this project I had two main themes, to relegiously follow TDD and menaically implement as many design patterns as I had read about in the gang of four book, both had more or less stopped by the projects completion [for worse and better, respectively]. TDD died off because I was being lazy, honestly. To test in a professional way, I would have to revamp almost all my tests that I had written so far. I stopped using design patterns because I realised that they are a tool best used seldomly ( apart from strategy, everyone likes the strategy pattern .) This is an important part about growing up as someone who engineers software you learn that the answer is always 'it depends', and when it comes to design patterns, the answer is almost always 'nah, you ain't gunna need it.'
+From inception of this project I had two main themes, to religiously follow TDD and manically implement as many design patterns as I had read about in the gang of four book, both had more or less stopped by the projects completion [for worse and better, respectively]. TDD died off because I was being lazy, honestly. To test in a professional way, I would have to revamp almost all my tests that I had written so far. I stopped using design patterns because I realised that they are a tool best used seldomly ( apart from strategy, everyone likes the strategy pattern .) This is an important part about growing up as someone who engineers software you learn that the answer is always 'it depends', and when it comes to design patterns, the answer is almost always 'nah, you ain't gunna need it.'
 
-At work I mainly write C++, so I am starting to develop an unhealthy obsession with performance. I started testing the binomial model I had implemented for larger and larger numbers of time steps and oh boy is there something terrible wrong there. I know the path dependant method is O(2^n) but there must be something horribly wrong with the visitors because this thing chugs. Admittedly, I did write this with the 'I am learning ethos, let me try this' ethos so I was never too fussed about performance but this irks me now. After reading implementing Quant Lib, I wanted to implement a lower triangular matrix version of this model ( at the expense of path dependant results ) This ends up having O(n^2) time complexity and that mades a world of difference. You can actually get a ms result close to analytical black-scholes now!
+At work I mainly write C++, so I am starting to develop an unhealthy obsession with performance. I started testing the binomial model I had implemented for larger and larger numbers of time steps and oh boy is there something terrible wrong there. I know the path dependant method is O(2^n) but there must be something horribly wrong with the visitors because this thing chugs. Admittedly, I did write this with the 'I am learning ethos, let me try this' ethos so I was never too fussed about performance but this irks me now. After reading implementing Quant Lib, I wanted to implement a lower triangular matrix version of this model ( at the expense of path dependant results ) This ends up having O(n^2) time complexity and that made a world of difference. You can actually get a ms result close to analytical black-scholes now!
 
-Again on the performance theme, lets talk about the UI. I enjoyed learning aboout WPF and the MVVM. It seems like a half decent way to make a professional peice of software. However, I hate it. Maybe this is a result of what I was doing by visualising the tree, but boy did I struggle hack and GPT those edges [lines] in that connect the nodes. They are terrible and they contribute to the majority of the slowness of the UI itself. Also, events suck.
+Again on the performance theme, lets talk about the UI. I enjoyed learning about WPF and the MVVM. It seems like a half decent way to make a professional piece of software. However, I hate it. Maybe this is a result of what I was doing by visualizing the tree, but boy did I struggle hack and GPT those edges [lines] in that connect the nodes. They are terrible and they contribute to the majority of the slowness of the UI itself. Also, events suck.
 
-A note, I do actually know good git ettiquete. You just don't require it when you are working on a solo project and have stashes that you can use instead of branches.
+A note, I do actually know good git etiquette. You just don't require it when you are working on a solo project and have stashes that you can use instead of branches.
 
 ## Furtherwork
 

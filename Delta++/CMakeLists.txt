@@ -3,6 +3,14 @@ file(GLOB_RECURSE ${DPP_LIB_NAME}_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
+# Exclude problematic files for WebAssembly builds
+if(EMSCRIPTEN)
+    list(REMOVE_ITEM ${DPP_LIB_NAME}_SRC 
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/monte_carlo_exercise.cpp"
+    )
+    message(STATUS "Excluded Monte Carlo files for WebAssembly build")
+endif()
+
 file(GLOB_RECURSE ${DPP_LIB_NAME}_TEST_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp
 )

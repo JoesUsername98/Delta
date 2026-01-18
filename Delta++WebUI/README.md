@@ -1,13 +1,29 @@
-# Delta++ WebAssembly
+# Delta++ WebUI
 
-This is the WebAssembly version of Delta++UI, allowing the options pricing engine to run in web browsers.
+WebAssembly interface for Delta++ derivatives pricing library using Dear ImGui.
+
+## Project Structure
+
+```
+Delta++WebUI/
+├── src/
+│   ├── main.cpp              # Main WebAssembly application  
+│   └── test_simple.cpp       # Simple ImGui test application
+├── inc/
+│   └── compatibility.hpp     # C++23 std::expected polyfill
+├── CMakeLists.txt            # Build configuration
+├── index.html               # Web page template
+├── BUILD_INSTRUCTIONS.md    # Complete build guide
+└── README.md               # This file
+```
+
+**Build Output**: `../build/Delta++WebUI/` (matches Delta++UI pattern)
 
 ## Features
 
-- **Black-Scholes Engine**: Full implementation with Greeks calculation (Delta, Gamma, Vega, Rho)
-- **Real-time Calculation**: Dynamic recalculation as parameters change
-- **Cross-Platform**: Runs in any modern web browser with WebGL2 support
-- **Responsive UI**: ImGui-based interface optimized for web
+- **Modern C++23**: Full support including `std::expected`
+- **WebAssembly Compilation**: Optimized WASM output via Emscripten
+- **Dear ImGui Interface**: Professional derivatives trading UI
 
 ## Building
 
