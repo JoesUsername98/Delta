@@ -68,6 +68,13 @@ endif ( ENABLE_COVERAGE )
 add_subdirectory(configured)
 add_subdirectory(Delta++Math)
 add_subdirectory(Delta++)
-if (WIN32)
+
+# Add desktop UI for Windows/Linux
+if (WIN32 OR (UNIX AND NOT EMSCRIPTEN))
   add_subdirectory(Delta++UI)
-endif (WIN32)
+endif ()
+
+# Add WebAssembly UI when building with Emscripten
+if (EMSCRIPTEN)
+  add_subdirectory(Delta++WebUI)
+endif ()
