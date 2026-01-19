@@ -27,44 +27,105 @@ $ cmake --build .
 
 This builds the desktop UI version using Vulkan. The WebAssembly version is automatically excluded from standard builds.
 
-### WebAssembly Build
+### WebAssembly Build (New!)
 
-To build the WebAssembly version with Emscripten:
+Delta++ now includes a WebAssembly (WebUI) version that runs directly in web browsers! This provides an interactive derivatives pricing interface using ImGui and WebGL.
 
-**Linux/WSL:**
-```bash
-$ mkdir build
-$ cd build
-$ emcmake cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5"
-$ emmake make -j4
-```
+#### Prerequisites for WebAssembly
 
-**Windows (PowerShell):**
+1. **Emscripten SDK**: Download and install from https://emscripten.org/docs/getting_started/downloads.html
+   ```bash
+   git clone https://github.com/emscripten-core/emsdk.git
+   cd emsdk
+   emsdk install latest
+   emsdk activate latest
+   ```
+
+2. **ImGui Library**: Clone into project root
+   ```bash
+   git clone https://github.com/ocornut/imgui.git --depth 1
+   ```
+
+3. **Python**: Required for local web server (usually pre-installed)
+
+#### Building WebAssembly Version
+
+**Windows PowerShell:**
 ```powershell
+# Navigate to project directory
+cd path\to\Delta
+
+# Create and enter build directory
 mkdir build
 cd build
-C:\repos\emsdk\python\3.13.3_64bit\python.exe C:\repos\emsdk\upstream\emscripten\emcmake.py cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5" -G "Ninja"
-ninja
+
+# Add ninja to PATH (if not already done)
+$env:PATH += ";$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Ninja-build.Ninja_Microsoft.Winget.Source_8wekyb3d8bbwe"
+
+# Configure with Emscripten (automatically detects and includes WebUI)
+cmd /c "C:\path\to\emsdk\emsdk_env.bat && emcmake cmake .. -G Ninja"
+
+# Build the WebAssembly application
+ninja DeltaWebUI
 ```
 
-The WebAssembly build will create `DeltaWebUI.js` and `DeltaWebUI.wasm` files in `build/WebUI_build/`.
-
-To test the WebAssembly version:
-```powershell
-cd build/WebUI_build
-python -m http.server 8080
-# Open http://localhost:8080/index.html in your browser
-```
-
-**Note**: The WebAssembly build requires ImGui to be cloned in the project root:
+**Linux/macOS/WSL:**
 ```bash
-git clone https://github.com/ocornut/imgui.git --depth 1
+# Navigate to project directory
+cd /path/to/Delta
+
+# Create and enter build directory
+mkdir build && cd build
+
+# Activate Emscripten environment
+source /path/to/emsdk/emsdk_env.sh
+
+# Configure with Emscripten
+emcmake cmake .. -G Ninja
+
+# Build the WebAssembly application
+ninja DeltaWebUI
 ```
 
-**WebAssembly Build Notes**:
-- The WebAssembly build focuses on the Black-Scholes engine and basic derivatives pricing
-- Some advanced C++23 features (like `std::views::stride`) may not be fully supported in Emscripten
-- If you encounter build errors related to Monte Carlo components, these don't affect the core WebAssembly UI functionality
+#### Running the Web Application
+
+1. **Start Local Web Server**:
+   ```bash
+   # From the build directory
+   cd WebUI_build
+   python -m http.server 8080
+   ```
+
+2. **Open in Browser**:
+   Navigate to `http://localhost:8080` in your web browser
+
+3. **Use the Application**:
+   - Enter option parameters (spot price, strike, volatility, etc.)
+   - Select option type (Call/Put) and exercise style (European/American)
+   - Click "Calculate" to get pricing results
+   - Results show theoretical price, Greeks (Delta, Gamma, Theta, Vega, Rho), and intrinsic value
+
+#### WebAssembly Features
+
+- **Interactive GUI**: Full ImGui interface with real-time parameter adjustment
+- **Complete Pricing Engine**: Access to all Delta++ pricing models and Greeks calculations
+- **Cross-Platform**: Runs in any modern web browser (Chrome, Firefox, Safari, Edge)
+- **No Installation**: Users can access the calculator directly via web browser
+- **Professional Results**: Same accuracy as desktop version with formatted numerical output
+
+#### Integration Notes
+
+- The WebAssembly build automatically excludes benchmark and test executables for size optimization
+- WebUI builds to `build/WebUI_build/` to maintain professional project structure  
+- The web version includes the same mathematical precision as the desktop application
+- Monte Carlo methods are excluded in WebAssembly builds due to platform limitations
+
+#### Deployment Ready
+
+For GitHub Pages deployment:
+1. Copy the contents of `WebUI_build/` to your GitHub Pages repository
+2. The `index.html`, `DeltaWebUI.js`, and `DeltaWebUI.wasm` files contain the complete application
+3. No server-side processing required - purely client-side application
 
 To generate the code coverage tool replace step 4 with
 ```bash

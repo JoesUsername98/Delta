@@ -13,18 +13,22 @@ target_include_directories(${DPP_MATH_LIB_NAME} PUBLIC
     "./inc"
     "${CMAKE_BINARY_DIR}/configured_files/include")
 
-enable_testing()
+# Only build tests for non-WebAssembly builds
+if(NOT EMSCRIPTEN)
+    enable_testing()
 
-add_executable(
-    ${DPP_MATH_LIB_NAME}_Test
-    ${${DPP_MATH_LIB_NAME}_TEST_FILES}
-)
-target_link_libraries(${DPP_MATH_LIB_NAME}_Test PUBLIC ${DPP_MATH_LIB_NAME})
-target_link_libraries(${DPP_MATH_LIB_NAME}_Test PRIVATE GTest::gtest_main)
+    add_executable(
+        ${DPP_MATH_LIB_NAME}_Test
+        ${${DPP_MATH_LIB_NAME}_TEST_FILES}
+    )
+    target_link_libraries(${DPP_MATH_LIB_NAME}_Test PUBLIC ${DPP_MATH_LIB_NAME})
+    target_link_libraries(${DPP_MATH_LIB_NAME}_Test PRIVATE GTest::gtest_main)
 
-include(GoogleTest)
-gtest_discover_tests(${DPP_MATH_LIB_NAME}_Test)
+    include(GoogleTest)
+    gtest_discover_tests(${DPP_MATH_LIB_NAME}_Test)
+    
+    set_target_properties(${DPP_MATH_LIB_NAME}_Test  PROPERTIES FOLDER "Delat++/Test")
+endif()
 
 set_target_properties(${DPP_MATH_LIB_NAME} PROPERTIES FOLDER "Delat++/Lib")
-set_target_properties(${DPP_MATH_LIB_NAME}_Test  PROPERTIES FOLDER "Delat++/Test")
 # set_target_properties(${DPP_MATH_LIB_NAME}_Bench PROPERTIES FOLDER "Delat++/Bench")
