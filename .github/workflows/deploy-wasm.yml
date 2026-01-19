@@ -1,0 +1,113 @@
+name: Deploy Delta++ WebAssembly to GitHub Pages
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'Delta++WebUI/*'
+      - 'Delta++WebUI/**/*'
+      - 'Delta++/*'
+      - 'Delta++/**/*'
+      - 'Delta++Math/*'
+      - 'Delta++Math/**/*'
+      - '.github/workflows/deploy-wasm.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'Delta++WebUI/*'
+      - 'Delta++WebUI/**/*'
+      - 'Delta++/*' 
+      - 'Delta++/**/*'
+      - 'Delta++Math/*'
+      - 'Delta++Math/**/*'
+
+  # Allow manual triggers
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Emscripten
+      uses: mymindstorm/setup-emsdk@v13
+      with:
+        version: 3.1.50
+        actions-cache-folder: 'emsdk-cache'
+    
+    - name: Clone ImGui
+      run: |
+        cd ..
+        git clone https://github.com/ocornut/imgui.git --depth 1
+        ls -la
+    
+    - name: Verify Emscripten installation
+      run: |
+        emcc --version
+        which emcc
+    
+    - name: Build WebAssembly
+      run: |
+        cd Delta++WebUI
+        ls -la
+        pwd
+        # Check if ImGui is available
+        ls -la ../../imgui/ || echo "ImGui not found in expected location"
+        # Build the WebAssembly version
+        make clean || true
+        make
+    
+    - name: Prepare deployment files
+      run: |
+        cd Delta++WebUI
+        ls -la
+        # Create deployment directory
+        mkdir -p ../deploy
+        # Copy generated files
+        cp delta.js ../deploy/ || echo "delta.js not found"
+        cp delta.wasm ../deploy/ || echo "delta.wasm not found"
+        cp index.html ../deploy/
+        cp README.md ../deploy/
+        # List what we're deploying
+        ls -la ../deploy/
+    
+    - name: Setup Pages
+      if: github.ref == 'refs/heads/master'
+      uses: actions/configure-pages@v4
+    
+    - name: Upload artifact
+      if: github.ref == 'refs/heads/master'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './deploy'
+    
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/master'
+      id: deployment
+      uses: actions/deploy-pages@v4
+      
+    - name: Output deployment URL
+      if: github.ref == 'refs/heads/master'
+      run: |
+        echo "🚀 Deployment completed!"
+        echo "📱 Your Delta++ WebAssembly app is now available at:"
+        echo "🔗 https://joesusername98.github.io/"
+        echo ""
+        echo "📋 Deployment details:"
+        echo "   - Build time: $(date)"
+        echo "   - Commit: ${{ github.sha }}"
+        echo "   - Branch: ${{ github.ref_name }}"

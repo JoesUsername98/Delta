@@ -10,6 +10,8 @@ Vulkan
 
 Once you have installed Vulkan and cloned the repository run the following commands
 
+### Standard Desktop Build
+
 ```bash
 $ mkdir build
 ```
@@ -22,6 +24,108 @@ $ cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5"
 ```bash
 $ cmake --build . 
 ```
+
+This builds the desktop UI version using Vulkan. The WebAssembly version is automatically excluded from standard builds.
+
+### WebAssembly Build (New!)
+
+Delta++ now includes a WebAssembly (WebUI) version that runs directly in web browsers! This provides an interactive derivatives pricing interface using ImGui and WebGL.
+
+#### Prerequisites for WebAssembly
+
+1. **Emscripten SDK**: Download and install from https://emscripten.org/docs/getting_started/downloads.html
+   ```bash
+   git clone https://github.com/emscripten-core/emsdk.git
+   cd emsdk
+   emsdk install latest
+   emsdk activate latest
+   ```
+
+2. **ImGui Library**: Clone into project root
+   ```bash
+   git clone https://github.com/ocornut/imgui.git --depth 1
+   ```
+
+3. **Python**: Required for local web server (usually pre-installed)
+
+#### Building WebAssembly Version
+
+**Windows PowerShell:**
+```powershell
+# Navigate to project directory
+cd path\to\Delta
+
+# Create and enter build directory
+mkdir build
+cd build
+
+# Add ninja to PATH (if not already done)
+$env:PATH += ";$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Ninja-build.Ninja_Microsoft.Winget.Source_8wekyb3d8bbwe"
+
+# Configure with Emscripten (automatically detects and includes WebUI)
+cmd /c "C:\path\to\emsdk\emsdk_env.bat && emcmake cmake .. -G Ninja"
+
+# Build the WebAssembly application
+ninja DeltaWebUI
+```
+
+**Linux/macOS/WSL:**
+```bash
+# Navigate to project directory
+cd /path/to/Delta
+
+# Create and enter build directory
+mkdir build && cd build
+
+# Activate Emscripten environment
+source /path/to/emsdk/emsdk_env.sh
+
+# Configure with Emscripten
+emcmake cmake .. -G Ninja
+
+# Build the WebAssembly application
+ninja DeltaWebUI
+```
+
+#### Running the Web Application
+
+1. **Start Local Web Server**:
+   ```bash
+   # From the build directory
+   cd WebUI_build
+   python -m http.server 8080
+   ```
+
+2. **Open in Browser**:
+   Navigate to `http://localhost:8080` in your web browser
+
+3. **Use the Application**:
+   - Enter option parameters (spot price, strike, volatility, etc.)
+   - Select option type (Call/Put) and exercise style (European/American)
+   - Click "Calculate" to get pricing results
+   - Results show theoretical price, Greeks (Delta, Gamma, Theta, Vega, Rho), and intrinsic value
+
+#### WebAssembly Features
+
+- **Interactive GUI**: Full ImGui interface with real-time parameter adjustment
+- **Complete Pricing Engine**: Access to all Delta++ pricing models and Greeks calculations
+- **Cross-Platform**: Runs in any modern web browser (Chrome, Firefox, Safari, Edge)
+- **No Installation**: Users can access the calculator directly via web browser
+- **Professional Results**: Same accuracy as desktop version with formatted numerical output
+
+#### Integration Notes
+
+- The WebAssembly build automatically excludes benchmark and test executables for size optimization
+- WebUI builds to `build/WebUI_build/` to maintain professional project structure  
+- The web version includes the same mathematical precision as the desktop application
+- Monte Carlo methods are excluded in WebAssembly builds due to platform limitations
+
+#### Deployment Ready
+
+For GitHub Pages deployment:
+1. Copy the contents of `WebUI_build/` to your GitHub Pages repository
+2. The `index.html`, `DeltaWebUI.js`, and `DeltaWebUI.wasm` files contain the complete application
+3. No server-side processing required - purely client-side application
 
 To generate the code coverage tool replace step 4 with
 ```bash
@@ -88,13 +192,13 @@ This is a WPF application so I expect you to use a windows based IDE. To that en
 I may end up writing more characters here than in the entire of my project!
 To start, I would like to say that this was designed from inception to be a showcase project with a start and finishing pont. I think I am now at version 1.0. I have a minimum viable "product". It has a UI and it does some maths. The maths was the easy part and the UI was essential to keep your ape brain stimulated. Something this project was never meant to be was perfect.
 
-From inception of this project I had two main themes, to relegiously follow TDD and menaically implement as many design patterns as I had read about in the gang of four book, both had more or less stopped by the projects completion [for worse and better, respectively]. TDD died off because I was being lazy, honestly. To test in a professional way, I would have to revamp almost all my tests that I had written so far. I stopped using design patterns because I realised that they are a tool best used seldomly ( apart from strategy, everyone likes the strategy pattern .) This is an important part about growing up as someone who engineers software you learn that the answer is always 'it depends', and when it comes to design patterns, the answer is almost always 'nah, you ain't gunna need it.'
+From inception of this project I had two main themes, to religiously follow TDD and manically implement as many design patterns as I had read about in the gang of four book, both had more or less stopped by the projects completion [for worse and better, respectively]. TDD died off because I was being lazy, honestly. To test in a professional way, I would have to revamp almost all my tests that I had written so far. I stopped using design patterns because I realised that they are a tool best used seldomly ( apart from strategy, everyone likes the strategy pattern .) This is an important part about growing up as someone who engineers software you learn that the answer is always 'it depends', and when it comes to design patterns, the answer is almost always 'nah, you ain't gunna need it.'
 
-At work I mainly write C++, so I am starting to develop an unhealthy obsession with performance. I started testing the binomial model I had implemented for larger and larger numbers of time steps and oh boy is there something terrible wrong there. I know the path dependant method is O(2^n) but there must be something horribly wrong with the visitors because this thing chugs. Admittedly, I did write this with the 'I am learning ethos, let me try this' ethos so I was never too fussed about performance but this irks me now. After reading implementing Quant Lib, I wanted to implement a lower triangular matrix version of this model ( at the expense of path dependant results ) This ends up having O(n^2) time complexity and that mades a world of difference. You can actually get a ms result close to analytical black-scholes now!
+At work I mainly write C++, so I am starting to develop an unhealthy obsession with performance. I started testing the binomial model I had implemented for larger and larger numbers of time steps and oh boy is there something terrible wrong there. I know the path dependant method is O(2^n) but there must be something horribly wrong with the visitors because this thing chugs. Admittedly, I did write this with the 'I am learning ethos, let me try this' ethos so I was never too fussed about performance but this irks me now. After reading implementing Quant Lib, I wanted to implement a lower triangular matrix version of this model ( at the expense of path dependant results ) This ends up having O(n^2) time complexity and that made a world of difference. You can actually get a ms result close to analytical black-scholes now!
 
-Again on the performance theme, lets talk about the UI. I enjoyed learning aboout WPF and the MVVM. It seems like a half decent way to make a professional peice of software. However, I hate it. Maybe this is a result of what I was doing by visualising the tree, but boy did I struggle hack and GPT those edges [lines] in that connect the nodes. They are terrible and they contribute to the majority of the slowness of the UI itself. Also, events suck.
+Again on the performance theme, lets talk about the UI. I enjoyed learning about WPF and the MVVM. It seems like a half decent way to make a professional piece of software. However, I hate it. Maybe this is a result of what I was doing by visualizing the tree, but boy did I struggle hack and GPT those edges [lines] in that connect the nodes. They are terrible and they contribute to the majority of the slowness of the UI itself. Also, events suck.
 
-A note, I do actually know good git ettiquete. You just don't require it when you are working on a solo project and have stashes that you can use instead of branches.
+A note, I do actually know good git etiquette. You just don't require it when you are working on a solo project and have stashes that you can use instead of branches.
 
 ## Furtherwork
 

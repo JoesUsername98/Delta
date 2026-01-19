@@ -3,6 +3,14 @@ file(GLOB_RECURSE ${DPP_LIB_NAME}_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
+# Exclude problematic files for WebAssembly builds
+if(EMSCRIPTEN)
+    list(REMOVE_ITEM ${DPP_LIB_NAME}_SRC 
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/monte_carlo_exercise.cpp"
+    )
+    message(STATUS "Excluded Monte Carlo files for WebAssembly build")
+endif()
+
 file(GLOB_RECURSE ${DPP_LIB_NAME}_TEST_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp
 )
@@ -23,33 +31,36 @@ target_include_directories(${DPP_LIB_NAME} PUBLIC
     "./inc"
     "${CMAKE_BINARY_DIR}/configured_files/include")
 
-enable_testing()
+# Only build tests and benchmarks for non-WebAssembly builds
+if(NOT EMSCRIPTEN)
+    enable_testing()
 
-add_executable(
-    ${DPP_LIB_NAME}_Test
-    ${${DPP_LIB_NAME}_TEST_FILES}
-)
+    add_executable(
+        ${DPP_LIB_NAME}_Test
+        ${${DPP_LIB_NAME}_TEST_FILES}
+    )
 
-target_link_libraries(${DPP_LIB_NAME}_Test PUBLIC ${DPP_LIB_NAME})
-target_link_libraries(${DPP_LIB_NAME}_Test PRIVATE GTest::gtest_main)
+    target_link_libraries(${DPP_LIB_NAME}_Test PUBLIC ${DPP_LIB_NAME})
+    target_link_libraries(${DPP_LIB_NAME}_Test PRIVATE GTest::gtest_main)
 
-add_executable(
-    ${DPP_LIB_NAME}_Bench
-    ${${DPP_LIB_NAME}_BENCH_FILES}
-)
+    add_executable(
+        ${DPP_LIB_NAME}_Bench
+        ${${DPP_LIB_NAME}_BENCH_FILES}
+    )
 
-set(BENCHMARK_ENABLE_TESTING off)
+    set(BENCHMARK_ENABLE_TESTING off)
 
-target_link_libraries(
-    ${DPP_LIB_NAME}_Bench 
-    PRIVATE 
-        ${DPP_LIB_NAME} 
-        benchmark::benchmark
-        benchmark::benchmark_main
-)
+    target_link_libraries(
+        ${DPP_LIB_NAME}_Bench 
+        PRIVATE 
+            ${DPP_LIB_NAME} 
+            benchmark::benchmark
+            benchmark::benchmark_main
+    )
 
-include(GoogleTest)
-gtest_discover_tests(${DPP_LIB_NAME}_Test)
+    include(GoogleTest)
+    gtest_discover_tests(${DPP_LIB_NAME}_Test)
+endif()
 
 if(ENABLE_COVERAGE)
     set(COVERAGE_MAIN "coverage")
@@ -72,5 +83,8 @@ if(ENABLE_COVERAGE)
 endif( ENABLE_COVERAGE )
 
 set_target_properties(${DPP_LIB_NAME} PROPERTIES FOLDER "Delat++/Lib")
-set_target_properties(${DPP_LIB_NAME}_Test  PROPERTIES FOLDER "Delat++/Test")
-set_target_properties(${DPP_LIB_NAME}_Bench PROPERTIES FOLDER "Delat++/Bench")
+
+if(NOT EMSCRIPTEN)
+    set_target_properties(${DPP_LIB_NAME}_Test  PROPERTIES FOLDER "Delat++/Test")
+    set_target_properties(${DPP_LIB_NAME}_Bench PROPERTIES FOLDER "Delat++/Bench")
+endif()
