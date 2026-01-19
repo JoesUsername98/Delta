@@ -1,15 +1,21 @@
 # Delta++
 
-This is a clone of Delta in C++ using Dear ImGUI for the (more basic) front end.
+This is a clone of Delta in C++ using Dear ImGui with OpenGL backend for the front end.
 
-## Prequisites
+## Prerequisites
 
-Vulkan
+- C++23 compatible compiler
+- CMake 3.16 or higher
+- OpenGL compatible graphics driver
+- Git (for submodules)
 
 ## Getting Started
 
-Once you have installed Vulkan and cloned the repository run the following commands
+Once you have cloned the repository, initialize the submodules and build:
 
+```bash
+$ git submodule update --init --recursive
+```
 ```bash
 $ mkdir build
 ```
@@ -23,15 +29,41 @@ $ cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5"
 $ cmake --build . 
 ```
 
-To generate the code coverage tool replace step 4 with
+### Windows-specific Build
+
+For Windows with Visual Studio:
 ```bash
-cmake --build . [ --target coverage ]
+$ cmake .. -G "Visual Studio 17 2022" -A x64
+$ cmake --build . --config Debug
 ```
 
-To configure and build for Google Benchmark replace step 3 with a release build
+To generate the code coverage tool replace the final step with:
+```bash
+cmake --build . --target coverage
+```
+
+To configure and build for Google Benchmark, use a release build:
 ```bash
 $ cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5" -DCMAKE_BUILD_TYPE=Release
 ```
+
+## Architecture
+
+The project is structured as follows:
+
+- **Delta++**: Core mathematical library with derivatives pricing models
+- **Delta++Math**: Mathematical utilities and algorithms  
+- **Delta++UI**: OpenGL-based ImGui interface for interactive pricing
+- **walnut_custom**: Custom OpenGL implementation of the Walnut framework
+
+## UI Framework Migration
+
+The project has been migrated from Vulkan to OpenGL for broader compatibility:
+
+- **Original Walnut**: Uses the StudioCherno/Walnut framework as a git submodule
+- **Custom OpenGL Backend**: Custom implementation in `walnut_custom/` library
+- **Clean Submodule Management**: Original Walnut submodule remains unmodified
+- **CMake Integration**: Full CMake build system replacing the original Premake5
 
 ## Most Recent Benchmarks
 
@@ -71,37 +103,33 @@ OPTIONS: --benchmark_min_time=10s
 | BM_BAMP_EuroCall_Steps/4096      | 187 ms    | 187 ms   | 85         | 512 MiB  | 44.089530 |
 | BM_BAMP_EuroCall_Steps/8192      | 671 ms    | 670 ms   | 20         | 2 GiB    | 44.088074 |
 
-# Delta
+# Original Delta Project History
 
-This started off as a working example of Shreve Stochastic Calculus I. After about 2 years, I revisited the project and implemented some new features that I understood after reading Implementing Quant Lib, Paul Willmott 1&2 and flicking through Hull. The initail aim was to aid in basic learning of the BAPM. I later learned of DerivaGens existence... thanks Hull.
+This started off as a working example of Shreve Stochastic Calculus I. After about 2 years, I revisited the project and implemented some new features that I understood after reading Implementing QuantLib, Paul Willmott 1&2 and flipping through Hull. The initial aim was to aid in basic learning of the BAPM. I later learned of DerivaGen's existence... thanks Hull.
 
-## Getting Started
+## Original .NET Version
 
-I would like to think this works straight out of the box being a .Net program apart from needing the Extended.Wpf.Toolkit by Xceed for a UI element I liked. K.I.S.S, Just use Nuget for this.
+The original version was a WPF application that worked straight out of the box being a .NET program apart from needing the Extended.Wpf.Toolkit by Xceed for a UI element. 
 
-## Running the tests
+## Developer Commentary
 
-This is a WPF application so I expect you to use a windows based IDE. To that end, you should have a test explorer there.
+I may end up writing more characters here than in the entire project!
+To start, I would like to say that this was designed from inception to be a showcase project with a start and finishing point. I think I am now at version 1.0. I have a minimum viable "product". It has a UI and it does some math. The math was the easy part and the UI was essential to keep your ape brain stimulated. Something this project was never meant to be was perfect.
 
-## Directors Commentary
+From inception of this project I had two main themes: to religiously follow TDD and maniacally implement as many design patterns as I had read about in the Gang of Four book. Both had more or less stopped by the project's completion [for worse and better, respectively]. TDD died off because I was being lazy, honestly. To test in a professional way, I would have to revamp almost all my tests that I had written so far. I stopped using design patterns because I realized that they are a tool best used seldomly (apart from strategy, everyone likes the strategy pattern). This is an important part about growing up as someone who engineers software - you learn that the answer is always "it depends", and when it comes to design patterns, the answer is almost always "nah, you ain't gonna need it."
 
-I may end up writing more characters here than in the entire of my project!
-To start, I would like to say that this was designed from inception to be a showcase project with a start and finishing pont. I think I am now at version 1.0. I have a minimum viable "product". It has a UI and it does some maths. The maths was the easy part and the UI was essential to keep your ape brain stimulated. Something this project was never meant to be was perfect.
+At work I mainly write C++, so I am starting to develop an unhealthy obsession with performance. I started testing the binomial model I had implemented for larger and larger numbers of time steps and oh boy is there something terribly wrong there. I know the path dependent method is O(2^n) but there must be something horribly wrong with the visitors because this thing chugs. Admittedly, I did write this with the "I am learning, let me try this" ethos so I was never too fussed about performance but this irks me now. After reading Implementing QuantLib, I wanted to implement a lower triangular matrix version of this model (at the expense of path dependent results). This ends up having O(n^2) time complexity and that makes a world of difference. You can actually get a millisecond result close to analytical Black-Scholes now!
 
-From inception of this project I had two main themes, to relegiously follow TDD and menaically implement as many design patterns as I had read about in the gang of four book, both had more or less stopped by the projects completion [for worse and better, respectively]. TDD died off because I was being lazy, honestly. To test in a professional way, I would have to revamp almost all my tests that I had written so far. I stopped using design patterns because I realised that they are a tool best used seldomly ( apart from strategy, everyone likes the strategy pattern .) This is an important part about growing up as someone who engineers software you learn that the answer is always 'it depends', and when it comes to design patterns, the answer is almost always 'nah, you ain't gunna need it.'
+Again on the performance theme, let's talk about the UI. I enjoyed learning about WPF and the MVVM. It seems like a half decent way to make a professional piece of software. However, I hate it. Maybe this is a result of what I was doing by visualizing the tree, but boy did I struggle to hack those edges [lines] that connect the nodes. They are terrible and they contribute to the majority of the slowness of the UI itself. Also, events suck.
 
-At work I mainly write C++, so I am starting to develop an unhealthy obsession with performance. I started testing the binomial model I had implemented for larger and larger numbers of time steps and oh boy is there something terrible wrong there. I know the path dependant method is O(2^n) but there must be something horribly wrong with the visitors because this thing chugs. Admittedly, I did write this with the 'I am learning ethos, let me try this' ethos so I was never too fussed about performance but this irks me now. After reading implementing Quant Lib, I wanted to implement a lower triangular matrix version of this model ( at the expense of path dependant results ) This ends up having O(n^2) time complexity and that mades a world of difference. You can actually get a ms result close to analytical black-scholes now!
+A note: I do actually know good git etiquette. You just don't require it when you are working on a solo project and have stashes that you can use instead of branches.
 
-Again on the performance theme, lets talk about the UI. I enjoyed learning aboout WPF and the MVVM. It seems like a half decent way to make a professional peice of software. However, I hate it. Maybe this is a result of what I was doing by visualising the tree, but boy did I struggle hack and GPT those edges [lines] in that connect the nodes. They are terrible and they contribute to the majority of the slowness of the UI itself. Also, events suck.
+## Future Work
 
-A note, I do actually know good git ettiquete. You just don't require it when you are working on a solo project and have stashes that you can use instead of branches.
-
-## Furtherwork
-
-- Asianing and Lookbacks seem to be exclusively an option for the BAPM.
+- Asian and Lookback options seem to be exclusively an option for the BAPM.
 - Adding dividends.
-- Fixing that bloody, LayoutUpdated event that slows the UI down to a stand still!
-- I would like to work more with rates and ivestigate a boostrapping tool and maybe something to construct a volatility surface (once I have finished reading Willmott 3.) This will likely be a new library and bastardise the UI further.
+- Fixing that bloody LayoutUpdated event that slows the UI down to a standstill!
+- I would like to work more with rates and investigate a bootstrapping tool and maybe something to construct a volatility surface (once I have finished reading Willmott 3). This will likely be a new library and bastardize the UI further.
 
 ## Authors
 
