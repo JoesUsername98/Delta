@@ -184,7 +184,6 @@ namespace Walnut {
 			ImGui::PopStyleVar(2);
 
 			// Submit the DockSpace
-			ImGuiIO& io = ImGui::GetIO();
 			if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 			{
 				ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
