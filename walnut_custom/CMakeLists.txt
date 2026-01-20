@@ -4,25 +4,55 @@ project(walnut_custom)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Add GLFW from Walnut submodule
+# Use FetchContent for GLFW
+include(FetchContent)
+
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG 3.4
+    GIT_SHALLOW TRUE
+)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(${CMAKE_SOURCE_DIR}/Delta++UI/vendor/Walnut/vendor/GLFW ${CMAKE_BINARY_DIR}/walnut_glfw EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(glfw)
 
-# Add ImGui from Walnut submodule
-set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/Delta++UI/vendor/Walnut/vendor/imgui)
-file(GLOB IMGUI_SOURCES 
-    ${IMGUI_DIR}/*.cpp
+# Use FetchContent for ImGui
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.90.1
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(imgui)
+
+# Create ImGui library with OpenGL backend
+set(IMGUI_DIR ${imgui_SOURCE_DIR})
+add_library(imgui STATIC
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_demo.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
 )
-add_library(imgui STATIC ${IMGUI_SOURCES})
 target_include_directories(imgui PUBLIC 
-    ${IMGUI_DIR} 
+    ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
 )
 target_link_libraries(imgui PRIVATE glfw)
+target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
+
+# Add GLAD for OpenGL loading\nFetchContent_Declare(\n    glad\n    GIT_REPOSITORY https://github.com/Dav1dde/glad.git\n    GIT_TAG v0.1.36\n    GIT_SHALLOW TRUE\n)\nFetchContent_MakeAvailable(glad)\n\n# Add GLM
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 0.9.9.8
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(glm)
 
 # Create the custom Walnut library with OpenGL backend
 add_library(walnut_custom STATIC
@@ -33,11 +63,9 @@ add_library(walnut_custom STATIC
 # Include directories
 target_include_directories(walnut_custom PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/Delta++UI/vendor/Walnut/Walnut/src
-    ${CMAKE_SOURCE_DIR}/Delta++UI/vendor/Walnut/vendor/imgui
-    ${CMAKE_SOURCE_DIR}/Delta++UI/vendor/Walnut/vendor/imgui/backends
-    ${CMAKE_SOURCE_DIR}/Delta++UI/vendor/Walnut/vendor/glm
-    ${CMAKE_SOURCE_DIR}/Delta++UI/vendor/Walnut/vendor/GLFW/include
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
+    ${glm_SOURCE_DIR}
 )
 
 # Find OpenGL

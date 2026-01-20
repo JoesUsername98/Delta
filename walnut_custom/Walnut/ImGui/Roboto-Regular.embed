@@ -1,0 +1,4 @@
+// Dummy embedded font data
+// In a real implementation, this would contain the binary font data
+static const unsigned char g_RobotoRegular[] = { 0 };
+static const unsigned int g_RobotoRegularSize = 0;
