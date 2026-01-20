@@ -26,7 +26,7 @@ TEST( engine_mc, EuroCallPV )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::PV ) != engine_mc->m_results.end() );
     
-    const double expected_pv = 7.657011201984667;
+    const double expected_pv = 7.6452181227433922;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::PV ).value(),
         expected_pv,
@@ -47,7 +47,7 @@ TEST( engine_mc, EuroPutPV )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::PV ) != engine_mc->m_results.end() );
     
-    const double expected_pv = 7.4810055016788821;
+    const double expected_pv = 7.3935839856863295;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::PV ).value() ,
         expected_pv, 
@@ -68,7 +68,7 @@ TEST( engine_mc, AmerCallPV )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::PV ) != engine_mc->m_results.end() );
     
-    const double expected_pv = 13.371611621392097;
+    const double expected_pv = 13.285859566122195;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::PV ).value(),
         expected_pv, 
@@ -89,7 +89,7 @@ TEST( engine_mc, AmerPutPV )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::PV ) != engine_mc->m_results.end() );
     
-    const double expected_pv = 15.924228122126411;
+    const double expected_pv = 15.916122098965991;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::PV ).value(),
         expected_pv, 
@@ -112,7 +112,7 @@ TEST( engine_mc, EuroCallDelta )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Delta ) != engine_mc->m_results.end() );
     
-    const double expected_delta = 0.55022140081792603;
+    const double expected_delta = 0.54737887910056138;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Delta ).value(),
         expected_delta, 
@@ -133,7 +133,7 @@ TEST( engine_mc, EuroPutDelta )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Delta ) != engine_mc->m_results.end() );
     
-    const double expected_delta = -0.41929948742677858;
+    const double expected_delta = -0.42705641267555094;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Delta ).value(),
         expected_delta, 
@@ -154,7 +154,7 @@ TEST( engine_mc, AmerCallDelta )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Delta ) != engine_mc->m_results.end() );
     
-    const double expected_delta = 0.94204371931060038;
+    const double expected_delta = 0.95036855524625352;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Delta ).value(),
         expected_delta, 
@@ -175,7 +175,7 @@ TEST( engine_mc, AmerPutDelta )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Delta ) != engine_mc->m_results.end() );
     
-    const double expected_delta = -0.86825443415032133;
+    const double expected_delta = -0.86839139105919472;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Delta ).value(),
         expected_delta, 
@@ -198,7 +198,7 @@ TEST( engine_mc, EuroCallGamma )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Gamma ) != engine_mc->m_results.end() );
     
-    const double expected_gamma = 0.026616961412988083;
+    const double expected_gamma = 0.019382314570957071;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Gamma ).value(),
         expected_gamma, 
@@ -219,7 +219,7 @@ TEST( engine_mc, EuroPutGamma )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Gamma ) != engine_mc->m_results.end() );
     
-    const double expected_gamma = 0.016611451885695239;
+    const double expected_gamma = 0.0093692421999884701;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Gamma ).value(),
         expected_gamma, 
@@ -240,7 +240,7 @@ TEST( engine_mc, AmerCallGamma )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Gamma ) != engine_mc->m_results.end() );
     
-    const double expected_gamma = 0.045806410967347944;
+    const double expected_gamma = 0.048928977300072063;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Gamma ).value(),
         expected_gamma, 
@@ -261,7 +261,7 @@ TEST( engine_mc, AmerPutGamma )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Gamma ) != engine_mc->m_results.end() );
     
-    const double expected_gamma = -0.0086335803749317819;
+    const double expected_gamma = -0.0086576513939071731;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Gamma ).value(),
         expected_gamma, 
@@ -284,7 +284,7 @@ TEST( engine_mc, EuroCallRho )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Rho ) != engine_mc->m_results.end() );
     
-    const double expected_rho = 47.106188662356715;
+    const double expected_rho = 46.834431815156563;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Rho ).value(),
         expected_rho, 
@@ -305,7 +305,7 @@ TEST( engine_mc, EuroPutRho )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Rho ) != engine_mc->m_results.end() );
     
-    const double expected_rho = -52.355660144722464;
+    const double expected_rho = -52.627033596496453;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Rho ).value(),
         expected_rho, 
@@ -326,7 +326,7 @@ TEST( engine_mc, AmerCallRho )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Rho ) != engine_mc->m_results.end() );
     
-    const double expected_rho = 51.599446462042486;
+    const double expected_rho = 52.194860913964547;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Rho ).value(),
         expected_rho, 
@@ -347,7 +347,7 @@ TEST( engine_mc, AmerPutRho )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Rho ) != engine_mc->m_results.end() );
     
-    const double expected_rho = -44.206806499909845;
+    const double expected_rho = -44.049588054060251;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Rho ).value(),
         expected_rho, 
@@ -370,7 +370,7 @@ TEST( engine_mc, EuroCallVega )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Vega ) != engine_mc->m_results.end() );
     
-    const double expected_vega = 37.32248716204829;
+    const double expected_vega = 37.131002628629517;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Vega ).value(),
         expected_vega, 
@@ -391,7 +391,7 @@ TEST( engine_mc, EuroPutVega )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Vega ) != engine_mc->m_results.end() );
     
-    const double expected_vega = 37.809516891168649;
+    const double expected_vega = 37.505354914658007;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Vega ).value(),
         expected_vega, 
@@ -412,7 +412,7 @@ TEST( engine_mc, AmerCallVega )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Vega) != engine_mc->m_results.end() );
     
-    const double expected_vega = 76.516609193764225;
+    const double expected_vega = 75.911396454998581;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Vega ).value(),
         expected_vega, 
@@ -433,7 +433,7 @@ TEST( engine_mc, AmerPutVega )
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
     EXPECT_TRUE( engine_mc->m_results.find( Calculation::Vega ) != engine_mc->m_results.end() );
     
-    const double expected_vega = 61.88000253122059;
+    const double expected_vega = 61.955894105174991;
       
     EXPECT_NEAR( engine_mc->m_results.at( Calculation::Vega ).value(),
         expected_vega, 

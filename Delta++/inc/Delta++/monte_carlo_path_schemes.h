@@ -17,20 +17,22 @@ namespace DPP
         std::vector<double> simPaths(const MarketData& mkt, const CalcData& calc, const double dt) const
         {
             const auto sqrt_dt = std::sqrt(dt);
+            
+			std::vector<double> unif_rands(calc.m_sims * ( calc.m_steps - 1 ), 2);
+            std::seed_seq seq{ 42 };
+            std::mt19937_64 rng{ seq };
+            std::uniform_real_distribution<double> unif(0.0, 1.0);
+            std::ranges::generate(unif_rands, [&]() { return unif(rng); });
+
             std::vector<double> sims(calc.m_sims * calc.m_steps, mkt.m_underlyingPrice);
-
             auto worker = [&](size_t start_sim, size_t end_sim, size_t thread_id) {
-                static thread_local std::seed_seq seq{ 42 + thread_id };
-                static thread_local std::mt19937_64 rng{ seq };
-                static thread_local std::uniform_real_distribution<double> unif(0.0, 1.0);
-
                 for (size_t sim_idx = start_sim; sim_idx < end_sim; ++sim_idx)
                 {
                     double s = mkt.m_underlyingPrice;
                     for (size_t step_index = 1; step_index < calc.m_steps; ++step_index)
                     {
                         const auto idx = sim_idx * calc.m_steps + step_index;
-                        const double u = unif(rng);
+                        const auto& u = unif_rands[(sim_idx * (calc.m_steps - 1)) + (step_index - 1)];
                         const double z = DPPMath::invCumDensity(u);
                         const double dW = sqrt_dt * z;
                         updatePrice(s, dW, dt, mkt);
