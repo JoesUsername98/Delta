@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.13...3.22)
 
 project("Delta++" VERSION 1.0.0 LANGUAGES CXX)
 
@@ -13,6 +13,9 @@ set(TEST_NAME "D++Tests")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+# Enable testing at the top level
+enable_testing()
 
 include(FetchContent)
 FetchContent_Declare(
@@ -46,19 +49,6 @@ if(WIN32)
 else()  
   option(ENABLE_COVERAGE "Enable a code coverage build." ON)
 endif ()
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(/fp:precise)
-    message(STATUS "Globally applied MSVC strict FP flag using add_compile_options().")
-
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(
-        -fno-fast-math
-        -fno-associative-math
-        -frounding-math
-    )
-    message(STATUS "Globally applied GNU/Clang strict FP flags using add_compile_options().")
-endif()
 
 if ( ENABLE_COVERAGE )
   include( CodeCoverage )
