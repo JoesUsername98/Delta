@@ -20,6 +20,11 @@ cmake -B build -S .
 cmake --build build
 ```
 
+### Running Tests
+```bash
+ctest --test-dir build
+```
+
 ### Code Coverage
 
 To generate the code coverage report:

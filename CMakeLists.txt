@@ -14,6 +14,9 @@ set(TEST_NAME "D++Tests")
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# Enable testing at the top level
+enable_testing()
+
 include(FetchContent)
 FetchContent_Declare(
   googletest
