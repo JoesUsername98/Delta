@@ -15,10 +15,6 @@ target_include_directories(${EXECUTABLE_NAME} PUBLIC
 "./inc"
 "${CMAKE_BINARY_DIR}/configured_files/include"
 "../walnut_custom"
-"vendor/Walnut/Walnut/src"
-"vendor/Walnut/vendor/imgui"
-"vendor/Walnut/vendor/imgui/backends"
-"vendor/Walnut/vendor/glm"
 )
 
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} walnut_custom magic_enum::magic_enum)
