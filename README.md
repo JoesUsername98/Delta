@@ -7,44 +7,38 @@ This is a clone of Delta in C++ using Dear ImGui with OpenGL backend for the fro
 - C++23 compatible compiler
 - CMake 3.16 or higher
 - OpenGL compatible graphics driver
-- Git (for submodules)
 
 ## Getting Started
 
-Once you have cloned the repository, initialize the submodules and build:
+Once you have cloned the repository, build with CMake:
 
 ```bash
-$ git submodule update --init --recursive
-```
-```bash
-$ mkdir build
-```
-```bash
-$ cd build
-```
-```bash
-$ cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5"
-```
-```bash
-$ cmake --build . 
+# Generate build files
+cmake -B build -S .
+
+# Build the project
+cmake --build build
 ```
 
-### Windows-specific Build
-
-For Windows with Visual Studio:
+### Running Tests
 ```bash
-$ cmake .. -G "Visual Studio 17 2022" -A x64
-$ cmake --build . --config Debug
+ctest --test-dir build
 ```
 
-To generate the code coverage tool replace the final step with:
+### Code Coverage
+
+To generate the code coverage report:
 ```bash
-cmake --build . --target coverage
+cmake -B build -S .
+cmake --build build --target coverage
 ```
 
-To configure and build for Google Benchmark, use a release build:
+### Benchmark Build
+
+For Google Benchmark, use a release build:
 ```bash
-$ cmake .. -DCMAKE_POLICY_VERSION_MINIMUM="3.5" -DCMAKE_BUILD_TYPE=Release
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
 ```
 
 ## Architecture
@@ -60,10 +54,9 @@ The project is structured as follows:
 
 The project has been migrated from Vulkan to OpenGL for broader compatibility:
 
-- **Original Walnut**: Uses the StudioCherno/Walnut framework as a git submodule
-- **Custom OpenGL Backend**: Custom implementation in `walnut_custom/` library
-- **Clean Submodule Management**: Original Walnut submodule remains unmodified
-- **CMake Integration**: Full CMake build system replacing the original Premake5
+- **Custom OpenGL Backend**: Custom implementation in `walnut_custom/` library  
+- **CMake Integration**: Full CMake build system with modern dependency management
+- **Self-contained Dependencies**: All external dependencies fetched automatically via CMake
 
 ## Most Recent Benchmarks
 
