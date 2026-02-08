@@ -47,6 +47,8 @@ else()
   option(ENABLE_COVERAGE "Enable a code coverage build." ON)
 endif ()
 
+
+# Do I need to keep these?
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/fp:precise)
     message(STATUS "Globally applied MSVC strict FP flag using add_compile_options().")
