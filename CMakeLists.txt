@@ -50,21 +50,6 @@ else()
   option(ENABLE_COVERAGE "Enable a code coverage build." ON)
 endif ()
 
-
-# Do I need to keep these?
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(/fp:precise)
-    message(STATUS "Globally applied MSVC strict FP flag using add_compile_options().")
-
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(
-        -fno-fast-math
-        -fno-associative-math
-        -frounding-math
-    )
-    message(STATUS "Globally applied GNU/Clang strict FP flags using add_compile_options().")
-endif()
-
 if ( ENABLE_COVERAGE )
   include( CodeCoverage )
   append_coverage_compiler_flags()
