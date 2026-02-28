@@ -19,4 +19,4 @@ target_include_directories(${EXECUTABLE_NAME} PUBLIC
 
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} walnut_custom magic_enum::magic_enum)
 
-set_target_properties(${EXECUTABLE_NAME} PROPERTIES FOLDER "Delat++")
+set_target_properties(${EXECUTABLE_NAME} PROPERTIES FOLDER "Delta++")
