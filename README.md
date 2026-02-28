@@ -13,10 +13,7 @@ This is a clone of Delta in C++ using Dear ImGui with OpenGL backend for the fro
 Once you have cloned the repository, build with CMake:
 
 ```bash
-# Generate build files
 cmake -B build -S .
-
-# Build the project
 cmake --build build
 ```
 
