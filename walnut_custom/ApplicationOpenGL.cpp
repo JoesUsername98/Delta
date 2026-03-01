@@ -55,14 +55,48 @@ namespace Walnut {
 			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			// Start the ImGui frame
-			ImGui_ImplOpenGL3_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
+            // Start the ImGui frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
 
-			// Render UI layers
-			for (auto& layer : m_LayerStack)
-				layer->OnUIRender();
+            // If docking is enabled, create a main dockspace so other windows/layers can be docked
+            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
+            {
+                ImGuiViewport* viewport = ImGui::GetMainViewport();
+                ImGui::SetNextWindowPos(viewport->Pos);
+                ImGui::SetNextWindowSize(viewport->Size);
+                ImGui::SetNextWindowViewport(viewport->ID);
+
+                ImGuiWindowFlags host_window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                    ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_MenuBar;
+
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                ImGui::Begin("DockSpaceHost", nullptr, host_window_flags);
+
+                // Render main menu bar callback if provided by the application
+                if (m_MenubarCallback)
+                {
+                    if (ImGui::BeginMenuBar())
+                    {
+                        m_MenubarCallback();
+                        ImGui::EndMenuBar();
+                    }
+                }
+
+                ImGui::PopStyleVar(2);
+
+                ImGuiID dockspace_id = ImGui::GetID("DockSpaceHost");
+                ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+                ImGui::End();
+            }
+
+            // Render UI layers
+            for (auto& layer : m_LayerStack)
+                layer->OnUIRender();
 
 			// Render ImGui
 			ImGui::Render();
@@ -101,9 +135,11 @@ namespace Walnut {
 
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        // Enable keyboard controls and docking
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
