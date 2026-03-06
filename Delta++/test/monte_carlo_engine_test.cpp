@@ -13,9 +13,22 @@ const double VOL = 0.2;
 #pragma region PV
 TEST( engine_mc, EuroCallPV )
 {
-    TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::PV, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::European,
+        .m_optionPayoffType = OptionPayoffType::Call,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::PV,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -34,9 +47,22 @@ TEST( engine_mc, EuroCallPV )
 }
 TEST( engine_mc, EuroPutPV )
 {
-    TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::PV, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::European,
+        .m_optionPayoffType = OptionPayoffType::Put,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::PV,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -55,9 +81,22 @@ TEST( engine_mc, EuroPutPV )
 }
 TEST( engine_mc, AmerCallPV )
 {
-    TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::PV, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::American,
+        .m_optionPayoffType = OptionPayoffType::Call,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::PV,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -76,9 +115,22 @@ TEST( engine_mc, AmerCallPV )
 }
 TEST( engine_mc, AmerPutPV )
 {
-    TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::PV, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::American,
+        .m_optionPayoffType = OptionPayoffType::Put,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::PV,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -99,9 +151,22 @@ TEST( engine_mc, AmerPutPV )
 #pragma region Delta
 TEST( engine_mc, EuroCallDelta )
 {
-    TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Delta, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::European,
+        .m_optionPayoffType = OptionPayoffType::Call,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Delta,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -120,9 +185,22 @@ TEST( engine_mc, EuroCallDelta )
 }
 TEST( engine_mc, EuroPutDelta )
 {
-    TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Delta, STEPS, 100);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::European,
+        .m_optionPayoffType = OptionPayoffType::Put,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Delta,
+        .m_steps = STEPS,
+        .m_sims = 100
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -141,9 +219,22 @@ TEST( engine_mc, EuroPutDelta )
 }
 TEST( engine_mc, AmerCallDelta )
 {
-    TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Delta, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::American,
+        .m_optionPayoffType = OptionPayoffType::Call,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Delta,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -162,9 +253,22 @@ TEST( engine_mc, AmerCallDelta )
 }
 TEST( engine_mc, AmerPutDelta )
 {
-    TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Delta, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::American,
+        .m_optionPayoffType = OptionPayoffType::Put,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Delta,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -185,9 +289,22 @@ TEST( engine_mc, AmerPutDelta )
 #pragma region Gamma
 TEST( engine_mc, EuroCallGamma )
 {
-    TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Gamma, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::European,
+        .m_optionPayoffType = OptionPayoffType::Call,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Gamma,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -206,9 +323,22 @@ TEST( engine_mc, EuroCallGamma )
 }
 TEST( engine_mc, EuroPutGamma )
 {
-    TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Gamma, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::European,
+        .m_optionPayoffType = OptionPayoffType::Put,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Gamma,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -227,9 +357,22 @@ TEST( engine_mc, EuroPutGamma )
 }
 TEST( engine_mc, AmerCallGamma )
 {
-    TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Gamma, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::American,
+        .m_optionPayoffType = OptionPayoffType::Call,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Gamma,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -248,9 +391,22 @@ TEST( engine_mc, AmerCallGamma )
 }
 TEST( engine_mc, AmerPutGamma )
 {
-    TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Gamma, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::American,
+        .m_optionPayoffType = OptionPayoffType::Put,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Gamma,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -271,9 +427,22 @@ TEST( engine_mc, AmerPutGamma )
 #pragma region Rho
 TEST( engine_mc, EuroCallRho )
 {
-    TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Rho, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::European,
+        .m_optionPayoffType = OptionPayoffType::Call,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Rho,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -292,9 +461,22 @@ TEST( engine_mc, EuroCallRho )
 }
 TEST( engine_mc, EuroPutRho )
 {
-    TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Rho, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::European,
+        .m_optionPayoffType = OptionPayoffType::Put,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Rho,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -313,9 +495,22 @@ TEST( engine_mc, EuroPutRho )
 }
 TEST( engine_mc, AmerCallRho )
 {
-    TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Rho, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::American,
+        .m_optionPayoffType = OptionPayoffType::Call,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Rho,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -334,9 +529,22 @@ TEST( engine_mc, AmerCallRho )
 }
 TEST( engine_mc, AmerPutRho )
 {
-    TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Rho, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::American,
+        .m_optionPayoffType = OptionPayoffType::Put,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Rho,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -357,9 +565,22 @@ TEST( engine_mc, AmerPutRho )
 #pragma region Vega
 TEST( engine_mc, EuroCallVega )
 {
-    TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Vega, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::European,
+        .m_optionPayoffType = OptionPayoffType::Call,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Vega,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -378,9 +599,22 @@ TEST( engine_mc, EuroCallVega )
 }
 TEST( engine_mc, EuroPutVega )
 {
-    TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Vega, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::European,
+        .m_optionPayoffType = OptionPayoffType::Put,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Vega,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -399,9 +633,22 @@ TEST( engine_mc, EuroPutVega )
 }
 TEST( engine_mc, AmerCallVega )
 {
-    TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Vega, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::American,
+        .m_optionPayoffType = OptionPayoffType::Call,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Vega,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());
@@ -420,9 +667,22 @@ TEST( engine_mc, AmerCallVega )
 }
 TEST( engine_mc, AmerPutVega )
 {
-    TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
-    MarketData mkt ( VOL, 100., 0.05 );
-    CalcData calc ( Calculation::Vega, STEPS, SIMS);
+    TradeData trd {
+        .m_optionExerciseType = OptionExerciseType::American,
+        .m_optionPayoffType = OptionPayoffType::Put,
+        .m_strike = 105.0,
+        .m_maturity = 1.0
+    };
+    MarketData mkt {
+        .m_vol = VOL,
+        .m_underlyingPrice = 100.0,
+        .m_interestRate = 0.05
+    };
+    CalcData calc {
+        .m_calc = Calculation::Vega,
+        .m_steps = STEPS,
+        .m_sims = SIMS
+    };
 
     auto engine_res_mc = EngineFactory::getEngine<MonteCarloEngine>( mkt, trd, calc );
     EXPECT_TRUE(engine_res_mc.has_value());

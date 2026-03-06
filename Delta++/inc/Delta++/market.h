@@ -8,13 +8,9 @@ namespace DPP
         double m_underlyingPrice;
         double m_interestRate;
 
-        explicit MarketData ( double vol, double underlyingPrice, double interestRate ) :
-        m_vol( vol ), m_underlyingPrice( underlyingPrice ), m_interestRate( interestRate )
-        {}
-
         MarketData copy() const
         {
-            return MarketData( m_vol, m_underlyingPrice, m_interestRate );
+            return MarketData{ .m_vol = m_vol, .m_underlyingPrice = m_underlyingPrice, .m_interestRate = m_interestRate };
 		}
         
         MarketData bumpVol ( double bump ) const 
