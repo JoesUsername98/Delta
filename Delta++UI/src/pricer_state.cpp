@@ -30,7 +30,12 @@ bool PricerState::recalcIfRequired()
 		if( !m_calcsToDo[i] )
 			continue;
 
-		m_calcs.emplace_back( (Calculation)i, m_steps, m_sims, static_cast<DPP::PathSchemeType>(m_pathSchemeComboIdx) );
+		m_calcs.emplace_back(); 
+		auto& c = m_calcs.back();
+		c.m_calc = static_cast<Calculation>(i);
+		c.m_pathSchemeType = static_cast<DPP::PathSchemeType>(m_pathSchemeComboIdx);
+		c.m_steps = m_steps;
+		c.m_sims = m_sims;
 	}
 
 	const auto start = std::chrono::high_resolution_clock::now();
