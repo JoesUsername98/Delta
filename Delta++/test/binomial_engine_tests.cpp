@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+﻿#include <gtest/gtest.h>
 
 #include <Delta++/engine_factory.h>
 
@@ -8,9 +8,21 @@ using namespace DPP;
 #pragma region PV
 TEST( engine, EuroCallPV )
 {
-	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::PV, 3 );
+	TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::European,
+    .m_optionPayoffType = OptionPayoffType::Call,
+    .m_strike = 105.,
+    .m_maturity = 1.
+};
+	MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.,
+    .m_interestRate = 0.05
+};
+	CalcData calc {
+    .m_calc = Calculation::PV,
+    .m_steps= 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -24,9 +36,21 @@ TEST( engine, EuroCallPV )
 }
 TEST( engine, EuroPutPV )
 {
-	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::PV, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::European,
+    .m_optionPayoffType = OptionPayoffType::Put,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::PV,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -40,9 +64,21 @@ TEST( engine, EuroPutPV )
 }
 TEST( engine, AmerCallPV )
 {
-	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::PV, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::American,
+    .m_optionPayoffType = OptionPayoffType::Call,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::PV,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -56,9 +92,21 @@ TEST( engine, AmerCallPV )
 }
 TEST( engine, AmerPutPV )
 {
-	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::PV, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::American,
+    .m_optionPayoffType = OptionPayoffType::Put,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::PV,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -74,9 +122,21 @@ TEST( engine, AmerPutPV )
 #pragma region Delta
 TEST( engine, EuroCallDelta )
 {
-	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Delta, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::European,
+    .m_optionPayoffType = OptionPayoffType::Call,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Delta,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -90,9 +150,21 @@ TEST( engine, EuroCallDelta )
 }
 TEST( engine, EuroPutDelta )
 {
-	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Delta, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::European,
+    .m_optionPayoffType = OptionPayoffType::Put,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Delta,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -106,9 +178,21 @@ TEST( engine, EuroPutDelta )
 }
 TEST( engine, AmerCallDelta )
 {
-	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Delta, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::American,
+    .m_optionPayoffType = OptionPayoffType::Call,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Delta,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -122,9 +206,21 @@ TEST( engine, AmerCallDelta )
 }
 TEST( engine, AmerPutDelta )
 {
-	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Delta, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::American,
+    .m_optionPayoffType = OptionPayoffType::Put,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Delta,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -140,9 +236,21 @@ TEST( engine, AmerPutDelta )
 #pragma region Gamma
 TEST( engine, EuroCallGamma )
 {
-	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Gamma, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::European,
+    .m_optionPayoffType = OptionPayoffType::Call,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Gamma,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -156,9 +264,21 @@ TEST( engine, EuroCallGamma )
 }
 TEST( engine, EuroPutGamma )
 {
-	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Gamma, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::European,
+    .m_optionPayoffType = OptionPayoffType::Put,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Gamma,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -172,9 +292,21 @@ TEST( engine, EuroPutGamma )
 }
 TEST( engine, AmerCallGamma )
 {
-	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Gamma, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::American,
+    .m_optionPayoffType = OptionPayoffType::Call,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Gamma,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -188,9 +320,21 @@ TEST( engine, AmerCallGamma )
 }
 TEST( engine, AmerPutGamma )
 {
-	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Gamma, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::American,
+    .m_optionPayoffType = OptionPayoffType::Put,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Gamma,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -206,9 +350,21 @@ TEST( engine, AmerPutGamma )
 #pragma region Rho
 TEST( engine, EuroCallRho )
 {
-	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Rho, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::European,
+    .m_optionPayoffType = OptionPayoffType::Call,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Rho,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -222,9 +378,21 @@ TEST( engine, EuroCallRho )
 }
 TEST( engine, EuroPutRho )
 {
-	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Rho, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::European,
+    .m_optionPayoffType = OptionPayoffType::Put,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Rho,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -238,9 +406,21 @@ TEST( engine, EuroPutRho )
 }
 TEST( engine, AmerCallRho )
 {
-	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Rho, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::American,
+    .m_optionPayoffType = OptionPayoffType::Call,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Rho,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -254,9 +434,21 @@ TEST( engine, AmerCallRho )
 }
 TEST( engine, AmerPutRho )
 {
-	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Rho, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::American,
+    .m_optionPayoffType = OptionPayoffType::Put,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Rho,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -272,9 +464,21 @@ TEST( engine, AmerPutRho )
 #pragma region Vega
 TEST( engine, EuroCallVega )
 {
-	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Call, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Vega, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::European,
+    .m_optionPayoffType = OptionPayoffType::Call,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Vega,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -288,9 +492,21 @@ TEST( engine, EuroCallVega )
 }
 TEST( engine, EuroPutVega )
 {
-	TradeData trd ( OptionExerciseType::European, OptionPayoffType::Put, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Vega, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::European,
+    .m_optionPayoffType = OptionPayoffType::Put,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Vega,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -304,9 +520,21 @@ TEST( engine, EuroPutVega )
 }
 TEST( engine, AmerCallVega )
 {
-	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Call, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Vega, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::American,
+    .m_optionPayoffType = OptionPayoffType::Call,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Vega,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());
@@ -320,9 +548,21 @@ TEST( engine, AmerCallVega )
 }
 TEST( engine, AmerPutVega )
 {
-	TradeData trd ( OptionExerciseType::American, OptionPayoffType::Put, 105., 1. );
-	MarketData mkt ( 1.2, 100., 0.05 );
-	CalcData calc ( Calculation::Vega, 3 );
+    TradeData trd {
+    .m_optionExerciseType = OptionExerciseType::American,
+    .m_optionPayoffType = OptionPayoffType::Put,
+    .m_strike = 105.0,
+    .m_maturity = 1.0
+};
+    MarketData mkt {
+    .m_vol = 1.2,
+    .m_underlyingPrice = 100.0,
+    .m_interestRate = 0.05
+};
+    CalcData calc {
+    .m_calc = Calculation::Vega,
+    .m_steps = 3
+};
 
 	auto engine_res = EngineFactory::getEngine<BinomialEngine>( mkt, trd, calc );
 	EXPECT_TRUE(engine_res.has_value());

@@ -51,9 +51,22 @@ static void BM_MC_AmerPut_TimeSteps(benchmark::State& state) {
 			.withRiskNuetralProb()
 			.withPremium(OptionExerciseType::European);
 
-		TradeData trd(OptionExerciseType::American, OptionPayoffType::Put, 100., 1.);
-		MarketData mkt(0.2, 100., 0.05);
-		CalcData calc(Calculation::PV, stepsIn, 1000);
+        TradeData trd{ 
+			.m_optionExerciseType = OptionExerciseType::American, 
+			.m_optionPayoffType = OptionPayoffType::Put, 
+			.m_strike = 100.0, 
+			.m_maturity = 1.0 
+		};
+        MarketData mkt{ 
+			.m_vol = 0.2, 
+			.m_underlyingPrice = 100.0, 
+			.m_interestRate = 0.05
+		};
+        CalcData calc{ 
+			.m_calc = Calculation::PV, 
+			.m_steps = static_cast<size_t>(stepsIn), 
+			.m_sims = 1000 
+		};
 
 		auto engine_res = EngineFactory::getEngine<MonteCarloEngine>(mkt, trd, calc);
 		auto& engine_mc = engine_res.value();
