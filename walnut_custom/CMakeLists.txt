@@ -73,11 +73,36 @@ target_include_directories(walnut_custom PUBLIC
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 
+# Use FetchContent for ImPlot
+FetchContent_Declare(
+    implot
+    GIT_REPOSITORY https://github.com/epezent/implot.git
+    GIT_TAG v0.17
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(implot)
+
+set(IMPLOT_DIR ${implot_SOURCE_DIR})
+
+add_library(implot_lib STATIC
+    ${IMPLOT_DIR}/implot.h
+    ${IMPLOT_DIR}/implot_internal.h
+    ${IMPLOT_DIR}/implot.cpp
+    ${IMPLOT_DIR}/implot_items.cpp
+)
+
+target_include_directories(implot_lib PUBLIC
+    ${IMPLOT_DIR}
+)
+target_link_libraries(implot_lib PUBLIC imgui)
+target_compile_definitions(implot_lib PUBLIC IMPLOT_DISABLE_DEMO)
+
 # Link against required libraries
 target_link_libraries(walnut_custom PUBLIC
     OpenGL::GL
     glfw
     imgui
+    implot_lib
 )
 
 # Define WALNUT_USE_OPENGL for this library

@@ -12,6 +12,7 @@
 #include <imgui_impl_opengl3.h>
 #include <iostream>
 #include <algorithm>
+#include <implot.h>
 
 extern bool g_ApplicationRunning;
 
@@ -136,6 +137,7 @@ namespace Walnut {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
         ImGui::CreateContext();
+		ImPlot::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         // Enable keyboard controls and docking
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -163,6 +165,7 @@ namespace Walnut {
 		// Cleanup
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
+		ImPlot::DestroyContext();
 		ImGui::DestroyContext();
 
 		glfwDestroyWindow(m_WindowHandle);
