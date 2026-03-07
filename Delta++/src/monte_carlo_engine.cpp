@@ -60,6 +60,7 @@ namespace DPP
 		std::vector<double> sims = m_scheme->simPaths(m_mkt, calc, dt);
 
         const double pv = m_exercise->price(m_trd, m_mkt, calc, sims, dt, *m_payoff);
+		m_debugResults.try_emplace( DebugInfo::MCPaths, std::move( sims ) );
         return pv;
     }
 

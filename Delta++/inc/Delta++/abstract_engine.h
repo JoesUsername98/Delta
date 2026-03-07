@@ -14,6 +14,7 @@
 namespace DPP
 {
 	using CalculationResult = std::expected<double, std::string>;
+	using VectorDebugMap = std::unordered_map<DebugInfo, std::vector<double>>;
     using ScalarResultMap = std::unordered_map<Calculation, CalculationResult>;
     using EngineCreationResult = std::expected<std::unique_ptr<class AbstractEngine>, std::string>;
 
@@ -24,6 +25,7 @@ namespace DPP
         const TradeData& m_trd;
         std::vector<CalcData> m_calcs;
         ScalarResultMap m_results;
+        mutable VectorDebugMap m_debugResults;
 
     public:
         AbstractEngine(const MarketData& mkt, const TradeData& trd, const CalcData& calc)

@@ -44,4 +44,12 @@ namespace DPP
 		//TODO add more
 	};
 
+	enum class DebugInfo
+	{
+		_NONE = 0,
+		MCPaths,
+		_SIZE,
+		//TODO add more
+	};
+
 }

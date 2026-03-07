@@ -1,4 +1,6 @@
 #include "pricer_view.h"
+#include <implot.h>
+#include <implot_internal.h>
 
 
 size_t PricerView::s_type_count = 0;
@@ -105,6 +107,40 @@ void PricerView::renderResults()
             ImGui::Text( magic_enum::enum_name(calc.m_calc).data() );
             ImGui::TableSetColumnIndex(1);
             if( m_state.m_engine->m_results.contains(calc.m_calc) ) {
+                if (m_state.m_engine->m_debugResults.contains(DPP::DebugInfo::MCPaths))
+                {
+                    ImGui::Begin("Plot Window");
+                    if ( ImPlot::BeginPlot("My Plot") ) 
+                    {
+                        const auto& lines = m_state.m_engine->m_debugResults.at(DPP::DebugInfo::MCPaths);
+						std::vector<double> time_axis(calc.m_steps);
+						const double dt = m_state.m_trd.m_maturity / static_cast<double>(calc.m_steps);
+                        for (size_t i = 0; i < calc.m_steps; ++i) 
+                            time_axis[i] = static_cast<double>(i) * dt;
+                        for (size_t s = 0; s < calc.m_sims; ++s)
+                        {
+                            std::string label = std::string("Path ") + std::to_string(s);
+                            const double* path_ptr = lines.data() + s * calc.m_steps;
+							bool already_exist = ImPlot::GetItem(label.c_str()) != nullptr;
+
+                            ImPlot::PlotLine(
+                                label.c_str(),
+                                time_axis.data(),
+                                path_ptr,
+                                static_cast<int>(calc.m_steps)
+                            );
+
+                            bool just_created = false;
+                            ImPlotItem* item = ImPlot::RegisterOrGetItem(label.c_str(), 0, &just_created);
+
+							bool set_to_hidden_initially = !already_exist && s > 5 && item->Show;
+							if ( set_to_hidden_initially ) // Only show the first 5 paths for clarity
+                                item->Show = false;
+                        }
+                        ImPlot::EndPlot();
+                    }
+                    ImGui::End();
+                }
                 const auto &res = m_state.m_engine->m_results.at(calc.m_calc);
                 if (res.has_value())
                     ImGui::Text( "%.6f",  res.value() );
