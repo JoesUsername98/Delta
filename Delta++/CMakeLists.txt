@@ -49,7 +49,7 @@ target_link_libraries(
 )
 
 include(GoogleTest)
-gtest_discover_tests(${DPP_LIB_NAME}_Test)
+gtest_discover_tests(${DPP_LIB_NAME}_Test TEST_PREFIX "DeltaPP.")
 
 if(ENABLE_COVERAGE)
     set(COVERAGE_MAIN "coverage")
