@@ -19,7 +19,7 @@ namespace DPP
             const auto sqrt_dt = std::sqrt(dt);
             
 			std::vector<double> unif_rands(calc.m_sims * ( calc.m_steps - 1 ), 2);
-            std::seed_seq seq{ 42 };
+            std::seed_seq seq{ calc.m_seed };
             std::mt19937_64 rng{ seq };
             std::uniform_real_distribution<double> unif(0.0, 1.0);
             std::ranges::generate(unif_rands, [&]() { return unif(rng); });
