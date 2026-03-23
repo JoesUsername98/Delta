@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Delta++UI",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Delta++UI/Debug/Delta++UI.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build Delta++UI (Debug)"
+        }
+    ]
+}

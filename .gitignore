@@ -383,3 +383,7 @@ FodyWeavers.xsd
 *.ini
 *.json
 _codeql_detected_source_root
+
+# Keep shared VS Code workspace config in source control.
+!.vscode/
+!.vscode/**

@@ -23,7 +23,7 @@ target_link_libraries(${DPP_MATH_LIB_NAME}_Test PUBLIC ${DPP_MATH_LIB_NAME})
 target_link_libraries(${DPP_MATH_LIB_NAME}_Test PRIVATE GTest::gtest_main)
 
 include(GoogleTest)
-gtest_discover_tests(${DPP_MATH_LIB_NAME}_Test)
+gtest_discover_tests(${DPP_MATH_LIB_NAME}_Test TEST_PREFIX "DeltaPP.")
 
 set_target_properties(${DPP_MATH_LIB_NAME} PROPERTIES FOLDER "Delta++/Lib")
 set_target_properties(${DPP_MATH_LIB_NAME}_Test  PROPERTIES FOLDER "Delta++/Test")
