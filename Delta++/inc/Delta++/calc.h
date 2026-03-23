@@ -11,5 +11,6 @@ namespace DPP
 		PathSchemeType m_pathSchemeType = PathSchemeType::Milstein;
         size_t m_steps;
         size_t m_sims = 1'000;
+        unsigned int m_seed = 42;
     };
 }

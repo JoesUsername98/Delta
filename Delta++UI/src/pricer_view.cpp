@@ -73,6 +73,8 @@ void PricerView::renderCalcParams()
                 ImGui::SameLine(); HelpMarker("Number of simulations");
             m_state.m_valueChanged |= ImGui::Combo("Sim Scheme", &m_state.m_pathSchemeComboIdx, m_state.m_pathSchemeCombo.m_keysCArray, IM_ARRAYSIZE(m_state.m_pathSchemeCombo.m_keysCArray));
                 ImGui::SameLine(); HelpMarker("Scheme dictates how price evolves in Monte Carlo Sim");
+            m_state.m_valueChanged |= ImGui::InputInt("Seed", &m_state.m_seed);
+                ImGui::SameLine(); HelpMarker("Random seed used for Monte Carlo path generation");
         }
         
         m_state.m_valueChanged |= ImGui::Checkbox("PV", &m_state.m_calcsToDo[ (int)Calculation::PV ] );

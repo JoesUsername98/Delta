@@ -16,6 +16,7 @@ struct PricerState
 	MarketData m_mkt;
 	int m_steps = 1'000;
 	int m_sims = 1'000;
+    int m_seed = 42;
 	CalculationMethod m_calculationMethod = CalculationMethod::MonteCarlo;
 	std::vector<CalcData> m_calcs;
 	std::string m_engineBuildError;
