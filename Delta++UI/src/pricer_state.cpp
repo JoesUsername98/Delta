@@ -37,7 +37,7 @@ bool PricerState::recalcIfRequired()
 		c.m_steps = m_steps;
 		c.m_sims = m_sims;
         if (m_calculationMethod == DPP::CalculationMethod::MonteCarlo)
-            c.m_seed = static_cast<unsigned int>(m_seed);
+            c.m_seed = static_cast<std::uint32_t>(m_seed);
 	}
 
 	const auto start = std::chrono::high_resolution_clock::now();

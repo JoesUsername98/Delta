@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <stddef.h>
+#include <cstdint>
 #include "enums.h"
 
 namespace DPP
@@ -11,6 +12,6 @@ namespace DPP
 		PathSchemeType m_pathSchemeType = PathSchemeType::Milstein;
         size_t m_steps;
         size_t m_sims = 1'000;
-        unsigned int m_seed = 42;
+        std::uint32_t m_seed = 42;
     };
 }
