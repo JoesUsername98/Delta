@@ -40,6 +40,18 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(magic_enum)
 
+set(CURL_ENABLE_SSL ON CACHE BOOL "" FORCE)
+# On Windows, prefer the native Schannel backend for TLS.
+set(CURL_USE_SCHANNEL ON CACHE BOOL "" FORCE)
+option(BUILD_CURL_EXE "Build curl executable" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+FetchContent_Declare(
+    curl
+    GIT_REPOSITORY https://github.com/curl/curl.git
+    GIT_TAG curl-8_11_1
+    GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(curl)
+
 # CMake tools
 include(AddGitSubmodule)
 
@@ -57,6 +69,9 @@ endif ( ENABLE_COVERAGE )
 
 add_subdirectory(configured)
 add_subdirectory(Delta++Math)
+add_subdirectory(Delta++Solver)
+add_subdirectory(Delta++MarketAPI)
+add_subdirectory(Delta++Market)
 add_subdirectory(Delta++)
 if (WIN32)
   add_subdirectory(walnut_custom)
