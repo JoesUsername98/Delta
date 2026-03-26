@@ -17,6 +17,6 @@ target_include_directories(${EXECUTABLE_NAME} PUBLIC
 "../walnut_custom"
 )
 
-target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} walnut_custom magic_enum::magic_enum)
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} walnut_custom magic_enum::magic_enum Delta++Market)
 
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES FOLDER "Delta++")
