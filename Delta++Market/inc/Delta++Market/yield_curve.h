@@ -4,6 +4,7 @@
 #include <string>
 #include <expected>
 #include "quotes.h"
+#include <Delta++Solver/bootstrapper.h>
 #include <Delta++Solver/interpolation.h>
 
 namespace DPP
@@ -21,7 +22,7 @@ namespace DPP
         const std::vector<double>& zeroRates() const { return m_zeroRates; }
 
     private:
-        YieldCurve() = default;
+        explicit YieldCurve(BootstrapResult&& r);
 
         std::vector<double> m_tenors;
         std::vector<double> m_discountFactors;
