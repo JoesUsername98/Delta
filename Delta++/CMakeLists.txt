@@ -16,6 +16,7 @@ message("Benchmark files" ${${DPP_LIB_NAME}_BENCH_FILES})
 add_library(${DPP_LIB_NAME} STATIC ${${DPP_LIB_NAME}_SRC})
 target_link_libraries(${DPP_LIB_NAME} ${DPP_MATH_LIB_NAME} )
 target_link_libraries(${DPP_LIB_NAME} magic_enum::magic_enum )
+target_link_libraries(${DPP_LIB_NAME} Delta++Market )
 
 
 

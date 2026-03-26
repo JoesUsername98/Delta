@@ -6,6 +6,7 @@
 
 #include "pricer_view.h"
 #include "demo_view.h"
+#include "api_tester_view.h"
 
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
@@ -27,6 +28,10 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 				if( ImGui::MenuItem("Demo Window") )
 				{
 					app->PushLayer<DemoWindow>();
+				}
+				if( ImGui::MenuItem("API Tester Window") )
+				{
+					app->PushLayer<ApiTesterWindow>();
 				}
 				
 				ImGui::EndMenu();
