@@ -8,20 +8,30 @@ namespace DPP
     {}
 
     std::expected<YieldCurve, std::string>
+    MarketDataService::buildYieldCurve(const std::string& date) const
+    {
+        static const std::vector<std::string> kDefaultIds = []
+        {
+            std::vector<std::string> v;
+            v.reserve(kFredDefaultSeriesIds.size());
+            for (std::string_view sv : kFredDefaultSeriesIds)
+                v.emplace_back(sv);
+            return v;
+        }();
+        return buildYieldCurve(date, kDefaultIds);
+    }
+
+    std::expected<YieldCurve, std::string>
     MarketDataService::buildYieldCurve(const std::string& date,
                                         const std::vector<std::string>& seriesIds) const
     {
-        // Determine which series to fetch
-        std::vector<std::string> ids = seriesIds;
-        if (ids.empty())
-        {
-            for (const auto& [id, _] : kFredTenorMap)
-                ids.push_back(id);
-        }
+        if (seriesIds.empty())
+            return std::unexpected("No FRED series requested");
 
-        // Fetch each series from FRED
         std::vector<std::pair<std::string, FredSeriesResponse>> responses;
-        for (const auto& sid : ids)
+        responses.reserve(seriesIds.size());
+
+        for (const auto& sid : seriesIds)
         {
             auto resp = m_fred->getSeriesObservations(sid, date, date);
             if (!resp.has_value())

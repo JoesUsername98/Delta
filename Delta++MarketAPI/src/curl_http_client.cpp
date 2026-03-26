@@ -2,6 +2,7 @@
 #include <curl/curl.h>
 #include <sstream>
 
+// SCARY FILE WITH RAW POINTERS!
 namespace DPP
 {
     static size_t writeCallback(char* ptr, size_t size, size_t nmemb, void* userdata)

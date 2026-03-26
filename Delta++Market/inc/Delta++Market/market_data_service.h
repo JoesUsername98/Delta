@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <array>
+#include <string_view>
 
 namespace DPP
 {
@@ -27,16 +29,22 @@ namespace DPP
         {"DGS30",  30.0}
     };
 
+    // Keys of kFredTenorMap in std::map iteration order (lexicographic). Must stay in sync with kFredTenorMap.
+    inline constexpr std::array<std::string_view, 8> kFredDefaultSeriesIds = {
+        "DGS1", "DGS10", "DGS1MO", "DGS2", "DGS30", "DGS3MO", "DGS5", "DGS6MO"};
+
     class MarketDataService
     {
     public:
         MarketDataService(std::shared_ptr<FredClient> fred,
                           std::shared_ptr<AlphaVantageClient> av);
 
-        // Fetch FRED treasury rates for a date and build a yield curve
+        // Fetch FRED treasury rates for a date and build a yield curve (standard DGS* set in kFredTenorMap).
+        std::expected<YieldCurve, std::string> buildYieldCurve(const std::string& date) const;
+
+        // Same as above but only the requested series (must be non-empty).
         std::expected<YieldCurve, std::string>
-        buildYieldCurve(const std::string& date,
-                        const std::vector<std::string>& seriesIds = {}) const;
+        buildYieldCurve(const std::string& date, const std::vector<std::string>& seriesIds) const;
 
         // Fetch AlphaVantage option chain and build a vol surface
         std::expected<VolSurface, std::string>

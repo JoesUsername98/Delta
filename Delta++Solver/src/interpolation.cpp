@@ -14,16 +14,30 @@ namespace DPP
             throw std::invalid_argument("LinearInterpolator requires >= 2 matching knots");
     }
 
-    double LinearInterpolator::operator()(double x) const
+    /**
+     * @brief Piecewise linear interpolation with flat extrapolation.
+     *
+     * For x in [x_{i-1}, x_i], computes:
+     *   y(x) = y_{i-1} + t * (y_i - y_{i-1})
+     *   where t = (x - x_{i-1}) / (x_i - x_{i-1})
+     *
+     * For x < x_0: returns y_0 (flat extrapolation)
+     * For x > x_{n-1}: returns y_{n-1} (flat extrapolation)
+     */
+    double 
+    LinearInterpolator::operator()(double x) const
     {
-        if (x <= m_xs.front()) return m_ys.front();
-        if (x >= m_xs.back())  return m_ys.back();
+        if (x <= m_xs.front()) 
+            return m_ys.front();
+        if (x >= m_xs.back()) 
+            return m_ys.back();
 
-        auto it = std::lower_bound(m_xs.begin(), m_xs.end(), x);
+        const auto it = std::lower_bound(m_xs.begin(), m_xs.end(), x);
         size_t i = static_cast<size_t>(it - m_xs.begin());
-        if (i == 0) i = 1;
+        if (i == 0) 
+            i = 1;
 
-        double t = (x - m_xs[i - 1]) / (m_xs[i] - m_xs[i - 1]);
+        const double t = (x - m_xs[i - 1]) / (m_xs[i] - m_xs[i - 1]);
         return m_ys[i - 1] + t * (m_ys[i] - m_ys[i - 1]);
     }
 
@@ -37,7 +51,16 @@ namespace DPP
         build();
     }
 
-    void CubicSplineInterpolator::build()
+    /**
+     * @brief Builds coefficients for a natural cubic spline (a, b, c, d).
+     *
+     * On each [x_i, x_{i+1}], with dx = x - x_i:
+     *   S_i(x) = a_i + b_i*dx + c_i*dx^2 + d_i*dx^3,   a_i = y_i.
+     * Interior knots: C^1 and C^2 continuity; natural end conditions S''(x_0)=S''(x_n)=0 (c_0=c_n=0).
+     * Solves the tridiagonal system for c, then b_i and d_i from the spline identities.
+     */
+    void 
+    CubicSplineInterpolator::build()
     {
         const size_t n = m_xs.size() - 1;
         m_a.resize(n + 1);
@@ -45,10 +68,12 @@ namespace DPP
         m_c.resize(n + 1, 0.0);
         m_d.resize(n);
 
-        for (size_t i = 0; i <= n; ++i) m_a[i] = m_ys[i];
+        for (size_t i = 0; i <= n; ++i) 
+            m_a[i] = m_ys[i];
 
         std::vector<double> h(n);
-        for (size_t i = 0; i < n; ++i) h[i] = m_xs[i + 1] - m_xs[i];
+        for (size_t i = 0; i < n; ++i) 
+            h[i] = m_xs[i + 1] - m_xs[i];
 
         // Tridiagonal system for natural spline (c[0] = c[n] = 0)
         std::vector<double> alpha(n, 0.0);
@@ -70,15 +95,28 @@ namespace DPP
         }
     }
 
-    double CubicSplineInterpolator::operator()(double x) const
+    /**
+     * @brief Evaluates the natural cubic spline at x (flat extrapolation outside knots).
+     *
+     * On the segment [x_i, x_{i+1}] containing x, with dx = x - x_i:
+     *   S(x) = a_i + b_i*dx + c_i*dx^2 + d_i*dx^3
+     *
+     * For x < x_0: returns y_0 (flat extrapolation)
+     * For x > x_{n-1}: returns y_{n-1} (flat extrapolation)
+     */
+    double 
+    CubicSplineInterpolator::operator()(double x) const
     {
-        if (x <= m_xs.front()) return m_ys.front();
-        if (x >= m_xs.back())  return m_ys.back();
+        if (x <= m_xs.front()) 
+            return m_ys.front();
+        
+        if (x >= m_xs.back())  
+            return m_ys.back();
 
-        auto it = std::upper_bound(m_xs.begin(), m_xs.end(), x);
-        size_t i = static_cast<size_t>(it - m_xs.begin()) - 1;
+        const auto it = std::upper_bound(m_xs.begin(), m_xs.end(), x);
+        const size_t i = static_cast<size_t>(it - m_xs.begin()) - 1;
 
-        double dx = x - m_xs[i];
+        const double dx = x - m_xs[i];
         return m_a[i] + m_b[i] * dx + m_c[i] * dx * dx + m_d[i] * dx * dx * dx;
     }
 }
