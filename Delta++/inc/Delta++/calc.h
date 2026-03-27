@@ -13,5 +13,6 @@ namespace DPP
         size_t m_steps;
         size_t m_sims = 1'000;
         std::uint32_t m_seed = 42;
+        bool m_collectDebugPaths = false;
     };
 }

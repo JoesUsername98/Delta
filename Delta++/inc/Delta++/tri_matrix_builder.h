@@ -2,6 +2,7 @@
 
 #include "triangular_matrix.h"
 #include <functional>
+#include <vector>
 
 namespace DPP
 {
@@ -16,6 +17,8 @@ namespace DPP
 		TriMatrixBuilder& withUnderlyingValueAndVolatility(const double initialPrice, const double vol);
 		TriMatrixBuilder& withUnderlyingValueAndUpFactor(const double initialPrice, const double upFactor);
 		TriMatrixBuilder& withInterestRate(const double constantInterestRate);
+		TriMatrixBuilder& withDiscountRatesAndProbabilities(std::vector<double> discountRatesByStep,
+                                                           std::vector<double> probabilityHeadsByStep);
 		TriMatrixBuilder& withPayoff(const OptionPayoffType optionType, const double strikePrice);
 		TriMatrixBuilder& withRiskNuetralProb();
 		TriMatrixBuilder& withPremium(const OptionExerciseType exerciseType);
@@ -42,6 +45,9 @@ namespace DPP
 		double m_probabilityHeads;
 		OptionExerciseType m_exerciseType;
 		std::string m_errorMsg;
+        bool m_useStepDiscounting = false;
+        std::vector<double> m_discountRatesByStep;
+        std::vector<double> m_probabilityHeadsByStep;
 
 		bool m_mustCalcDeltaHedging;
 		bool m_mustCalcOptiomalStoppingTime;

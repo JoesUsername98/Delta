@@ -38,6 +38,7 @@ bool PricerState::recalcIfRequired()
 		c.m_sims = m_sims;
         if (m_calculationMethod == DPP::CalculationMethod::MonteCarlo)
             c.m_seed = static_cast<std::uint32_t>(m_seed);
+        c.m_collectDebugPaths = (m_calculationMethod == DPP::CalculationMethod::MonteCarlo && c.m_calc == Calculation::PV);
 	}
 
 	const auto start = std::chrono::high_resolution_clock::now();
