@@ -1,6 +1,7 @@
 #include "Delta++/tri_matrix_builder.h"
 #include "Delta++/binomial_engine.h"
 #include <algorithm>
+#include <cmath>
 #include <ranges>
 
 using namespace std::string_literals;
@@ -9,6 +10,9 @@ namespace DPP
     CalculationResult BinomialEngine::calcPV( const CalcData& calc ) const
     {
         const double dt = m_trd.m_maturity / calc.m_steps;
+        TriMatrixBuilder build_result = TriMatrixBuilder::create(calc.m_steps, dt)
+            .withUnderlyingValueAndVolatility(m_mkt.m_underlyingPrice, m_mkt.m_vol);
+
         const double u = std::exp(m_mkt.m_vol * std::sqrt(dt));
         const double d = 1.0 / u;
 
@@ -33,13 +37,11 @@ namespace DPP
             discountRatesByStep.push_back(discountRate);
             probabilityHeadsByStep.push_back(p);
         }
+        build_result.withDiscountRatesAndProbabilities(std::move(discountRatesByStep), std::move(probabilityHeadsByStep));
 
-        TriMatrixBuilder build_result =
-        TriMatrixBuilder::create( calc.m_steps, dt )
-        .withUnderlyingValueAndVolatility( m_mkt.m_underlyingPrice, m_mkt.m_vol )
-        .withDiscountRatesAndProbabilities(std::move(discountRatesByStep), std::move(probabilityHeadsByStep))
-        .withPayoff( m_trd.m_optionPayoffType, m_trd.m_strike )
-        .withPremium( m_trd.m_optionExerciseType );
+        build_result
+            .withPayoff(m_trd.m_optionPayoffType, m_trd.m_strike)
+            .withPremium(m_trd.m_optionExerciseType);
         
         if( build_result.m_hasError )
             return std::unexpected( build_result.getErrorMsg() );

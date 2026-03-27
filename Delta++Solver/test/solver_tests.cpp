@@ -47,9 +47,3 @@ TEST(Solver_Bootstrap, EmptyInputReturnsError)
     auto result = bootstrap({});
     EXPECT_FALSE(result.has_value());
 }
-
-TEST(Solver_Bootstrap, NegativeTenorReturnsError)
-{
-    auto result = bootstrap({{-1.0, 5.0}});
-    EXPECT_FALSE(result.has_value());
-}

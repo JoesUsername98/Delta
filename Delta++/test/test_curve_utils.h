@@ -11,7 +11,8 @@ namespace DPPTest
 {
     inline DPP::YieldCurve makeFlatCurve(double flatZeroRate)
     {
-        const double ratePct = (std::exp(flatZeroRate) - 1.0) * 100.0;
+        // Use expm1 for better numerical stability when converting z -> quoted annual rate.
+        const double ratePct = std::expm1(flatZeroRate) * 100.0;
         std::vector<DPP::RateQuote> quotes = {
             {.tenor = 1.0, .rate = ratePct},
             {.tenor = 30.0, .rate = ratePct},
