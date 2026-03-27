@@ -8,6 +8,16 @@ This is a clone of Delta in C++ using Dear ImGui with OpenGL backend for the fro
 - CMake 3.16 or higher
 - OpenGL compatible graphics driver
 
+### Linux and WSL
+
+The build fetches **curl** via CMake and links it against **OpenSSL** on non-Windows platforms (Windows uses Schannel instead). Install the OpenSSL development package so CMake can find headers and libraries—for example on Debian or Ubuntu:
+
+```bash
+sudo apt install libssl-dev pkg-config
+```
+
+`pkg-config` is optional but helps CMake locate OpenSSL.
+
 ## Getting Started
 
 Once you have cloned the repository, build with CMake:
