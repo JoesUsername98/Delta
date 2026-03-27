@@ -41,8 +41,13 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(magic_enum)
 
 set(CURL_ENABLE_SSL ON CACHE BOOL "" FORCE)
-# On Windows, prefer the native Schannel backend for TLS.
-set(CURL_USE_SCHANNEL ON CACHE BOOL "" FORCE)
+# Schannel is Windows-only; Linux/WSL need OpenSSL (or another TLS backend).
+if(WIN32)
+  set(CURL_USE_SCHANNEL ON CACHE BOOL "" FORCE)
+else()
+  set(CURL_USE_SCHANNEL OFF CACHE BOOL "" FORCE)
+  set(CURL_USE_OPENSSL ON CACHE BOOL "" FORCE)
+endif()
 option(BUILD_CURL_EXE "Build curl executable" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 FetchContent_Declare(
