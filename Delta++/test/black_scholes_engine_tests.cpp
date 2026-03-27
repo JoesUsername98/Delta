@@ -2,6 +2,7 @@
 
 #include <Delta++/engine_factory.h>
 #include <Delta++/abstract_engine.h>
+#include "test_curve_utils.h"
 
 using namespace DPP;
 
@@ -28,7 +29,7 @@ TEST(engine_BS, EuroCallPV)
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::PV,
@@ -56,7 +57,7 @@ TEST(engine_BS, EuroPutPV)
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::PV,
@@ -86,7 +87,7 @@ TEST(engine_BS, EuroCallDelta)
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::Delta,
@@ -114,7 +115,7 @@ TEST(engine_BS, EuroPutDelta)
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::Delta,
@@ -144,7 +145,7 @@ TEST(engine_BS, EuroCallGamma)
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::Gamma,
@@ -172,7 +173,7 @@ TEST(engine_BS, EuroPutGamma)
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::Gamma,
@@ -202,7 +203,7 @@ TEST(engine_BS, EuroCallVega)
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::Vega,
@@ -230,7 +231,7 @@ TEST(engine_BS, EuroPutVega)
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::Vega,
@@ -260,7 +261,7 @@ TEST(engine_BS, EuroCallRho)
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::RhoParallel,
@@ -288,7 +289,7 @@ TEST(engine_BS, EuroPutRho)
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::RhoParallel,
@@ -317,7 +318,7 @@ TEST(engine_BS, RejectsAmericanOptions) {
     MarketData mkt {
         .m_vol = 0.2,
         .m_underlyingPrice = 4.0,
-        .m_interestRate = 0.25
+        .m_yieldCurve = DPPTest::makeFlatCurve(0.25)
     };
     CalcData calc {
         .m_calc = Calculation::PV,
