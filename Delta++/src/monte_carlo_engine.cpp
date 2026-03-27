@@ -106,37 +106,7 @@ namespace DPP
         pv_only.m_calc = Calculation::PV;
         pv_only.m_collectDebugPaths = false;
 
-        if (!m_mkt.m_yieldCurve.has_value())
-        {
-            MarketData bump_up = m_mkt.bumpInterestRate(bump);
-            MonteCarloEngine up_calc(bump_up, m_trd, pv_only);
-            up_calc.run();
-
-            std::string aggErr = up_calc.getAggregatedErrors();
-            if (!aggErr.empty())
-                return std::unexpected{ aggErr };
-
-            MarketData bump_down = m_mkt.bumpInterestRate(-bump);
-            MonteCarloEngine down_calc(bump_down, m_trd, pv_only);
-            down_calc.run();
-
-            aggErr = down_calc.getAggregatedErrors();
-            if (!aggErr.empty())
-                return std::unexpected{ aggErr };
-
-            const auto pv_up = scalarOrError(up_calc.m_results.at(Calculation::PV));
-            const auto pv_down = scalarOrError(down_calc.m_results.at(Calculation::PV));
-            if (!pv_up.has_value())
-                return std::unexpected{ pv_up.error() };
-            if (!pv_down.has_value())
-                return std::unexpected{ pv_down.error() };
-
-            CurveRho rho;
-            rho.push_back({m_trd.m_maturity, 100. * (pv_up.value() - pv_down.value())});
-            return rho;
-        }
-
-        const auto& tenors = m_mkt.m_yieldCurve->tenors();
+        const auto& tenors = m_mkt.m_yieldCurve.tenors();
         const double T = m_trd.m_maturity;
         CurveRho rho;
         rho.reserve(tenors.size());

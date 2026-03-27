@@ -5,23 +5,12 @@
 #include <Delta++/abstract_engine.h>
 #include <Delta++/engine_factory.h>
 #include <Delta++Market/yield_curve.h>
+#include "test_curve_utils.h"
 
 using namespace DPP;
 
 namespace
 {
-    YieldCurve makeFlatCurve(double flatZeroRate)
-    {
-        const double ratePct = (std::exp(flatZeroRate) - 1.0) * 100.0;
-        std::vector<RateQuote> quotes = {
-            {.tenor = 1.0, .rate = ratePct},
-            {.tenor = 30.0, .rate = ratePct},
-        };
-        auto yc = YieldCurve::build(quotes);
-        EXPECT_TRUE(yc.has_value()) << yc.error();
-        return yc.value();
-    }
-
     double scalar(const CalculationResult& r)
     {
         const auto s = scalarOrError(r);
@@ -37,9 +26,8 @@ TEST(YieldCurvePricers, FlatCurveMatchesConstantRate_BlackScholesPV)
                   .m_strike = 105.0,
                   .m_maturity = 1.0};
 
-    MarketData mkt{.m_vol = 0.2, .m_underlyingPrice = 100.0, .m_interestRate = 0.05};
+    MarketData mkt{.m_vol = 0.2, .m_underlyingPrice = 100.0, .m_yieldCurve = DPPTest::makeFlatCurve(0.05)};
     MarketData mktCurve = mkt;
-    mktCurve.m_yieldCurve = makeFlatCurve(mkt.m_interestRate);
 
     CalcData calc{.m_calc = Calculation::PV, .m_steps = 10};
 
@@ -62,9 +50,8 @@ TEST(YieldCurvePricers, FlatCurveMatchesConstantRate_BinomialPV)
                   .m_strike = 105.0,
                   .m_maturity = 1.0};
 
-    MarketData mkt{.m_vol = 1.2, .m_underlyingPrice = 100.0, .m_interestRate = 0.05};
+    MarketData mkt{.m_vol = 1.2, .m_underlyingPrice = 100.0, .m_yieldCurve = DPPTest::makeFlatCurve(0.05)};
     MarketData mktCurve = mkt;
-    mktCurve.m_yieldCurve = makeFlatCurve(mkt.m_interestRate);
 
     CalcData calc{.m_calc = Calculation::PV, .m_steps = 25};
 
@@ -87,9 +74,8 @@ TEST(YieldCurvePricers, FlatCurveMatchesConstantRate_MonteCarloPV)
                   .m_strike = 105.0,
                   .m_maturity = 1.0};
 
-    MarketData mkt{.m_vol = 0.2, .m_underlyingPrice = 100.0, .m_interestRate = 0.05};
+    MarketData mkt{.m_vol = 0.2, .m_underlyingPrice = 100.0, .m_yieldCurve = DPPTest::makeFlatCurve(0.05)};
     MarketData mktCurve = mkt;
-    mktCurve.m_yieldCurve = makeFlatCurve(mkt.m_interestRate);
 
     CalcData calc{.m_calc = Calculation::PV, .m_pathSchemeType = PathSchemeType::Exact, .m_steps = 500, .m_sims = 20'000, .m_seed = 7};
 
@@ -112,8 +98,7 @@ TEST(YieldCurvePricers, KeyRateRhoReturnsVector_BlackScholes)
                   .m_strike = 105.0,
                   .m_maturity = 1.0};
 
-    MarketData mkt{.m_vol = 0.2, .m_underlyingPrice = 100.0, .m_interestRate = 0.05};
-    mkt.m_yieldCurve = makeFlatCurve(mkt.m_interestRate);
+    MarketData mkt{.m_vol = 0.2, .m_underlyingPrice = 100.0, .m_yieldCurve = DPPTest::makeFlatCurve(0.05)};
 
     CalcData calc{.m_calc = Calculation::Rho, .m_steps = 10};
 
@@ -125,7 +110,7 @@ TEST(YieldCurvePricers, KeyRateRhoReturnsVector_BlackScholes)
     ASSERT_TRUE(res.has_value()) << res.error();
     const auto* curve = std::get_if<CurveRho>(&res.value());
     ASSERT_NE(curve, nullptr);
-    const auto& tenors = mkt.m_yieldCurve->tenors();
+    const auto& tenors = mkt.m_yieldCurve.tenors();
     const double T = trd.m_maturity;
     const auto n_applicable = static_cast<std::size_t>(std::count_if(tenors.begin(), tenors.end(), [&](double x) { return x <= T; }));
     EXPECT_EQ(curve->size(), n_applicable);

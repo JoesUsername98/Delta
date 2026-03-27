@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include <Delta++/engine_factory.h>
+#include <Delta++Market/yield_curve.h>
 
 #include "enum_combo.h"
 
@@ -44,7 +45,7 @@ struct PricerState
 
 	PricerState( ) :
 	 m_trd( OptionExerciseType::European, OptionPayoffType::Call, 100., 1.0 ),
-	 m_mkt( 0.2, 100., 0.05 ) 
+	 m_mkt{ .m_vol = 0.2, .m_underlyingPrice = 100., .m_yieldCurve = DPP::YieldCurve::build({{1.0, 0.0},{30.0, 0.0}}).value() } 
 	 {
 		m_calcsToDo[ (int)Calculation::PV ] = true;
 		m_calcsToDo[ (int)Calculation::Delta ] = false;

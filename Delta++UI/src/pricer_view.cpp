@@ -52,29 +52,17 @@ void PricerView::renderMarketParams()
                     ImGui::SameLine(); HelpMarker("The initital value of the underlying");
         m_state.m_valueChanged |=	ImGui::InputDouble("Volatility", &m_state.m_mkt.m_vol, 0.01, 1.0, "%.2f");
                     ImGui::SameLine(); HelpMarker("Constant Volatility");
-        m_state.m_valueChanged |=	ImGui::InputDouble("Interest Rate", &m_state.m_mkt.m_interestRate, 0.01, 1.0, "%.2f");
-                    ImGui::SameLine(); HelpMarker("Interest Rate");
-
         const bool hasCachedCurve = DPPUI::g_lastBuiltYieldCurve.has_value();
-        const bool hasCurveAttached = m_state.m_mkt.m_yieldCurve.has_value();
         ImGui::Separator();
         if (ImGui::Button("Attach curve from API Tester"))
         {
             if (hasCachedCurve)
             {
-                m_state.m_mkt.m_yieldCurve = DPPUI::g_lastBuiltYieldCurve;
+                m_state.m_mkt.m_yieldCurve = *DPPUI::g_lastBuiltYieldCurve;
                 m_state.m_valueChanged = true;
             }
         }
-        ImGui::SameLine();
-        if (ImGui::Button("Clear curve"))
-        {
-            m_state.m_mkt.m_yieldCurve.reset();
-            m_state.m_valueChanged = true;
-        }
-        ImGui::Text("Curve cached: %s | Curve attached: %s",
-            hasCachedCurve ? "yes" : "no",
-            hasCurveAttached ? "yes" : "no");
+        ImGui::Text("Curve cached: %s", hasCachedCurve ? "yes" : "no");
     }
 }
 void PricerView::renderCalcParams()
