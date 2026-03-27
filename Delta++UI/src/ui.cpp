@@ -15,6 +15,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 
 	Walnut::Application* app = new Walnut::Application(spec);
 	app->PushLayer<PricerView>();
+	app->PushLayer<ApiTesterWindow>();
 	app->SetMenubarCallback([app]()
 	{
 		if (ImGui::BeginMenu("File"))

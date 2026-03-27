@@ -1,6 +1,7 @@
 #include "pricer_view.h"
 #include <implot.h>
 #include <implot_internal.h>
+#include <string>
 
 
 size_t PricerView::s_type_count = 0;
@@ -111,8 +112,11 @@ void PricerView::renderResults()
             if( m_state.m_engine->m_results.contains(calc.m_calc) ) {
                 if (m_state.m_engine->m_debugResults.contains(DPP::DebugInfo::MCPaths))
                 {
-                    ImGui::Begin("Plot Window");
-                    if ( ImPlot::BeginPlot("My Plot") ) 
+                    ImGui::Begin("Monte Carlo Paths");
+                    const std::string mcPlotTitle = std::string("Monte Carlo Paths: ")
+                        + m_state.m_pathSchemeCombo.m_keysCArray[m_state.m_pathSchemeComboIdx]
+                        + "  seed=" + std::to_string(m_state.m_seed);
+                    if (ImPlot::BeginPlot(mcPlotTitle.c_str()))
                     {
                         const auto& lines = m_state.m_engine->m_debugResults.at(DPP::DebugInfo::MCPaths);
 						std::vector<double> time_axis(calc.m_steps);
