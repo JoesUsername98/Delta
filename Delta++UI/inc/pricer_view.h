@@ -16,6 +16,7 @@ private:
 	void renderMarketParams();
 	void renderCalcParams();
 	void renderResults();
+    void renderMCPathsPlot();
 
 public:
 	PricerView() : M_ID( s_type_count++ ), M_NAME( "Pricer " + std::to_string(M_ID)  ) {};

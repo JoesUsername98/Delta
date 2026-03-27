@@ -12,6 +12,8 @@
 #include <sstream>
 #include <string>
 
+#include "shared_curve_cache.h"
+
 using DPP::MarketDataService;
 
 namespace
@@ -127,6 +129,7 @@ void ApiTesterState::fetchYieldCurveFromFred()
         }
 
         m_curve = std::move(curveRes.value());
+        DPPUI::g_lastBuiltYieldCurve = m_curve;
         m_hasCurve = true;
         m_curveTenors = m_curve->tenors();
         m_curveZeroRates = m_curve->zeroRates();

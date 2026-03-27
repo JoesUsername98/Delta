@@ -1,17 +1,44 @@
 #include "Delta++/tri_matrix_builder.h"
 #include "Delta++/binomial_engine.h"
+#include <algorithm>
+#include <ranges>
 
 using namespace std::string_literals;
 namespace DPP
 {
     CalculationResult BinomialEngine::calcPV( const CalcData& calc ) const
     {
-        TriMatrixBuilder build_result = 
-        TriMatrixBuilder::create( calc.m_steps, m_trd.m_maturity / calc.m_steps )
+        const double dt = m_trd.m_maturity / calc.m_steps;
+        const double u = std::exp(m_mkt.m_vol * std::sqrt(dt));
+        const double d = 1.0 / u;
+
+        std::vector<double> discountRatesByStep;
+        std::vector<double> probabilityHeadsByStep;
+        discountRatesByStep.reserve(calc.m_steps);
+        probabilityHeadsByStep.reserve(calc.m_steps);
+        for (size_t step = 0; step < static_cast<size_t>(calc.m_steps); ++step)
+        {
+            const double t0 = static_cast<double>(step) * dt;
+            const double r = m_mkt.zeroRate(t0);
+            const double interest_rate = std::pow(1. + r, dt) - 1.;
+            const double discountRate = 1. / (1. + interest_rate);
+            const double growthFactor = std::exp(r * dt);
+            const double p = (growthFactor - d) / (u - d);
+
+            if (!std::isfinite(discountRate) || discountRate <= 0.0)
+                return std::unexpected("Invalid discount factor step (non-finite or non-positive)");
+            if (!std::isfinite(p) || p < 0.0 || p > 1.0)
+                return std::unexpected("Invalid risk-neutral probability (arbitrage condition failed)");
+
+            discountRatesByStep.push_back(discountRate);
+            probabilityHeadsByStep.push_back(p);
+        }
+
+        TriMatrixBuilder build_result =
+        TriMatrixBuilder::create( calc.m_steps, dt )
         .withUnderlyingValueAndVolatility( m_mkt.m_underlyingPrice, m_mkt.m_vol )
-        .withInterestRate( m_mkt.m_interestRate )
+        .withDiscountRatesAndProbabilities(std::move(discountRatesByStep), std::move(probabilityHeadsByStep))
         .withPayoff( m_trd.m_optionPayoffType, m_trd.m_strike )
-        .withRiskNuetralProb()
         .withPremium( m_trd.m_optionExerciseType );
         
         if( build_result.m_hasError )
@@ -42,36 +69,113 @@ namespace DPP
         if ( !aggErr.empty() ) 
             return std::unexpected(aggErr);
 
-        const double pv_up = up_calc.m_results.at( Calculation::PV ).value();
-        const double pv_down = down_calc.m_results.at( Calculation::PV ).value();
-        return pv_up - pv_down;
+        const auto pv_up_res = scalarOrError(up_calc.m_results.at(Calculation::PV));
+        if (!pv_up_res.has_value())
+            return std::unexpected(pv_up_res.error());
+        const auto pv_down_res = scalarOrError(down_calc.m_results.at(Calculation::PV));
+        if (!pv_down_res.has_value())
+            return std::unexpected(pv_down_res.error());
+        return pv_up_res.value() - pv_down_res.value();
     }
 
     CalculationResult BinomialEngine::calcRho( const CalcData& calc ) const
     {
+        // Key-rate rho: one entry per curve knot (fallback: single parallel-style entry when no curve).
+        constexpr double bump = 0.005;
+
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
 
-        MarketData bump_up = m_mkt.bumpInterestRate( 0.005 );
-        BinomialEngine up_calc ( bump_up, m_trd, pv_only );
+        if (!m_mkt.m_yieldCurve.has_value())
+        {
+            MarketData bump_up = m_mkt.bumpInterestRate(bump);
+            BinomialEngine up_calc(bump_up, m_trd, pv_only);
+            up_calc.run();
+            std::string aggErr = up_calc.getAggregatedErrors();
+            if (!aggErr.empty())
+                return std::unexpected(aggErr);
+
+            MarketData bump_down = m_mkt.bumpInterestRate(-bump);
+            BinomialEngine down_calc(bump_down, m_trd, pv_only);
+            down_calc.run();
+            aggErr = down_calc.getAggregatedErrors();
+            if (!aggErr.empty())
+                return std::unexpected(aggErr);
+
+            const auto pv_up = scalarOrError(up_calc.m_results.at(Calculation::PV));
+            const auto pv_down = scalarOrError(down_calc.m_results.at(Calculation::PV));
+            if (!pv_up.has_value())
+                return std::unexpected(pv_up.error());
+            if (!pv_down.has_value())
+                return std::unexpected(pv_down.error());
+
+            CurveRho rho;
+            rho.push_back({m_trd.m_maturity, 100. * (pv_up.value() - pv_down.value())});
+            return rho;
+        }
+
+        const auto& tenors = m_mkt.m_yieldCurve->tenors();
+        const double T = m_trd.m_maturity;
+        CurveRho rho;
+        rho.reserve(tenors.size());
+        for (size_t i = 0; i < tenors.size(); ++i)
+        {
+            if (tenors[i] > T)
+                continue;
+            MarketData bump_up = m_mkt.bumpYieldCurveKeyRate(i, bump);
+            BinomialEngine up_calc(bump_up, m_trd, pv_only);
+            up_calc.run();
+            std::string aggErr = up_calc.getAggregatedErrors();
+            if (!aggErr.empty())
+                return std::unexpected(aggErr);
+
+            MarketData bump_down = m_mkt.bumpYieldCurveKeyRate(i, -bump);
+            BinomialEngine down_calc(bump_down, m_trd, pv_only);
+            down_calc.run();
+            aggErr = down_calc.getAggregatedErrors();
+            if (!aggErr.empty())
+                return std::unexpected(aggErr);
+
+            const auto pv_up = scalarOrError(up_calc.m_results.at(Calculation::PV));
+            const auto pv_down = scalarOrError(down_calc.m_results.at(Calculation::PV));
+            if (!pv_up.has_value())
+                return std::unexpected(pv_up.error());
+            if (!pv_down.has_value())
+                return std::unexpected(pv_down.error());
+
+            rho.push_back({tenors[i], 100. * (pv_up.value() - pv_down.value())});
+        }
+        std::ranges::sort(rho, {}, &CurveRhoPoint::tenor);
+        return rho;
+    }
+
+    CalculationResult BinomialEngine::calcRhoParallel(const CalcData& calc) const
+    {
+        constexpr double bump = 0.005;
+        CalcData pv_only = calc;
+        pv_only.m_calc = Calculation::PV;
+
+        MarketData bump_up = m_mkt.bumpYieldCurveParallel(bump);
+        BinomialEngine up_calc(bump_up, m_trd, pv_only);
         up_calc.run();
+        std::string aggErr = up_calc.getAggregatedErrors();
+        if (!aggErr.empty())
+            return std::unexpected(aggErr);
 
-		std::string aggErr = up_calc.getAggregatedErrors();
-        if ( !aggErr.empty() ) 
-            return std::unexpected( aggErr );
-
-        MarketData bump_down = m_mkt.bumpInterestRate (-0.005);
-        BinomialEngine down_calc ( bump_down, m_trd, pv_only );
+        MarketData bump_down = m_mkt.bumpYieldCurveParallel(-bump);
+        BinomialEngine down_calc(bump_down, m_trd, pv_only);
         down_calc.run();
+        aggErr = down_calc.getAggregatedErrors();
+        if (!aggErr.empty())
+            return std::unexpected(aggErr);
 
-        aggErr.clear();
-		aggErr = down_calc.getAggregatedErrors();
-        if ( !aggErr.empty() ) 
-            return std::unexpected( aggErr );
-
-        const double pv_up = up_calc.m_results.at( Calculation::PV ).value();
-        const double pv_down = down_calc.m_results.at( Calculation::PV ).value();
-        return 100. * ( pv_up - pv_down );
+        const auto pv_up = scalarOrError(up_calc.m_results.at(Calculation::PV));
+        const auto pv_down = scalarOrError(down_calc.m_results.at(Calculation::PV));
+        if (!pv_up.has_value())
+            return std::unexpected(pv_up.error());
+        if (!pv_down.has_value())
+            return std::unexpected(pv_down.error());
+        return 100. * (pv_up.value() - pv_down.value());
     }
 
     CalculationResult BinomialEngine::calcVega( const CalcData& calc ) const
@@ -96,9 +200,13 @@ namespace DPP
         if ( !aggErr.empty() ) 
             return std::unexpected( aggErr );
 
-        const double pv_up = up_calc.m_results.at( Calculation::PV ).value();
-        const double pv_down = down_calc.m_results.at( Calculation::PV ).value();
-        return ( pv_up - pv_down ) * 100;
+        const auto pv_up_res = scalarOrError(up_calc.m_results.at(Calculation::PV));
+        if (!pv_up_res.has_value())
+            return std::unexpected(pv_up_res.error());
+        const auto pv_down_res = scalarOrError(down_calc.m_results.at(Calculation::PV));
+        if (!pv_down_res.has_value())
+            return std::unexpected(pv_down_res.error());
+        return (pv_up_res.value() - pv_down_res.value()) * 100;
     }
 
     CalculationResult BinomialEngine::calcGamma( const CalcData& calc ) const
@@ -123,8 +231,12 @@ namespace DPP
         if ( !aggErr.empty() ) 
             return std::unexpected( aggErr );
 
-        const double delta_up = up_calc.m_results.at( Calculation::Delta ).value();
-        const double delta_down = down_calc.m_results.at( Calculation::Delta ).value();
-        return  delta_up - delta_down;
+        const auto delta_up_res = scalarOrError(up_calc.m_results.at(Calculation::Delta));
+        if (!delta_up_res.has_value())
+            return std::unexpected(delta_up_res.error());
+        const auto delta_down_res = scalarOrError(down_calc.m_results.at(Calculation::Delta));
+        if (!delta_down_res.has_value())
+            return std::unexpected(delta_down_res.error());
+        return delta_up_res.value() - delta_down_res.value();
     }
 }

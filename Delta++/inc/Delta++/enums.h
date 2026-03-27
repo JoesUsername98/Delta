@@ -40,6 +40,7 @@ namespace DPP
         Gamma,
         Vega,
         Rho,
+        RhoParallel,
 		_SIZE,
 		//TODO add more
 	};

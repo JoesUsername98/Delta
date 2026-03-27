@@ -52,6 +52,7 @@ namespace DPP
         CalculationResult calcPV( const CalcData& calc ) const override;
         CalculationResult calcDelta( const CalcData& calc ) const override;
         CalculationResult calcRho( const CalcData& calc ) const override;
+        CalculationResult calcRhoParallel(const CalcData& calc) const override;
         CalculationResult calcVega( const CalcData& calc ) const override;
         CalculationResult calcGamma( const CalcData& calc ) const override;
 

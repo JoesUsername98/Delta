@@ -21,6 +21,9 @@ namespace DPP
             case Calculation::Rho :
                 m_results[Calculation::Rho] = calcRho( calc );
                 break;
+            case Calculation::RhoParallel:
+                m_results[Calculation::RhoParallel] = calcRhoParallel(calc);
+                break;
             case Calculation::Vega :
                 m_results[Calculation::Vega] = calcVega( calc );
                 break;

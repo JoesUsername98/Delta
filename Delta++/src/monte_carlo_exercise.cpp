@@ -22,17 +22,16 @@ namespace DPP
             , 0.0, std::plus<>());
 
         const double mean_payoff = sum / std::ranges::distance(maturity_prices);
-        return std::exp(-mkt.m_interestRate * trd.m_maturity) * mean_payoff;
+        return mkt.discount(trd.m_maturity) * mean_payoff;
     }
 
     double MCAmericanExercise::price(const TradeData& /*trd*/, const MarketData& mkt, const CalcData& calc,
                                      const std::vector<double>& sims, double dt, const IMCPayoff& payoff) const
     {
-        const double mult = std::exp(-mkt.m_interestRate * dt);
         std::vector<double> dfs;
         dfs.reserve(calc.m_steps);
-        dfs.push_back(1.0);
-        for (size_t s = 1; s < calc.m_steps; ++s) { dfs.push_back(dfs[s - 1] * mult); }
+        for (size_t step = 0; step < calc.m_steps; ++step)
+            dfs.push_back(mkt.discount(static_cast<double>(step) * dt));
 
         auto final_pvs_view =
             std::views::iota(size_t{ 0 }, calc.m_sims)
