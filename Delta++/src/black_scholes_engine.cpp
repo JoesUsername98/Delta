@@ -62,25 +62,7 @@ namespace DPP
         // Key-rate rho: one entry per curve knot (fallback: single parallel-style entry when no curve).
         constexpr double bump = 0.005;
 
-        if (!m_mkt.m_yieldCurve.has_value())
-        {
-            const auto up = m_mkt.bumpInterestRate(bump);
-            const auto down = m_mkt.bumpInterestRate(-bump);
-            BlackScholesEngine up_calc(up, m_trd, calc);
-            BlackScholesEngine down_calc(down, m_trd, calc);
-            const auto pv_up = scalarOrError(up_calc.calcPV(calc));
-            const auto pv_down = scalarOrError(down_calc.calcPV(calc));
-            if (!pv_up.has_value())
-                return std::unexpected(pv_up.error());
-            if (!pv_down.has_value())
-                return std::unexpected(pv_down.error());
-
-            CurveRho rho;
-            rho.push_back({m_trd.m_maturity, 100. * (pv_up.value() - pv_down.value())});
-            return rho;
-        }
-
-        const auto& tenors = m_mkt.m_yieldCurve->tenors();
+        const auto& tenors = m_mkt.m_yieldCurve.tenors();
         const double T = m_trd.m_maturity;
         CurveRho rho;
         rho.reserve(tenors.size());

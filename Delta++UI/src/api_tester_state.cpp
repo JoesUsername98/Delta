@@ -135,7 +135,7 @@ void ApiTesterState::fetchYieldCurveFromFred()
         m_curveZeroRates = m_curve->zeroRates();
         refreshCurveAtT();
 
-        m_status = "FRED OK: zeroRate(t) @ " + date;
+        m_status = "FRED OK: " + date;
     }
     catch (const std::exception& e)
     {
