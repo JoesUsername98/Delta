@@ -1,0 +1,92 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "wsl-debug",
+      "displayName": "WSL Debug (Makefiles)",
+      "description": "Configure Debug build for Linux/WSL with Unix Makefiles",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/wsl/make-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "wsl-release",
+      "displayName": "WSL Release (Makefiles)",
+      "description": "Configure Release build for Linux/WSL with Unix Makefiles",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/wsl/make-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "win-debug",
+      "displayName": "Windows Debug (Visual Studio 2022)",
+      "description": "Configure Debug build for Windows with VS 2022",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/win/vs2022-debug"
+    },
+    {
+      "name": "win-release",
+      "displayName": "Windows Release (Visual Studio 2022)",
+      "description": "Configure Release build for Windows with VS 2022",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/win/vs2022-release"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "wsl-debug-build",
+      "displayName": "Build WSL Debug",
+      "configurePreset": "wsl-debug"
+    },
+    {
+      "name": "wsl-release-build",
+      "displayName": "Build WSL Release",
+      "configurePreset": "wsl-release"
+    },
+    {
+      "name": "win-debug-build",
+      "displayName": "Build Windows Debug",
+      "configurePreset": "win-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "win-release-build",
+      "displayName": "Build Windows Release",
+      "configurePreset": "win-release",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "wsl-debug-test",
+      "displayName": "Test WSL Debug",
+      "configurePreset": "wsl-debug"
+    },
+    {
+      "name": "wsl-release-test",
+      "displayName": "Test WSL Release",
+      "configurePreset": "wsl-release"
+    },
+    {
+      "name": "win-debug-test",
+      "displayName": "Test Windows Debug",
+      "configurePreset": "win-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "win-release-test",
+      "displayName": "Test Windows Release",
+      "configurePreset": "win-release",
+      "configuration": "Release"
+    }
+  ]
+}
