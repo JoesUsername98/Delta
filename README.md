@@ -20,32 +20,55 @@ sudo apt install libssl-dev pkg-config
 
 ## Getting Started
 
-Once you have cloned the repository, build with CMake:
+Once you have cloned the repository, configure and build with CMake presets:
 
 ```bash
-cmake -B build -S .
-cmake --build build
+# WSL / Linux Debug
+cmake --preset wsl-debug
+cmake --build --preset wsl-debug-build
 ```
+
+```bash
+# Windows Debug (Visual Studio 2022)
+cmake --preset win-debug
+cmake --build --preset win-debug-build
+```
+
+The preset file standardizes output directories:
+
+- `build/wsl/make-debug`
+- `build/wsl/make-release`
+- `build/win/vs2022-debug`
+- `build/win/vs2022-release`
 
 ### Running Tests
 ```bash
-ctest --test-dir build
+# WSL / Linux
+ctest --preset wsl-debug-test
+
+# Windows
+ctest --preset win-debug-test
 ```
 
 ### Code Coverage
 
-To generate the code coverage report:
+To generate the code coverage report (WSL/Linux):
 ```bash
-cmake -B build -S .
-cmake --build build --target coverage
+cmake --preset wsl-debug
+cmake --build --preset wsl-debug-build --target coverage
 ```
 
 ### Benchmark Build
 
 For Google Benchmark, use a release build:
 ```bash
-cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
+# WSL / Linux Release
+cmake --preset wsl-release
+cmake --build --preset wsl-release-build
+
+# Windows Release
+cmake --preset win-release
+cmake --build --preset win-release-build
 ```
 
 ## Architecture
