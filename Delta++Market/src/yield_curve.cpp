@@ -2,6 +2,7 @@
 #include <Delta++Solver/bootstrapper.h>
 #include <algorithm>
 #include <cmath>
+#include <ranges>
 #include <utility>
 
 namespace DPP
@@ -10,6 +11,13 @@ namespace DPP
         : m_tenors(std::move(r.tenors))
         , m_discountFactors(std::move(r.discountFactors))
         , m_zeroRates(std::move(r.zeroRates))
+        , m_zeroRateInterp(m_tenors, m_zeroRates)
+    {}
+
+    YieldCurve::YieldCurve(std::vector<double> tenors, std::vector<double> discountFactors, std::vector<double> zeroRates)
+        : m_tenors(std::move(tenors))
+        , m_discountFactors(std::move(discountFactors))
+        , m_zeroRates(std::move(zeroRates))
         , m_zeroRateInterp(m_tenors, m_zeroRates)
     {}
 
@@ -43,4 +51,30 @@ namespace DPP
     {
         return m_zeroRateInterp(t);
     }
+
+    YieldCurve YieldCurve::parallelShift(double bump) const
+    {
+        std::vector<double> zr(m_zeroRates.size());
+        std::ranges::transform(m_zeroRates, zr.begin(), [bump](double z) { return z + bump; });
+
+        std::vector<double> df(m_tenors.size());
+        std::ranges::transform(m_tenors, zr, df.begin(), [](double t, double z) { return std::exp(-z * t); });
+
+        return YieldCurve(m_tenors, std::move(df), std::move(zr));
+    }
+
+    YieldCurve YieldCurve::keyRateBump(std::size_t knotIdx, double bump) const
+    {
+        if (knotIdx >= m_zeroRates.size())
+            return *this;
+
+        std::vector<double> zr = m_zeroRates;
+        zr[knotIdx] += bump;
+
+        std::vector<double> df(m_tenors.size());
+        std::ranges::transform(m_tenors, zr, df.begin(), [](double t, double z) { return std::exp(-z * t); });
+
+        return YieldCurve(m_tenors, std::move(df), std::move(zr));
+    }
+
 }

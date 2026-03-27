@@ -1,8 +1,19 @@
-﻿#include <gtest/gtest.h>
+#include <gtest/gtest.h>
 
 #include <Delta++/engine_factory.h>
+#include <Delta++/abstract_engine.h>
 
 using namespace DPP;
+
+namespace
+{
+    double scalar(const CalculationResult& r)
+    {
+        const auto s = scalarOrError(r);
+        EXPECT_TRUE(s.has_value()) << s.error();
+        return s.value_or(0.0);
+    }
+}
 
 #pragma region Binomial
 #pragma region PV
@@ -32,7 +43,7 @@ TEST( engine, EuroCallPV )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::PV ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::PV ).value(), 48.170795535239122 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::PV )), 48.170795535239122 );
 }
 TEST( engine, EuroPutPV )
 {
@@ -60,7 +71,7 @@ TEST( engine, EuroPutPV )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::PV ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::PV ).value(), 48.049738737522595 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::PV )), 48.049738737522595 );
 }
 TEST( engine, AmerCallPV )
 {
@@ -88,7 +99,7 @@ TEST( engine, AmerCallPV )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::PV ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::PV ).value(), 48.170795535239122 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::PV )), 48.170795535239122 );
 }
 TEST( engine, AmerPutPV )
 {
@@ -116,7 +127,7 @@ TEST( engine, AmerPutPV )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::PV ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::PV ).value(), 48.758203318346808 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::PV )), 48.758203318346808 );
 }
 #pragma endregion
 #pragma region Delta
@@ -146,7 +157,7 @@ TEST( engine, EuroCallDelta )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Delta ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Delta ).value(), 0.75613560127931123 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Delta )), 0.75613560127931123 );
 }
 TEST( engine, EuroPutDelta )
 {
@@ -174,7 +185,7 @@ TEST( engine, EuroPutDelta )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Delta ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Delta ).value(), -0.24507496669782114 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Delta )), -0.24507496669782114 );
 }
 TEST( engine, AmerCallDelta )
 {
@@ -202,7 +213,7 @@ TEST( engine, AmerCallDelta )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Delta ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Delta ).value(), 0.75613560127931123 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Delta )), 0.75613560127931123 );
 }
 TEST( engine, AmerPutDelta )
 {
@@ -230,7 +241,7 @@ TEST( engine, AmerPutDelta )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Delta ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Delta ).value(), -0.24503301188877202 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Delta )), -0.24503301188877202 );
 }
 #pragma endregion
 #pragma region Gamma
@@ -260,7 +271,7 @@ TEST( engine, EuroCallGamma )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Gamma ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Gamma ).value(), 0.0075613560128005020 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Gamma )), 0.0075613560128005020 );
 }
 TEST( engine, EuroPutGamma )
 {
@@ -288,7 +299,7 @@ TEST( engine, EuroPutGamma )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Gamma ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Gamma ).value(), -0.0024507496669698980 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Gamma )), -0.0024507496669698980 );
 }
 TEST( engine, AmerCallGamma )
 {
@@ -316,7 +327,7 @@ TEST( engine, AmerCallGamma )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Gamma ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Gamma ).value(), 0.0075613560128005020 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Gamma )), 0.0075613560128005020 );
 }
 TEST( engine, AmerPutGamma )
 {
@@ -344,7 +355,7 @@ TEST( engine, AmerPutGamma )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Gamma ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Gamma ).value(), -0.0024503301188687487 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Gamma )), -0.0024503301188687487 );
 }
 #pragma endregion
 #pragma region Rho
@@ -362,7 +373,7 @@ TEST( engine, EuroCallRho )
     .m_interestRate = 0.05
 };
     CalcData calc {
-    .m_calc = Calculation::Rho,
+    .m_calc = Calculation::RhoParallel,
     .m_steps = 3
 };
 
@@ -373,8 +384,8 @@ TEST( engine, EuroCallRho )
 
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
-	EXPECT_TRUE( engine->m_results.find( Calculation::Rho ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Rho ).value(), 27.795392260804164 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::RhoParallel ) != engine->m_results.end() );
+	EXPECT_NEAR( scalar(engine->m_results.at( Calculation::RhoParallel )), 27.795392260804164, 1e-6 );
 }
 TEST( engine, EuroPutRho )
 {
@@ -390,7 +401,7 @@ TEST( engine, EuroPutRho )
     .m_interestRate = 0.05
 };
     CalcData calc {
-    .m_calc = Calculation::Rho,
+    .m_calc = Calculation::RhoParallel,
     .m_steps = 3
 };
 
@@ -401,8 +412,8 @@ TEST( engine, EuroPutRho )
 
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
-	EXPECT_TRUE( engine->m_results.find( Calculation::Rho ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Rho ).value(), -72.211865338645254 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::RhoParallel ) != engine->m_results.end() );
+	EXPECT_NEAR( scalar(engine->m_results.at( Calculation::RhoParallel )), -72.211865338645254, 1e-6 );
 }
 TEST( engine, AmerCallRho )
 {
@@ -418,7 +429,7 @@ TEST( engine, AmerCallRho )
     .m_interestRate = 0.05
 };
     CalcData calc {
-    .m_calc = Calculation::Rho,
+    .m_calc = Calculation::RhoParallel,
     .m_steps = 3
 };
 
@@ -429,8 +440,8 @@ TEST( engine, AmerCallRho )
 
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
-	EXPECT_TRUE( engine->m_results.find( Calculation::Rho ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Rho ).value(), 27.795392260804164 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::RhoParallel ) != engine->m_results.end() );
+	EXPECT_NEAR( scalar(engine->m_results.at( Calculation::RhoParallel )), 27.795392260804164, 1e-6 );
 }
 TEST( engine, AmerPutRho )
 {
@@ -446,7 +457,7 @@ TEST( engine, AmerPutRho )
     .m_interestRate = 0.05
 };
     CalcData calc {
-    .m_calc = Calculation::Rho,
+    .m_calc = Calculation::RhoParallel,
     .m_steps = 3
 };
 
@@ -457,8 +468,8 @@ TEST( engine, AmerPutRho )
 
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
-	EXPECT_TRUE( engine->m_results.find( Calculation::Rho ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Rho ).value(), -59.348811877772789 );
+	EXPECT_TRUE( engine->m_results.find( Calculation::RhoParallel ) != engine->m_results.end() );
+	EXPECT_NEAR( scalar(engine->m_results.at( Calculation::RhoParallel )), -59.348811877772789, 1e-6 );
 }
 #pragma endregion
 #pragma region Vega
@@ -488,7 +499,7 @@ TEST( engine, EuroCallVega )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Vega ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Vega ).value(), 34.296496709994528 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Vega )), 34.296496709994528 );
 }
 TEST( engine, EuroPutVega )
 {
@@ -516,7 +527,7 @@ TEST( engine, EuroPutVega )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Vega ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Vega ).value(), 34.296496709992397 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Vega )), 34.296496709992397 );
 }
 TEST( engine, AmerCallVega )
 {
@@ -544,7 +555,7 @@ TEST( engine, AmerCallVega )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Vega ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Vega ).value(), 34.296496709994528 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Vega )), 34.296496709994528 );
 }
 TEST( engine, AmerPutVega )
 {
@@ -572,7 +583,7 @@ TEST( engine, AmerPutVega )
 	EXPECT_TRUE( !engine->hasAnyErrors() );
 	EXPECT_EQ( engine->m_results.size() , 1 );
 	EXPECT_TRUE( engine->m_results.find( Calculation::Vega ) != engine->m_results.end() );
-	EXPECT_EQ( engine->m_results.at( Calculation::Vega ).value(), 34.592394876462151 );
+	EXPECT_EQ( scalar(engine->m_results.at( Calculation::Vega )), 34.592394876462151 );
 }
 #pragma endregion
 #pragma endregion

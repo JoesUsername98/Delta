@@ -2,6 +2,8 @@
 #include <cmath>
 #include <thread>
 #include <algorithm>
+#include <ranges>
+#include <vector>
 
 #include "Delta++/market.h"
 #include "Delta++/calc.h"
@@ -11,12 +13,23 @@ namespace DPP
 {
     struct IPathScheme
     {
-        virtual void updatePrice(double& S, double dW, double dt, const MarketData& mkt) const = 0;
+        virtual void updatePrice(double& S,
+                                 double dW,
+                                 double r,
+                                 double dt,
+                                 const MarketData& mkt) const = 0;
         virtual ~IPathScheme() = default;
 
         std::vector<double> simPaths(const MarketData& mkt, const CalcData& calc, const double dt) const
         {
             const auto sqrt_dt = std::sqrt(dt);
+
+            // Precompute zero rates once (per PV run), instead of interpolating per path.
+            std::vector<double> zeroRatesByStep(calc.m_steps);
+            std::ranges::transform(
+                std::views::iota(size_t{0}, calc.m_steps),
+                zeroRatesByStep.begin(),
+                [&](size_t step) { return mkt.zeroRate(static_cast<double>(step) * dt); });
             
 			std::vector<double> unif_rands(calc.m_sims * ( calc.m_steps - 1 ), 2);
             std::seed_seq seq{ calc.m_seed };
@@ -35,7 +48,8 @@ namespace DPP
                         const auto& u = unif_rands[(sim_idx * (calc.m_steps - 1)) + (step_index - 1)];
                         const double z = DPPMath::invCumDensity(u);
                         const double dW = sqrt_dt * z;
-                        updatePrice(s, dW, dt, mkt);
+                        const double r = zeroRatesByStep[step_index - 1];
+                        updatePrice(s, dW, r, dt, mkt);
                         sims[idx] = s;
                     }
                 }
@@ -60,25 +74,37 @@ namespace DPP
 
     struct ExactScheme : IPathScheme
     {
-        void updatePrice(double& S, double dW, double dt, const MarketData& mkt) const override
+        void updatePrice(double& S,
+                         double dW,
+                         double r,
+                         double dt,
+                         const MarketData& mkt) const override
         {
-            S = S * std::exp((mkt.m_interestRate - 0.5 * mkt.m_vol * mkt.m_vol) * dt + mkt.m_vol * dW);
+            S = S * std::exp((r - 0.5 * mkt.m_vol * mkt.m_vol) * dt + mkt.m_vol * dW);
         }
     };
 
     struct EulerScheme : IPathScheme
     {
-        void updatePrice(double& S, double dW, double dt, const MarketData& mkt) const override
+        void updatePrice(double& S,
+                         double dW,
+                         double r,
+                         double dt,
+                         const MarketData& mkt) const override
         {
-            S = S * (1 + mkt.m_interestRate * dt + mkt.m_vol * dW);
+            S = S * (1 + r * dt + mkt.m_vol * dW);
         }
     };
 
     struct MilsteinScheme : IPathScheme
     {
-        void updatePrice(double& S, double dW, double dt, const MarketData& mkt) const override
+        void updatePrice(double& S,
+                         double dW,
+                         double r,
+                         double dt,
+                         const MarketData& mkt) const override
         {
-            S = S * (1 + mkt.m_interestRate * dt + mkt.m_vol * dW + 0.5 * mkt.m_vol * mkt.m_vol * (dW * dW - dt));
+            S = S * (1 + r * dt + mkt.m_vol * dW + 0.5 * mkt.m_vol * mkt.m_vol * (dW * dW - dt));
         }
     };
 }

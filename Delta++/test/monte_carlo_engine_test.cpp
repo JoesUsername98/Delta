@@ -1,8 +1,19 @@
 #include <gtest/gtest.h>
 
 #include <Delta++/engine_factory.h>
+#include <Delta++/abstract_engine.h>
 
 using namespace DPP;
+
+namespace
+{
+    double scalar(const CalculationResult& r)
+    {
+        const auto s = scalarOrError(r);
+        EXPECT_TRUE(s.has_value()) << s.error();
+        return s.value_or(0.0);
+    }
+}
 
 constexpr int STEPS = 252;
 constexpr int SIMS = 1000;
@@ -41,7 +52,7 @@ TEST( engine_mc, EuroCallPV )
     
     const double expected_pv = 7.6452181227433922;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::PV ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::PV )),
         expected_pv,
         TOL );
 }
@@ -75,7 +86,7 @@ TEST( engine_mc, EuroPutPV )
     
     const double expected_pv = 7.3935839856863295;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::PV ).value() ,
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::PV )) ,
         expected_pv, 
         TOL );
 }
@@ -109,7 +120,7 @@ TEST( engine_mc, AmerCallPV )
     
     const double expected_pv = 13.285859566122195;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::PV ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::PV )),
         expected_pv, 
         TOL );
 }
@@ -143,7 +154,7 @@ TEST( engine_mc, AmerPutPV )
     
     const double expected_pv = 15.916122098965991;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::PV ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::PV )),
         expected_pv, 
         TOL );
 }
@@ -179,7 +190,7 @@ TEST( engine_mc, EuroCallDelta )
     
     const double expected_delta = 0.54737887910056138;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Delta ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Delta )),
         expected_delta, 
         TOL );
 }
@@ -213,7 +224,7 @@ TEST( engine_mc, EuroPutDelta )
     
     const double expected_delta = -0.42705641267555094;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Delta ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Delta )),
         expected_delta, 
         TOL );
 }
@@ -247,7 +258,7 @@ TEST( engine_mc, AmerCallDelta )
     
     const double expected_delta = 0.95036855524625352;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Delta ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Delta )),
         expected_delta, 
         TOL );
 }
@@ -281,7 +292,7 @@ TEST( engine_mc, AmerPutDelta )
     
     const double expected_delta = -0.86839139105919472;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Delta ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Delta )),
         expected_delta, 
         TOL );
 }
@@ -317,7 +328,7 @@ TEST( engine_mc, EuroCallGamma )
     
     const double expected_gamma = 0.019382314570957071;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Gamma ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Gamma )),
         expected_gamma, 
         TOL );
 }
@@ -351,7 +362,7 @@ TEST( engine_mc, EuroPutGamma )
     
     const double expected_gamma = 0.0093692421999884701;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Gamma ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Gamma )),
         expected_gamma, 
         TOL );
 }
@@ -385,7 +396,7 @@ TEST( engine_mc, AmerCallGamma )
     
     const double expected_gamma = 0.048928977300072063;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Gamma ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Gamma )),
         expected_gamma, 
         TOL );
 }
@@ -419,7 +430,7 @@ TEST( engine_mc, AmerPutGamma )
     
     const double expected_gamma = -0.0086576513939071731;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Gamma ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Gamma )),
         expected_gamma, 
         TOL );
 }
@@ -439,7 +450,7 @@ TEST( engine_mc, EuroCallRho )
         .m_interestRate = 0.05
     };
     CalcData calc {
-        .m_calc = Calculation::Rho,
+        .m_calc = Calculation::RhoParallel,
         .m_steps = STEPS,
         .m_sims = SIMS
     };
@@ -451,13 +462,13 @@ TEST( engine_mc, EuroCallRho )
 
     EXPECT_TRUE( !engine_mc->hasAnyErrors() );
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
-    EXPECT_TRUE( engine_mc->m_results.find( Calculation::Rho ) != engine_mc->m_results.end() );
+    EXPECT_TRUE( engine_mc->m_results.find( Calculation::RhoParallel ) != engine_mc->m_results.end() );
     
     const double expected_rho = 46.834431815156563;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Rho ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::RhoParallel )),
         expected_rho, 
-        TOL );
+        1e-6 );
 }
 TEST( engine_mc, EuroPutRho )
 {
@@ -473,7 +484,7 @@ TEST( engine_mc, EuroPutRho )
         .m_interestRate = 0.05
     };
     CalcData calc {
-        .m_calc = Calculation::Rho,
+        .m_calc = Calculation::RhoParallel,
         .m_steps = STEPS,
         .m_sims = SIMS
     };
@@ -485,13 +496,13 @@ TEST( engine_mc, EuroPutRho )
 
     EXPECT_TRUE( !engine_mc->hasAnyErrors() );
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
-    EXPECT_TRUE( engine_mc->m_results.find( Calculation::Rho ) != engine_mc->m_results.end() );
+    EXPECT_TRUE( engine_mc->m_results.find( Calculation::RhoParallel ) != engine_mc->m_results.end() );
     
     const double expected_rho = -52.627033596496453;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Rho ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::RhoParallel )),
         expected_rho, 
-        TOL );
+        1e-6 );
 }
 TEST( engine_mc, AmerCallRho )
 {
@@ -507,7 +518,7 @@ TEST( engine_mc, AmerCallRho )
         .m_interestRate = 0.05
     };
     CalcData calc {
-        .m_calc = Calculation::Rho,
+        .m_calc = Calculation::RhoParallel,
         .m_steps = STEPS,
         .m_sims = SIMS
     };
@@ -519,13 +530,13 @@ TEST( engine_mc, AmerCallRho )
 
     EXPECT_TRUE( !engine_mc->hasAnyErrors() );
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
-    EXPECT_TRUE( engine_mc->m_results.find( Calculation::Rho ) != engine_mc->m_results.end() );
+    EXPECT_TRUE( engine_mc->m_results.find( Calculation::RhoParallel ) != engine_mc->m_results.end() );
     
     const double expected_rho = 52.194860913964547;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Rho ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::RhoParallel )),
         expected_rho, 
-        TOL);
+        1e-6);
 }
 TEST( engine_mc, AmerPutRho )
 {
@@ -541,7 +552,7 @@ TEST( engine_mc, AmerPutRho )
         .m_interestRate = 0.05
     };
     CalcData calc {
-        .m_calc = Calculation::Rho,
+        .m_calc = Calculation::RhoParallel,
         .m_steps = STEPS,
         .m_sims = SIMS
     };
@@ -553,13 +564,13 @@ TEST( engine_mc, AmerPutRho )
 
     EXPECT_TRUE( !engine_mc->hasAnyErrors() );
     EXPECT_EQ( engine_mc->m_results.size() , 1 );
-    EXPECT_TRUE( engine_mc->m_results.find( Calculation::Rho ) != engine_mc->m_results.end() );
+    EXPECT_TRUE( engine_mc->m_results.find( Calculation::RhoParallel ) != engine_mc->m_results.end() );
     
     const double expected_rho = -44.049588054060251;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Rho ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::RhoParallel )),
         expected_rho, 
-        TOL );
+        1e-6 );
 }
 #pragma endregion
 #pragma region Vega
@@ -593,7 +604,7 @@ TEST( engine_mc, EuroCallVega )
     
     const double expected_vega = 37.131002628629517;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Vega ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Vega )),
         expected_vega, 
         TOL );
 }
@@ -627,7 +638,7 @@ TEST( engine_mc, EuroPutVega )
     
     const double expected_vega = 37.505354914658007;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Vega ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Vega )),
         expected_vega, 
         TOL );
 }
@@ -661,7 +672,7 @@ TEST( engine_mc, AmerCallVega )
     
     const double expected_vega = 75.911396454998581;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Vega ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Vega )),
         expected_vega, 
         TOL );
 }
@@ -695,7 +706,7 @@ TEST( engine_mc, AmerPutVega )
     
     const double expected_vega = 61.955894105174991;
       
-    EXPECT_NEAR( engine_mc->m_results.at( Calculation::Vega ).value(),
+    EXPECT_NEAR( scalar(engine_mc->m_results.at( Calculation::Vega )),
         expected_vega, 
         TOL );
 }

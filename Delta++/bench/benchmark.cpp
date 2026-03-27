@@ -2,6 +2,7 @@
 
 #include <Delta++/engine_factory.h>
 #include <Delta++/tri_matrix_builder.h>
+#include <Delta++/abstract_engine.h>
 
 using namespace DPP;
 using namespace std::string_literals;
@@ -75,7 +76,8 @@ static void BM_MC_AmerPut_TimeSteps(benchmark::State& state) {
 		const auto mat = buildResult.build();
 		const auto& vec = mat.getMatrix();
 
-		value = engine_mc->m_results.at(Calculation::PV).value();
+        const auto pv = scalarOrError(engine_mc->m_results.at(Calculation::PV));
+        value = pv.value_or(0.0);
 	}
 	state.SetLabel("val: " + std::to_string(value));
 }

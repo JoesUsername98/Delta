@@ -62,9 +62,29 @@ namespace DPP
 		m_interestRate = constantInterestRate;
 		const double interest_rate = pow(1. + constantInterestRate, m_timeStep) - 1.;
 		m_discountRate = 1. / (1. + interest_rate);
+        m_useStepDiscounting = false;
+        m_discountRatesByStep.clear();
+        m_probabilityHeadsByStep.clear();
 
 		return *this;
 	}
+
+    TriMatrixBuilder& TriMatrixBuilder::withDiscountRatesAndProbabilities(std::vector<double> discountRatesByStep,
+                                                                          std::vector<double> probabilityHeadsByStep)
+    {
+        if (m_hasError)
+            return *this;
+
+        if (discountRatesByStep.size() < m_timeSteps || probabilityHeadsByStep.size() < m_timeSteps)
+        {
+            RTN_BUILDER_ERR("discountRatesByStep/probabilityHeadsByStep must have at least 'steps' entries");
+        }
+
+        m_useStepDiscounting = true;
+        m_discountRatesByStep = std::move(discountRatesByStep);
+        m_probabilityHeadsByStep = std::move(probabilityHeadsByStep);
+        return *this;
+    }
 	TriMatrixBuilder& TriMatrixBuilder::withPayoff(const OptionPayoffType optionType, const double strikePrice)
 	{
 		if ( m_hasError ) 
@@ -109,10 +129,30 @@ namespace DPP
 
 		m_exerciseType = exerciseType;
 
-		m_calcExpPV = [discountRate = m_discountRate, pHeads = m_probabilityHeads] ( const Node* heads, const Node* tails )
-		{ 
-			return discountRate * ( heads->m_data.m_optionValue * pHeads + tails->m_data.m_optionValue * ( 1. - pHeads ) ); 
-		};
+        if (m_useStepDiscounting)
+        {
+            auto discountRatesByStep = m_discountRatesByStep;
+            auto probabilityHeadsByStep = m_probabilityHeadsByStep;
+            m_calcExpPV = [discountRatesByStep = std::move(discountRatesByStep),
+                           probabilityHeadsByStep = std::move(probabilityHeadsByStep)](const Node* heads, const Node* tails)
+            {
+                if (heads == nullptr || tails == nullptr)
+                    return 0.0;
+                const std::size_t step = static_cast<std::size_t>(heads->m_timeStep - 1);
+                if (step >= discountRatesByStep.size() || step >= probabilityHeadsByStep.size())
+                    return 0.0;
+                const double discountRate = discountRatesByStep[step];
+                const double pHeads = probabilityHeadsByStep[step];
+                return discountRate * (heads->m_data.m_optionValue * pHeads + tails->m_data.m_optionValue * (1. - pHeads));
+            };
+        }
+        else
+        {
+            m_calcExpPV = [discountRate = m_discountRate, pHeads = m_probabilityHeads] ( const Node* heads, const Node* tails )
+            { 
+                return discountRate * ( heads->m_data.m_optionValue * pHeads + tails->m_data.m_optionValue * ( 1. - pHeads ) ); 
+            };
+        }
 
 		switch ( m_exerciseType )
 		{

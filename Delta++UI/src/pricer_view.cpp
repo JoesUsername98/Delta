@@ -1,8 +1,10 @@
 #include "pricer_view.h"
 #include <implot.h>
 #include <implot_internal.h>
+#include <algorithm>
 #include <string>
 
+#include "shared_curve_cache.h"
 
 size_t PricerView::s_type_count = 0;
 
@@ -52,6 +54,27 @@ void PricerView::renderMarketParams()
                     ImGui::SameLine(); HelpMarker("Constant Volatility");
         m_state.m_valueChanged |=	ImGui::InputDouble("Interest Rate", &m_state.m_mkt.m_interestRate, 0.01, 1.0, "%.2f");
                     ImGui::SameLine(); HelpMarker("Interest Rate");
+
+        const bool hasCachedCurve = DPPUI::g_lastBuiltYieldCurve.has_value();
+        const bool hasCurveAttached = m_state.m_mkt.m_yieldCurve.has_value();
+        ImGui::Separator();
+        if (ImGui::Button("Attach curve from API Tester"))
+        {
+            if (hasCachedCurve)
+            {
+                m_state.m_mkt.m_yieldCurve = DPPUI::g_lastBuiltYieldCurve;
+                m_state.m_valueChanged = true;
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Clear curve"))
+        {
+            m_state.m_mkt.m_yieldCurve.reset();
+            m_state.m_valueChanged = true;
+        }
+        ImGui::Text("Curve cached: %s | Curve attached: %s",
+            hasCachedCurve ? "yes" : "no",
+            hasCurveAttached ? "yes" : "no");
     }
 }
 void PricerView::renderCalcParams()
@@ -86,13 +109,68 @@ void PricerView::renderCalcParams()
                     ImGui::SameLine(); HelpMarker("The option value's sensitivity to the underlying's delta");
         m_state.m_valueChanged |= ImGui::Checkbox("Vega", &m_state.m_calcsToDo[ (int)Calculation::Vega ] );
                     ImGui::SameLine(); HelpMarker("The option value's sensitivity to the underlying's volatility");
-        m_state.m_valueChanged |= ImGui::Checkbox("Rho", &m_state.m_calcsToDo[ (int)Calculation::Rho ] );
-                    ImGui::SameLine(); HelpMarker("The option value's sensitivity to the risk free rate");
+        m_state.m_valueChanged |= ImGui::Checkbox("Rho (key-rate)", &m_state.m_calcsToDo[ (int)Calculation::Rho ] );
+                    ImGui::SameLine(); HelpMarker("Key-rate rhos: one rho per curve knot (tenor).");
+        m_state.m_valueChanged |= ImGui::Checkbox("Rho (parallel)", &m_state.m_calcsToDo[ (int)Calculation::RhoParallel ] );
+                    ImGui::SameLine(); HelpMarker("Parallel-shift rho: shifts the entire curve up/down.");
 
         if (!m_state.m_dynamicRecalc)
             m_state.m_btn_calcPressed = ImGui::Button("Calculate");
     }
 }
+
+void PricerView::renderMCPathsPlot()
+{
+    if (!m_state.m_engine || !m_state.m_engine->m_debugResults.contains(DPP::DebugInfo::MCPaths))
+        return;
+
+    const auto pvIt = std::ranges::find_if(m_state.m_calcs, [](const CalcData& c) { return c.m_calc == Calculation::PV; });
+    if (pvIt == m_state.m_calcs.end())
+        return;
+
+    const auto& pvCalc = *pvIt;
+    const auto& lines = m_state.m_engine->m_debugResults.at(DPP::DebugInfo::MCPaths);
+
+    const std::string mcWindowTitle = std::string("Monte Carlo Paths ") + std::to_string(M_ID);
+    ImGui::Begin(mcWindowTitle.c_str());
+
+    const std::string mcPlotTitle = std::string("Monte Carlo Paths: ")
+        + m_state.m_pathSchemeCombo.m_keysCArray[m_state.m_pathSchemeComboIdx]
+        + "  seed=" + std::to_string(m_state.m_seed);
+
+    if (ImPlot::BeginPlot(mcPlotTitle.c_str()))
+    {
+        std::vector<double> time_axis(pvCalc.m_steps);
+        const double dt = m_state.m_trd.m_maturity / static_cast<double>(pvCalc.m_steps);
+        for (size_t i = 0; i < pvCalc.m_steps; ++i)
+            time_axis[i] = static_cast<double>(i) * dt;
+
+        for (size_t s = 0; s < pvCalc.m_sims; ++s)
+        {
+            const std::string label = std::string("Path ") + std::to_string(s);
+            const double* path_ptr = lines.data() + s * pvCalc.m_steps;
+            bool already_exist = ImPlot::GetItem(label.c_str()) != nullptr;
+
+            ImPlot::PlotLine(
+                label.c_str(),
+                time_axis.data(),
+                path_ptr,
+                static_cast<int>(pvCalc.m_steps)
+            );
+
+            bool just_created = false;
+            ImPlotItem* item = ImPlot::RegisterOrGetItem(label.c_str(), 0, &just_created);
+
+            bool set_to_hidden_initially = !already_exist && s > 5 && item->Show;
+            if (set_to_hidden_initially) // Only show the first 5 paths for clarity
+                item->Show = false;
+        }
+        ImPlot::EndPlot();
+    }
+
+    ImGui::End();
+}
+
 void PricerView::renderResults()
 {
 	if (!m_state.m_engineBuildError.empty())
@@ -100,6 +178,8 @@ void PricerView::renderResults()
         ImGui::TextColored( ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Engine Build Error: %s", m_state.m_engineBuildError.c_str() );
         return;
     }
+
+    renderMCPathsPlot();
 
     if (ImGui::BeginTable("Results", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV ) )
     {
@@ -109,47 +189,34 @@ void PricerView::renderResults()
             ImGui::TableSetColumnIndex(0);
             ImGui::Text( magic_enum::enum_name(calc.m_calc).data() );
             ImGui::TableSetColumnIndex(1);
-            if( m_state.m_engine->m_results.contains(calc.m_calc) ) {
-                if (m_state.m_engine->m_debugResults.contains(DPP::DebugInfo::MCPaths))
-                {
-                    ImGui::Begin("Monte Carlo Paths");
-                    const std::string mcPlotTitle = std::string("Monte Carlo Paths: ")
-                        + m_state.m_pathSchemeCombo.m_keysCArray[m_state.m_pathSchemeComboIdx]
-                        + "  seed=" + std::to_string(m_state.m_seed);
-                    if (ImPlot::BeginPlot(mcPlotTitle.c_str()))
-                    {
-                        const auto& lines = m_state.m_engine->m_debugResults.at(DPP::DebugInfo::MCPaths);
-						std::vector<double> time_axis(calc.m_steps);
-						const double dt = m_state.m_trd.m_maturity / static_cast<double>(calc.m_steps);
-                        for (size_t i = 0; i < calc.m_steps; ++i) 
-                            time_axis[i] = static_cast<double>(i) * dt;
-                        for (size_t s = 0; s < calc.m_sims; ++s)
-                        {
-                            std::string label = std::string("Path ") + std::to_string(s);
-                            const double* path_ptr = lines.data() + s * calc.m_steps;
-							bool already_exist = ImPlot::GetItem(label.c_str()) != nullptr;
-
-                            ImPlot::PlotLine(
-                                label.c_str(),
-                                time_axis.data(),
-                                path_ptr,
-                                static_cast<int>(calc.m_steps)
-                            );
-
-                            bool just_created = false;
-                            ImPlotItem* item = ImPlot::RegisterOrGetItem(label.c_str(), 0, &just_created);
-
-							bool set_to_hidden_initially = !already_exist && s > 5 && item->Show;
-							if ( set_to_hidden_initially ) // Only show the first 5 paths for clarity
-                                item->Show = false;
-                        }
-                        ImPlot::EndPlot();
-                    }
-                    ImGui::End();
-                }
+            if( m_state.m_engine->m_results.contains(calc.m_calc) ) 
+            {
                 const auto &res = m_state.m_engine->m_results.at(calc.m_calc);
                 if (res.has_value())
-                    ImGui::Text( "%.6f",  res.value() );
+                {
+                    if (const auto* v = std::get_if<double>(&res.value()))
+                    {
+                        ImGui::Text( "%.6f",  *v );
+                    }
+                    else if (const auto* curve = std::get_if<DPP::CurveRho>(&res.value()))
+                    {
+                        if (ImGui::BeginTable("CurveRho", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV))
+                        {
+                            ImGui::TableSetupColumn("Tenor (Y)");
+                            ImGui::TableSetupColumn("Rho");
+                            ImGui::TableHeadersRow();
+                            for (const auto& p : *curve)
+                            {
+                                ImGui::TableNextRow();
+                                ImGui::TableSetColumnIndex(0);
+                                ImGui::Text("%.6f", p.tenor);
+                                ImGui::TableSetColumnIndex(1);
+                                ImGui::Text("%.6f", p.rho);
+                            }
+                            ImGui::EndTable();
+                        }
+                    }
+                }
                 else
                     ImGui::Text( "%s", res.error().c_str() );
             }
