@@ -87,12 +87,11 @@ namespace DPP
         pv_only.m_calc = Calculation::PV;
 
         const auto& tenors = m_mkt.m_yieldCurve.tenors();
-        const double T = m_trd.m_maturity;
         CurveRho rho;
         rho.reserve(tenors.size());
         for (size_t i = 0; i < tenors.size(); ++i)
         {
-            if (tenors[i] > T)
+            if (tenors[i] > m_trd.m_maturity)
                 continue;
             MarketData bump_up = m_mkt.bumpYieldCurveKeyRate(i, bump);
             BinomialEngine up_calc(bump_up, m_trd, pv_only);
