@@ -1,9 +1,11 @@
 #pragma once
 
-#include <vector>
-#include <memory>
 #include <expected>
+#include <memory>
 #include <string>
+#include <vector>
+
+#include <magic_enum/magic_enum.hpp>
 
 #include "abstract_engine.h"
 
@@ -23,44 +25,27 @@ namespace DPP
             if (calc.empty())
                 return std::unexpected("No calculation data supplied");
 
-            if (calc.front().m_pathSchemeType != PathSchemeType::Exact &&
-                calc.front().m_pathSchemeType != PathSchemeType::Euler &&
-                calc.front().m_pathSchemeType != PathSchemeType::Milstein)
-            {
+            if (!magic_enum::enum_contains(calc.front().m_pathSchemeType))
                 return std::unexpected("Unsupported path scheme type");
-            }
 
-            if (trd.m_optionPayoffType != OptionPayoffType::Call &&
-                trd.m_optionPayoffType != OptionPayoffType::Put)
-            {
+            if (!magic_enum::enum_contains(trd.m_optionPayoffType))
                 return std::unexpected("Unsupported option payoff type");
-            }
 
-            if (trd.m_optionExerciseType != OptionExerciseType::European &&
-                trd.m_optionExerciseType != OptionExerciseType::American)
-            {
+            if (!magic_enum::enum_contains(trd.m_optionExerciseType))
                 return std::unexpected("Unsupported option exercise type");
-            }
 
             return std::unique_ptr<MonteCarloEngine>(new MonteCarloEngine(mkt, trd, calc));
         }
 
     protected:
-        MonteCarloEngine( const MarketData& mkt, const TradeData& trd, const CalcData& calc );
-        MonteCarloEngine( const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc );
+        MonteCarloEngine(const MarketData& mkt, const TradeData& trd, const CalcData& calc);
+        MonteCarloEngine(const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc);
 
-        CalculationResult calcPV( const CalcData& calc ) const override;
-        CalculationResult calcDelta( const CalcData& calc ) const override;
-        CalculationResult calcRho( const CalcData& calc ) const override;
+        CalculationResult calcPV(const CalcData& calc) const override;
+        CalculationResult calcDelta(const CalcData& calc) const override;
+        CalculationResult calcRho(const CalcData& calc) const override;
         CalculationResult calcRhoParallel(const CalcData& calc) const override;
-        CalculationResult calcVega( const CalcData& calc ) const override;
-        CalculationResult calcGamma( const CalcData& calc ) const override;
-
-    private:
-        void initStrategies();
-
-        std::unique_ptr<IMCPayoff> m_payoff;
-        std::unique_ptr<IMCExercise> m_exercise;
-        std::unique_ptr<IPathScheme> m_scheme;
+        CalculationResult calcVega(const CalcData& calc) const override;
+        CalculationResult calcGamma(const CalcData& calc) const override;
     };
 }
