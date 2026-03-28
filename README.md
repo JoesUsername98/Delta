@@ -29,7 +29,7 @@ cmake --build --preset wsl-debug-build
 ```
 
 ```bash
-# Windows Debug (Visual Studio 2022)
+# Windows Debug (Visual Studio 2026)
 cmake --preset win-debug
 cmake --build --preset win-debug-build
 ```
