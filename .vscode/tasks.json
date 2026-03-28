@@ -2,55 +2,131 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Configure CMake (Debug)",
+            "label": "Configure (win-debug)",
             "type": "shell",
             "command": "cmake",
-            "args": [
-                "-S",
-                "${workspaceFolder}",
-                "-B",
-                "${workspaceFolder}/build",
-                "-DCMAKE_BUILD_TYPE=Debug"
-            ],
+            "args": ["--preset", "win-debug"],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
         },
         {
-            "label": "Build Delta++UI (Debug)",
+            "label": "Configure (win-release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--preset", "win-release"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Configure (wsl-debug)",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--preset", "wsl-debug"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Configure (wsl-release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--preset", "wsl-release"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build Delta++UI (win-debug)",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "--build",
-                "${workspaceFolder}/build",
-                "--config",
-                "Debug",
+                "--preset",
+                "win-debug-build",
                 "--target",
                 "Delta++UI"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "dependsOn": [
-                "Configure CMake (Debug)"
-            ],
+            "dependsOn": ["Configure (win-debug)"],
             "dependsOrder": "sequence",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": [
-                "$msCompile"
-            ]
+            "problemMatcher": ["$msCompile"]
         },
         {
-            "label": "Run Delta Tests (Debug)",
+            "label": "Build Delta++UI (win-release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "win-release-build",
+                "--target",
+                "Delta++UI"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": ["Configure (win-release)"],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "problemMatcher": ["$msCompile"]
+        },
+        {
+            "label": "Build Delta++_Test (wsl-debug)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "wsl-debug-build",
+                "--target",
+                "Delta++_Test"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": ["Configure (wsl-debug)"],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Build Delta++_Test (wsl-release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "wsl-release-build",
+                "--target",
+                "Delta++_Test"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": ["Configure (wsl-release)"],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Run Delta Tests (win-debug)",
             "type": "shell",
             "command": "ctest",
             "args": [
                 "--test-dir",
-                "${workspaceFolder}/build",
+                "${workspaceFolder}/build/win/vs2022-debug",
                 "-C",
                 "Debug",
                 "-R",
@@ -60,9 +136,69 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "dependsOn": [
-                "Configure CMake (Debug)"
+            "dependsOn": ["Configure (win-debug)"],
+            "dependsOrder": "sequence",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Delta Tests (win-release)",
+            "type": "shell",
+            "command": "ctest",
+            "args": [
+                "--test-dir",
+                "${workspaceFolder}/build/win/vs2022-release",
+                "-C",
+                "Release",
+                "-R",
+                "^DeltaPP\\.",
+                "--output-on-failure"
             ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": ["Configure (win-release)"],
+            "dependsOrder": "sequence",
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Delta Tests (wsl-debug)",
+            "type": "shell",
+            "command": "ctest",
+            "args": [
+                "--test-dir",
+                "${workspaceFolder}/build/wsl/make-debug",
+                "-R",
+                "^DeltaPP\\.",
+                "--output-on-failure"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": ["Configure (wsl-debug)"],
+            "dependsOrder": "sequence",
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Delta Tests (wsl-release)",
+            "type": "shell",
+            "command": "ctest",
+            "args": [
+                "--test-dir",
+                "${workspaceFolder}/build/wsl/make-release",
+                "-R",
+                "^DeltaPP\\.",
+                "--output-on-failure"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": ["Configure (wsl-release)"],
             "dependsOrder": "sequence",
             "group": "test",
             "problemMatcher": []

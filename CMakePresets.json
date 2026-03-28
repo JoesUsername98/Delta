@@ -28,16 +28,16 @@
     },
     {
       "name": "win-debug",
-      "displayName": "Windows Debug (Visual Studio 2022)",
+      "displayName": "Windows Debug (Visual Studio 2026)",
       "description": "Configure Debug build for Windows with VS 2022",
-      "generator": "Visual Studio 17 2022",
+      "generator": "Visual Studio 18 2026",
       "binaryDir": "${sourceDir}/build/win/vs2022-debug"
     },
     {
       "name": "win-release",
-      "displayName": "Windows Release (Visual Studio 2022)",
+      "displayName": "Windows Release (Visual Studio 2026)",
       "description": "Configure Release build for Windows with VS 2022",
-      "generator": "Visual Studio 17 2022",
+      "generator": "Visual Studio 18 2026",
       "binaryDir": "${sourceDir}/build/win/vs2022-release"
     }
   ],
