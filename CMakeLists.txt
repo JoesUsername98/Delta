@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD          23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS        OFF)
 
+# Lets VS Code/Cursor C++ IntelliSense (and clangd) use real compile flags for Go to Definition / includes.
+# With Visual Studio generators this is supported in CMake 3.20+ (VS 16+).
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(DPP_LIB_NAME "Delta++")
 set(DPP_MATH_LIB_NAME "Delta++Math")
 set(EXECUTABLE_NAME "Delta++UI")
@@ -82,3 +86,10 @@ if (WIN32)
   add_subdirectory(walnut_custom)
   add_subdirectory(Delta++UI)
 endif (WIN32)
+
+# Copy compilation database to repo root so C_Cpp.default.compileCommands in .vscode/settings.json resolves.
+if(CMAKE_EXPORT_COMPILE_COMMANDS AND EXISTS "${CMAKE_BINARY_DIR}/compile_commands.json")
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json")
+endif()

@@ -1,68 +1,36 @@
-#include <random>
+#include <type_traits>
+#include <variant>
+
+#include <magic_enum/magic_enum.hpp>
 
 #include "Delta++/monte_carlo_engine.h"
+#include "Delta++/monte_carlo_static_dispatch.h"
 
 using namespace std::string_literals;
+
 namespace DPP
 {
     MonteCarloEngine::MonteCarloEngine(const MarketData& mkt, const TradeData& trd, const CalcData& calc)
-		: AbstractEngine(mkt, trd, calc)
+        : AbstractEngine(mkt, trd, calc)
     {
-        initStrategies();
     }
 
     MonteCarloEngine::MonteCarloEngine(const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc)
         : AbstractEngine(mkt, trd, calc)
     {
-        initStrategies();
     }
 
-    void MonteCarloEngine::initStrategies()
+    CalculationResult MonteCarloEngine::calcPV(const CalcData& calc) const
     {
-        switch (m_calcs.front().m_pathSchemeType)
-        {
-        case PathSchemeType::Exact:
-            m_scheme = std::make_unique<ExactScheme>();
-            break;
-        case PathSchemeType::Euler:
-            m_scheme = std::make_unique<EulerScheme>();
-            break;
-        case PathSchemeType::Milstein:
-            m_scheme = std::make_unique<MilsteinScheme>();
-            break;
-        }
-
-        switch (m_trd.m_optionPayoffType)
-        {
-        case OptionPayoffType::Call:
-            m_payoff = std::make_unique<MCCallPayoff>(m_trd.m_strike);
-            break;
-        case OptionPayoffType::Put:
-            m_payoff = std::make_unique<MCPutPayoff>(m_trd.m_strike);
-            break;
-        }
-
-        switch (m_trd.m_optionExerciseType)
-        {
-        case OptionExerciseType::European:
-            m_exercise = std::make_unique<MCEuropeanExercise>();
-            break;
-        case OptionExerciseType::American:
-            m_exercise = std::make_unique<MCAmericanExercise>();
-            break;
-        
-        }
-    }
-
-    CalculationResult MonteCarloEngine::calcPV( const CalcData& calc ) const
-    {
-        const auto dt =  m_trd.m_maturity / static_cast<double>( calc.m_steps );
-		std::vector<double> sims = m_scheme->simPaths(m_mkt, calc, dt);
-
-        const double pv = m_exercise->price(m_trd, m_mkt, calc, sims, dt, *m_payoff);
-        if (calc.m_collectDebugPaths)
-		    m_debugResults.try_emplace( DebugInfo::MCPaths, std::move( sims ) );
-        return pv;
+        const double dt = m_trd.m_maturity / static_cast<double>(calc.m_steps);
+        return std::visit(
+            [&](const auto& schemeKind, const auto& exerciseKind, const auto& payoffKind) {
+                return mc_dispatch::monteCarloPV<std::decay_t<decltype(schemeKind)>, std::decay_t<decltype(exerciseKind)>,
+                                            std::decay_t<decltype(payoffKind)>>(m_trd, m_mkt, calc, dt, m_debugResults);
+            },
+            mc_dispatch::pathSchemeKindFromCalc(calc),
+            mc_dispatch::exerciseKindFromTrade(m_trd),
+            mc_dispatch::payoffKindFromTrade(m_trd));
     }
 
     CalculationResult MonteCarloEngine::calcDelta( const CalcData& calc ) const
