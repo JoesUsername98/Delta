@@ -31,14 +31,14 @@
       "displayName": "Windows Debug (Visual Studio 2026)",
       "description": "Configure Debug build for Windows with VS 2022",
       "generator": "Visual Studio 18 2026",
-      "binaryDir": "${sourceDir}/build/win/vs2022-debug"
+      "binaryDir": "${sourceDir}/build/win/vs2026-debug"
     },
     {
       "name": "win-release",
       "displayName": "Windows Release (Visual Studio 2026)",
       "description": "Configure Release build for Windows with VS 2022",
       "generator": "Visual Studio 18 2026",
-      "binaryDir": "${sourceDir}/build/win/vs2022-release"
+      "binaryDir": "${sourceDir}/build/win/vs2026-release"
     }
   ],
   "buildPresets": [
