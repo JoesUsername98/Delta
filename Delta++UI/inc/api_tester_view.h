@@ -15,6 +15,8 @@ private:
     void renderYieldCurveSection();
     void renderZeroRatePlot();
     void renderAlphaVantageSection();
+    void renderMassiveOptionsContractsSection();
+    void renderMassiveOptionsAggregatesSection();
 
     ApiTesterState m_state;
 };

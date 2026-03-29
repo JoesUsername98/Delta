@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <optional>
@@ -44,5 +45,61 @@ namespace DPP
     {
         std::string status;
         std::vector<TreasuryYieldRow> results;
+    };
+
+    // --- GET /v3/reference/options/contracts ---
+
+    struct OptionsAdditionalUnderlying
+    {
+        std::optional<double> amount;
+        std::string type;
+        std::string underlying;
+    };
+
+    struct OptionsContractRow
+    {
+        std::optional<std::vector<OptionsAdditionalUnderlying>> additional_underlyings;
+        std::optional<std::string> cfi;
+        std::string contract_type;
+        std::optional<int> correction;
+        std::optional<std::string> exercise_style;
+        std::string expiration_date;
+        std::optional<std::string> primary_exchange;
+        std::optional<double> shares_per_contract;
+        std::optional<double> strike_price;
+        std::string ticker;
+        std::string underlying_ticker;
+    };
+
+    struct OptionsContractsEnvelope
+    {
+        std::string status;
+        std::optional<std::string> next_url;
+        std::vector<OptionsContractRow> results;
+    };
+
+    // --- GET /v2/aggs/ticker/{optionsTicker}/range/... ---
+
+    struct OptionsAggregateBar
+    {
+        std::optional<double> c;
+        std::optional<double> h;
+        std::optional<double> l;
+        std::optional<double> o;
+        std::optional<double> v;
+        std::optional<double> vw;
+        std::optional<std::int64_t> n;
+        std::optional<std::int64_t> t;
+    };
+
+    struct OptionsAggregatesEnvelope
+    {
+        std::optional<std::string> ticker;
+        std::optional<bool> adjusted;
+        std::optional<int> queryCount;
+        std::optional<int> resultsCount;
+        std::optional<int> count;
+        std::string status;
+        std::vector<OptionsAggregateBar> results;
     };
 }
