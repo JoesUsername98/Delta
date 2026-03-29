@@ -17,9 +17,9 @@ namespace
         return std::sscanf(s, "%d-%d-%d", &y, &mo, &d) == 3;
     }
 
-    void renderFredBuildDateRow(char* buildDate, size_t buildDateSize)
+    void renderBuildDateRow(char* buildDate, size_t buildDateSize)
     {
-        ImGui::PushID("fred_build_date");
+        ImGui::PushID("yc_build_date");
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Build Date (YYYY-MM-DD)");
         ImGui::SameLine();
@@ -27,9 +27,9 @@ namespace
         ImGui::InputText("##text", buildDate, buildDateSize);
         ImGui::SameLine();
         if (ImGui::Button("Pick date"))
-            ImGui::OpenPopup("fred_date_picker");
+            ImGui::OpenPopup("yc_date_picker");
 
-        if (ImGui::BeginPopup("fred_date_picker"))
+        if (ImGui::BeginPopup("yc_date_picker"))
         {
             static ImPlotTime s_pickerTime;
             static int s_pickerLevel = 0;
@@ -46,7 +46,7 @@ namespace
                 s_pickerLevel = 0;
             }
 
-            if (ImPlot::ShowDatePicker("fred_dp", &s_pickerLevel, &s_pickerTime))
+            if (ImPlot::ShowDatePicker("yc_dp", &s_pickerLevel, &s_pickerTime))
             {
                 std::tm tm{};
                 ImPlot::GetTime(s_pickerTime, &tm);
@@ -90,13 +90,21 @@ void ApiTesterWindow::OnUIRender()
 {
     ImGui::Begin("API Tester");
 
-    ImGui::Checkbox("Stub Mode", &m_state.m_useStub);
+    ImGui::TextUnformatted("Yield curve source");
     ImGui::SameLine();
-    ImGui::TextDisabled("%s", m_state.m_useStub ? "(no network)" : "(live network)");
+    if (ImGui::RadioButton("Stub", m_state.m_yieldCurveSource == DPP::YieldCurveSource::Stub))
+        m_state.m_yieldCurveSource = DPP::YieldCurveSource::Stub;
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Massive", m_state.m_yieldCurveSource == DPP::YieldCurveSource::Massive))
+        m_state.m_yieldCurveSource = DPP::YieldCurveSource::Massive;
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s",
+                        m_state.m_yieldCurveSource == DPP::YieldCurveSource::Stub ? "(no network)"
+                                                                             : "(live network; MASSIVE_API_KEY)");
 
     ImGui::Separator();
 
-    renderFredSection();
+    renderYieldCurveSection();
 
     ImGui::Separator();
 
@@ -108,20 +116,20 @@ void ApiTesterWindow::OnUIRender()
     ImGui::End();
 }
 
-void ApiTesterWindow::renderFredSection()
+void ApiTesterWindow::renderYieldCurveSection()
 {
-    if (!ImGui::CollapsingHeader("FRED Yield Curve (build + query)", ImGuiTreeNodeFlags_DefaultOpen))
+    if (!ImGui::CollapsingHeader("Yield curve (Massive)", ImGuiTreeNodeFlags_DefaultOpen))
         return;
 
-    renderFredBuildDateRow(m_state.m_buildDate, sizeof(m_state.m_buildDate));
+    renderBuildDateRow(m_state.m_buildDate, sizeof(m_state.m_buildDate));
     if (ImGui::InputDouble("t (years)", &m_state.m_tYears, 0.01, 0.25, "%.2f"))
     {
         if (m_state.m_hasCurve && m_state.m_curve.has_value())
             m_state.refreshCurveAtT();
     }
 
-    if (ImGui::Button("Fetch Yield Curve (FRED)"))
-        m_state.fetchYieldCurveFromFred();
+    if (ImGui::Button("Fetch yield curve"))
+        m_state.fetchYieldCurve();
 
     if (!m_state.m_hasCurve)
         return;

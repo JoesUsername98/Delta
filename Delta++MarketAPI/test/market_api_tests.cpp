@@ -2,8 +2,8 @@
 
 #include <Delta++MarketAPI/api_key_provider.h>
 #include <Delta++MarketAPI/http_client.h>
-#include <Delta++MarketAPI/fred_client.h>
-#include <Delta++MarketAPI/dtos.h>
+#include <Delta++MarketAPI/massive_client.h>
+#include <Delta++MarketAPI/massive_treasury_json.h>
 
 using namespace DPP;
 
@@ -39,30 +39,58 @@ TEST(MarketAPI_EnvKey, MissingKeyReturnsError)
     EXPECT_FALSE(result.has_value());
 }
 
-TEST(MarketAPI_FredClient, ParsesObservationsFromJson)
+TEST(MarketAPI_MassiveJson, ParsesMinimalEnvelope)
 {
-    std::string json = R"({
-        "observations": [
-            {"date": "2024-01-01", "value": "4.50"},
-            {"date": "2024-02-01", "value": "4.55"},
-            {"date": "2024-03-01", "value": "."}
-        ]
-    })";
-
-    auto http = std::make_shared<StubHttpClient>(json);
-    auto keys = std::make_shared<StubKeyProvider>();
-    FredClient client(http, keys);
-
-    auto result = client.getSeriesObservations("DGS3MO");
-    ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(result->seriesId, "DGS3MO");
-    EXPECT_EQ(result->observations.size(), 3);
-    EXPECT_DOUBLE_EQ(result->observations[0].value.value(), 4.50);
-    EXPECT_DOUBLE_EQ(result->observations[1].value.value(), 4.55);
-    EXPECT_FALSE(result->observations[2].value.has_value());
+    const char* json = R"({"status":"OK","results":[{"date":"1962-01-02","yield_10_year":4.06,"yield_1_year":3.22,"yield_5_year":3.88}]})";
+    auto r = parseTreasuryYieldsJson(json);
+    ASSERT_TRUE(r.has_value());
+    EXPECT_EQ(r->status, "OK");
+    ASSERT_EQ(r->results.size(), 1u);
+    EXPECT_EQ(r->results[0].date, "1962-01-02");
+    EXPECT_DOUBLE_EQ(r->results[0].yield_10_year.value(), 4.06);
 }
 
-TEST(MarketAPI_FredClient, MissingApiKeyReturnsError)
+TEST(MarketAPI_MassiveJson, ParsesRequestIdNumericAndFullYields)
+{
+    const char* json = R"({
+        "count": 1,
+        "request_id": 1,
+        "status": "OK",
+        "results": [{
+            "date": "2024-01-15",
+            "yield_1_month": 1.1, "yield_3_month": 2.2, "yield_6_month": 3.3,
+            "yield_1_year": 4.4, "yield_2_year": 5.5, "yield_3_year": 6.6,
+            "yield_5_year": 7.7, "yield_7_year": 8.8, "yield_10_year": 9.9,
+            "yield_20_year": 10.1, "yield_30_year": 11.2
+        }]
+    })";
+    auto r = parseTreasuryYieldsJson(json);
+    ASSERT_TRUE(r.has_value());
+    EXPECT_EQ(r->status, "OK");
+    ASSERT_EQ(r->results.size(), 1u);
+    const auto& row = r->results[0];
+    EXPECT_DOUBLE_EQ(row.yield_1_month.value(), 1.1);
+    EXPECT_DOUBLE_EQ(row.yield_30_year.value(), 11.2);
+}
+
+TEST(MarketAPI_MassiveJson, MalformedJson)
+{
+    auto r = parseTreasuryYieldsJson("{");
+    EXPECT_FALSE(r.has_value());
+}
+
+TEST(MarketAPI_MassiveClient, GetTreasuryYieldsForDate)
+{
+    const char* json = R"({"status":"OK","results":[{"date":"2024-03-01","yield_10_year":4.06}]})";
+    auto http = std::make_shared<StubHttpClient>(json);
+    auto keys = std::make_shared<StubKeyProvider>();
+    MassiveClient client(http, keys);
+    auto row = client.getTreasuryYieldsForDate("2024-03-01");
+    ASSERT_TRUE(row.has_value());
+    EXPECT_DOUBLE_EQ(row->yield_10_year.value(), 4.06);
+}
+
+TEST(MarketAPI_MassiveClient, MissingApiKeyReturnsError)
 {
     class NoKeyProvider : public IApiKeyProvider
     {
@@ -75,8 +103,8 @@ TEST(MarketAPI_FredClient, MissingApiKeyReturnsError)
 
     auto http = std::make_shared<StubHttpClient>("");
     auto keys = std::make_shared<NoKeyProvider>();
-    FredClient client(http, keys);
+    MassiveClient client(http, keys);
 
-    auto result = client.getSeriesObservations("DGS3MO");
+    auto result = client.getTreasuryYieldsForDate("2024-03-01");
     EXPECT_FALSE(result.has_value());
 }
