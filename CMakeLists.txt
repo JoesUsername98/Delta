@@ -44,6 +44,11 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(magic_enum)
 
+FetchContent_Declare(
+  json
+  URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 set(CURL_ENABLE_SSL ON CACHE BOOL "" FORCE)
 # Schannel is Windows-only; Linux/WSL need OpenSSL (or another TLS backend).
 if(WIN32)

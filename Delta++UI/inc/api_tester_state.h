@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Delta++Market/yield_curve.h>
+#include <Delta++MarketAPI/enums.h>
 
 #include <optional>
 #include <string>
@@ -8,7 +9,7 @@
 
 struct ApiTesterState
 {
-    bool m_useStub = true;
+    DPP::YieldCurveSource m_yieldCurveSource = DPP::YieldCurveSource::Stub;
 
     char m_buildDate[11] = "2024-03-01";
     double m_tYears = 1.0;
@@ -30,6 +31,6 @@ struct ApiTesterState
     double m_volAtPoint = 0.0;
 
     void refreshCurveAtT();
-    void fetchYieldCurveFromFred();
+    void fetchYieldCurve();
     void fetchVolSurfaceFromAv();
 };

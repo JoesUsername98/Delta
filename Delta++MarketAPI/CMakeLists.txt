@@ -15,7 +15,8 @@ target_include_directories(${DPP_MARKET_API_LIB_NAME} PUBLIC
     "./inc"
     "${CMAKE_BINARY_DIR}/configured_files/include")
 
-target_link_libraries(${DPP_MARKET_API_LIB_NAME} PUBLIC libcurl_static)
+target_link_libraries(${DPP_MARKET_API_LIB_NAME} PUBLIC libcurl_static
+    nlohmann_json::nlohmann_json)
 
 enable_testing()
 
