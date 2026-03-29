@@ -11,7 +11,7 @@ namespace DPP
         double tenor;       // in years
         double rate;        // annualised, e.g. 5.0 for 5%
         std::string date;
-        std::string source; // e.g. "FRED"
+        std::string source; // e.g. "Massive"
     };
 
     struct OptionQuote

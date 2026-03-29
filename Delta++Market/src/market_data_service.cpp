@@ -2,53 +2,28 @@
 
 namespace DPP
 {
-    MarketDataService::MarketDataService(std::shared_ptr<FredClient> fred,
-                                          std::shared_ptr<AlphaVantageClient> av)
-        : m_fred(std::move(fred)), m_av(std::move(av))
+    MarketDataService::MarketDataService(std::shared_ptr<AlphaVantageClient> av,
+                                          std::shared_ptr<MassiveClient> massive)
+        : m_av(std::move(av)), m_massive(std::move(massive))
     {}
 
-    std::expected<YieldCurve, std::string>
-    MarketDataService::buildYieldCurve(const std::string& date) const
+    std::expected<YieldCurve, std::string> MarketDataService::buildYieldCurve(const std::string& date) const
     {
-        static const std::vector<std::string> kDefaultIds = []
-        {
-            std::vector<std::string> v;
-            v.reserve(kFredDefaultSeriesIds.size());
-            for (std::string_view sv : kFredDefaultSeriesIds)
-                v.emplace_back(sv);
-            return v;
-        }();
-        return buildYieldCurve(date, kDefaultIds);
-    }
+        if (!m_massive)
+            return std::unexpected("MassiveClient not configured");
 
-    std::expected<YieldCurve, std::string>
-    MarketDataService::buildYieldCurve(const std::string& date,
-                                        const std::vector<std::string>& seriesIds) const
-    {
-        if (seriesIds.empty())
-            return std::unexpected("No FRED series requested");
+        auto row = m_massive->getTreasuryYieldsForDate(date);
+        if (!row.has_value())
+            return std::unexpected(row.error());
 
-        std::vector<std::pair<std::string, FredSeriesResponse>> responses;
-        responses.reserve(seriesIds.size());
-
-        for (const auto& sid : seriesIds)
-        {
-            auto resp = m_fred->getSeriesObservations(sid, date, date);
-            if (!resp.has_value())
-                return std::unexpected("Failed to fetch " + sid + ": " + resp.error());
-            responses.emplace_back(sid, std::move(resp.value()));
-        }
-
-        // Convert to canonical quotes
-        auto quotes = fredToRateQuotes(kFredTenorMap, responses, date);
+        auto quotes = massiveTreasuryRowToRateQuotes(*row);
         if (quotes.empty())
-            return std::unexpected("No rate quotes found for date " + date);
+            return std::unexpected("No treasury yield columns present for date " + date);
 
         return YieldCurve::build(quotes);
     }
 
-    std::expected<VolSurface, std::string>
-    MarketDataService::buildVolSurface(const std::string& symbol) const
+    std::expected<VolSurface, std::string> MarketDataService::buildVolSurface(const std::string& symbol) const
     {
         auto chainResult = m_av->getOptionChain(symbol);
         if (!chainResult.has_value())

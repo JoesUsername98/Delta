@@ -4,8 +4,8 @@
 #include <Delta++MarketAPI/alpha_vantage_client.h>
 #include <Delta++MarketAPI/api_key_provider.h>
 #include <Delta++MarketAPI/curl_http_client.h>
-#include <Delta++MarketAPI/fred_client.h>
 #include <Delta++MarketAPI/http_client.h>
+#include <Delta++MarketAPI/massive_client.h>
 
 #include <map>
 #include <memory>
@@ -18,58 +18,43 @@ using DPP::MarketDataService;
 
 namespace
 {
-    std::map<std::string, double> makeStubFredValues()
+    std::string makeMassiveTreasuryStubJson(const std::string& date)
     {
-        return {
-            {"DGS1MO", 4.45},
-            {"DGS3MO", 4.50},
-            {"DGS6MO", 4.52},
-            {"DGS1", 4.55},
-            {"DGS2", 4.60},
-            {"DGS5", 4.70},
-            {"DGS10", 4.80},
-            {"DGS30", 4.90},
-        };
-    }
+        // Fixed stub yields (percent) aligned with former test curve shape.
+        constexpr double y1mo = 4.45;
+        constexpr double y3mo = 4.50;
+        constexpr double y6mo = 4.52;
+        constexpr double y1y = 4.55;
+        constexpr double y2y = 4.60;
+        constexpr double y5y = 4.70;
+        constexpr double y10y = 4.80;
+        constexpr double y30y = 4.90;
 
-    std::string makeFredJson(const std::string& date, double value)
-    {
         std::ostringstream oss;
-        oss << R"({"observations":[{"date":")" << date << R"(","value":")" << value << R"("}]})";
+        oss << R"({"status":"OK","request_id":1,"count":1,"results":[{"date":")" << date << R"(",)";
+        oss << R"("yield_1_month":)" << y1mo << R"(,"yield_3_month":)" << y3mo
+            << R"(,"yield_6_month":)" << y6mo << R"(,"yield_1_year":)" << y1y
+            << R"(,"yield_2_year":)" << y2y << R"(,"yield_5_year":)" << y5y
+            << R"(,"yield_10_year":)" << y10y << R"(,"yield_30_year":)" << y30y;
+        oss << "}]}";
         return oss.str();
     }
 
-    class StubHttpClient : public DPP::IHttpClient
+    /// Stub HTTP: Massive treasury JSON for treasury-yields URL; minimal body otherwise (e.g. Alpha Vantage).
+    class ApiTesterStubHttpClient : public DPP::IHttpClient
     {
     public:
-        explicit StubHttpClient(std::map<std::string, double> fredValues)
-            : m_fredValues(std::move(fredValues))
+        DPP::HttpResponse get(const std::string& url,
+                              const std::map<std::string, std::string>& params) const override
         {
+            if (url.find("massive.com") != std::string::npos && url.find("treasury-yields") != std::string::npos)
+            {
+                auto dateIt = params.find("date");
+                const std::string date = (dateIt != params.end()) ? dateIt->second : std::string("1970-01-01");
+                return makeMassiveTreasuryStubJson(date);
+            }
+            return std::string("{}");
         }
-
-        DPP::HttpResponse get(const std::string& /*url*/,
-                                const std::map<std::string, std::string>& params) const override
-        {
-            auto sidIt = params.find("series_id");
-            if (sidIt == params.end())
-                return std::string("{}");
-
-            const std::string seriesId = sidIt->second;
-
-            auto dateIt = params.find("observation_start");
-            if (dateIt == params.end())
-                dateIt = params.find("observation_end");
-            const std::string date = (dateIt != params.end()) ? dateIt->second : std::string("1970-01-01");
-
-            auto vIt = m_fredValues.find(seriesId);
-            if (vIt == m_fredValues.end())
-                return std::unexpected("Stub: no value for FRED series_id '" + seriesId + "'");
-
-            return makeFredJson(date, vIt->second);
-        }
-
-    private:
-        std::map<std::string, double> m_fredValues;
     };
 
     class StubApiKeyProvider : public DPP::IApiKeyProvider
@@ -90,7 +75,7 @@ void ApiTesterState::refreshCurveAtT()
     m_curveDiscountAtT = m_curve->discount(m_tYears);
 }
 
-void ApiTesterState::fetchYieldCurveFromFred()
+void ApiTesterState::fetchYieldCurve()
 {
     m_hasCurve = false;
     m_curve.reset();
@@ -105,9 +90,9 @@ void ApiTesterState::fetchYieldCurveFromFred()
         std::shared_ptr<DPP::IHttpClient> http;
         std::shared_ptr<DPP::IApiKeyProvider> keys;
 
-        if (m_useStub)
+        if (m_yieldCurveSource == DPP::YieldCurveSource::Stub)
         {
-            http = std::make_shared<StubHttpClient>(makeStubFredValues());
+            http = std::make_shared<ApiTesterStubHttpClient>();
             keys = std::make_shared<StubApiKeyProvider>();
         }
         else
@@ -116,15 +101,18 @@ void ApiTesterState::fetchYieldCurveFromFred()
             keys = std::make_shared<DPP::EnvApiKeyProvider>();
         }
 
-        auto fred = std::make_shared<DPP::FredClient>(http, keys);
         auto av = std::make_shared<DPP::AlphaVantageClient>(http, keys);
+        auto massive = std::make_shared<DPP::MassiveClient>(http, keys);
 
-        MarketDataService svc(fred, av);
+        MarketDataService svc(av, massive);
 
-        auto curveRes = svc.buildYieldCurve(date);
+        const std::expected<DPP::YieldCurve, std::string> curveRes = svc.buildYieldCurve(date);
+
+        const char* sourceTag = (m_yieldCurveSource == DPP::YieldCurveSource::Stub) ? "Stub" : "Massive";
+
         if (!curveRes.has_value())
         {
-            m_status = "FRED error @ " + date + " : " + curveRes.error();
+            m_status = std::string(sourceTag) + " error @ " + date + " : " + curveRes.error();
             return;
         }
 
@@ -135,7 +123,7 @@ void ApiTesterState::fetchYieldCurveFromFred()
         m_curveZeroRates = m_curve->zeroRates();
         refreshCurveAtT();
 
-        m_status = "FRED OK: " + date;
+        m_status = std::string(sourceTag) + " OK: " + date;
     }
     catch (const std::exception& e)
     {
@@ -155,9 +143,9 @@ void ApiTesterState::fetchVolSurfaceFromAv()
         std::shared_ptr<DPP::IHttpClient> http;
         std::shared_ptr<DPP::IApiKeyProvider> keys;
 
-        if (m_useStub)
+        if (m_yieldCurveSource == DPP::YieldCurveSource::Stub)
         {
-            http = std::make_shared<StubHttpClient>(makeStubFredValues());
+            http = std::make_shared<ApiTesterStubHttpClient>();
             keys = std::make_shared<StubApiKeyProvider>();
         }
         else
@@ -166,9 +154,9 @@ void ApiTesterState::fetchVolSurfaceFromAv()
             keys = std::make_shared<DPP::EnvApiKeyProvider>();
         }
 
-        auto fred = std::make_shared<DPP::FredClient>(http, keys);
         auto av = std::make_shared<DPP::AlphaVantageClient>(http, keys);
-        MarketDataService svc(fred, av);
+        auto massive = std::make_shared<DPP::MassiveClient>(http, keys);
+        MarketDataService svc(av, massive);
 
         auto volRes = svc.buildVolSurface(symbol);
         if (!volRes.has_value())

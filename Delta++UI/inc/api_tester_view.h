@@ -12,7 +12,7 @@ public:
     void OnUIRender() override;
 
 private:
-    void renderFredSection();
+    void renderYieldCurveSection();
     void renderZeroRatePlot();
     void renderAlphaVantageSection();
 
