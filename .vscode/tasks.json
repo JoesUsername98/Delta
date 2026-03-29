@@ -126,7 +126,7 @@
             "command": "ctest",
             "args": [
                 "--test-dir",
-                "${workspaceFolder}/build/win/vs2022-debug",
+                "${workspaceFolder}/build/win/vs2026-debug",
                 "-C",
                 "Debug",
                 "-R",
@@ -150,7 +150,7 @@
             "command": "ctest",
             "args": [
                 "--test-dir",
-                "${workspaceFolder}/build/win/vs2022-release",
+                "${workspaceFolder}/build/win/vs2026-release",
                 "-C",
                 "Release",
                 "-R",
