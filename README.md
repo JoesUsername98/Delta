@@ -38,8 +38,8 @@ The preset file standardizes output directories:
 
 - `build/wsl/make-debug`
 - `build/wsl/make-release`
-- `build/win/vs2022-debug`
-- `build/win/vs2022-release`
+- `build/win/vs2026-debug`
+- `build/win/vs2026-release`
 
 ### Running Tests
 ```bash
