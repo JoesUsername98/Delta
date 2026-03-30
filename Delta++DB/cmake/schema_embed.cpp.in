@@ -1,0 +1,11 @@
+#include <cstddef>
+
+namespace DPP::DB::detail
+{
+const char* referenceSchemaSql()
+{
+    return R"DPPREF(
+@REFERENCE_SCHEMA_SQL_CONTENT@
+)DPPREF";
+}
+}

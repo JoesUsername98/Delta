@@ -388,3 +388,18 @@ _codeql_detected_source_root
 # Keep shared VS Code workspace config in source control.
 !.vscode/
 !.vscode/**
+data/flat_files/spx_eod_202301.txt
+data/flat_files/spx_eod_202302.txt
+data/flat_files/spx_eod_202303.txt
+data/flat_files/spx_eod_202304.txt
+data/flat_files/spx_eod_202306.txt
+data/flat_files/spx_eod_202305.txt
+data/flat_files/spx_eod_202307.txt
+data/flat_files/spx_eod_202308.txt
+data/flat_files/spx_eod_202309.txt
+data/flat_files/spx_eod_202310.txt
+data/flat_files/spx_eod_202312.txt
+data/flat_files/spx_eod_202311.txt
+data/marketDB.sqlite
+data/marketDB.sqlite-shm
+data/marketDB.sqlite-wal
