@@ -5,6 +5,7 @@
 #include <cctype>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace DPP
 {
@@ -143,6 +144,107 @@ namespace DPP
             return env->results.front();
 
         return std::unexpected("No treasury yield row matching date " + dateStr);
+    }
+
+    std::expected<TreasuryYieldsEnvelope, std::string>
+    MassiveClient::getTreasuryYieldsAnyOf(const std::vector<std::string>& ymds) const
+    {
+        auto keyResult = m_keys->getKey("MASSIVE_API_KEY");
+        if (!keyResult.has_value())
+            return std::unexpected(keyResult.error());
+
+        std::ostringstream anyOf;
+        bool first = true;
+        for (const auto& d : ymds)
+        {
+            if (d.empty())
+                continue;
+            if (!first)
+                anyOf << ",";
+            anyOf << d;
+            first = false;
+        }
+
+        std::map<std::string, std::string> params = {
+            {"apiKey", keyResult.value()},
+            {"date.any_of", anyOf.str()},
+            {"sort", "date.asc"},
+            {"limit", std::to_string(static_cast<int>(ymds.size()))},
+        };
+
+        auto resp = m_http->get("https://api.massive.com/fed/v1/treasury-yields", params);
+        if (!resp.has_value())
+            return std::unexpected(resp.error());
+
+        auto env = parseTreasuryYieldsJson(resp.value());
+        if (!env.has_value())
+            return std::unexpected(env.error());
+
+        if (!env->status.empty() && env->status != "OK")
+            return std::unexpected("Massive API status: " + env->status);
+
+        return env;
+    }
+
+    std::expected<TreasuryYieldsEnvelope, std::string>
+    MassiveClient::getTreasuryYieldsRange(const std::string_view fromYmd, const std::string_view toYmd, const int limit) const
+    {
+        auto keyResult = m_keys->getKey("MASSIVE_API_KEY");
+        if (!keyResult.has_value())
+            return std::unexpected(keyResult.error());
+
+        std::map<std::string, std::string> params = {
+            {"apiKey", keyResult.value()},
+            {"date.gte", std::string(fromYmd)},
+            {"date.lte", std::string(toYmd)},
+            {"sort", "date.asc"},
+            {"limit", std::to_string(limit)},
+        };
+
+        auto resp = m_http->get("https://api.massive.com/fed/v1/treasury-yields", params);
+        if (!resp.has_value())
+            return std::unexpected(resp.error());
+
+        auto env = parseTreasuryYieldsJson(resp.value());
+        if (!env.has_value())
+            return std::unexpected(env.error());
+
+        if (!env->status.empty() && env->status != "OK")
+            return std::unexpected("Massive API status: " + env->status);
+
+        return env;
+    }
+
+    std::expected<TreasuryYieldsEnvelope, std::string> MassiveClient::getTreasuryYieldsNextUrl(
+        const std::string_view nextUrl) const
+    {
+        auto keyResult = m_keys->getKey("MASSIVE_API_KEY");
+        if (!keyResult.has_value())
+            return std::unexpected(keyResult.error());
+
+        const std::string urlStr(nextUrl);
+        const auto qpos = urlStr.find('?');
+        const std::string baseUrl = (qpos == std::string::npos) ? urlStr : urlStr.substr(0, qpos);
+        const std::string_view query =
+            (qpos == std::string::npos) ? std::string_view{} : std::string_view(urlStr).substr(qpos + 1);
+
+        std::map<std::string, std::string> params = parseQueryString(query);
+
+        params.erase("apiKey");
+        params["apiKey"] = keyResult.value();
+
+        auto resp = m_http->get(baseUrl, params);
+        if (!resp.has_value())
+            return std::unexpected(resp.error());
+
+        auto env = parseTreasuryYieldsJson(resp.value());
+        if (!env.has_value())
+            return std::unexpected(env.error());
+
+        if (!env->status.empty() && env->status != "OK")
+            return std::unexpected("Massive API status: " + env->status);
+
+        return env;
     }
 
     std::expected<OptionsContractsEnvelope, std::string>

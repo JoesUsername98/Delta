@@ -12,6 +12,8 @@ namespace DPP::DataSync
         std::optional<std::string> job;
         std::vector<std::string> underlyingTickers;
         std::optional<std::filesystem::path> dbPath;
+        std::optional<std::string> fromAsof;
+        std::optional<std::string> toAsof;
     };
 
     void printUsage();

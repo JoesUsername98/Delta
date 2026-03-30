@@ -44,6 +44,7 @@ namespace DPP
     struct TreasuryYieldsEnvelope
     {
         std::string status;
+        std::optional<std::string> next_url;
         std::vector<TreasuryYieldRow> results;
     };
 

@@ -145,6 +145,41 @@ TEST(MarketAPI_MassiveClient, GetTreasuryYieldsForDate)
     EXPECT_DOUBLE_EQ(row->yield_10_year.value(), 4.06);
 }
 
+TEST(MarketAPI_MassiveClient, GetTreasuryYieldsAnyOf_SendsAnyOfAndInjectsKey)
+{
+    const char* json = R"({"status":"OK","results":[{"date":"2024-03-01","yield_10_year":4.06},{"date":"2024-03-04","yield_10_year":4.10}]})";
+    auto http = std::make_shared<RecordingHttpClient>(json);
+    auto keys = std::make_shared<FixedKeyProvider>();
+    MassiveClient client(http, keys);
+
+    std::vector<std::string> dates = {"2024-03-01", "2024-03-04"};
+    auto env = client.getTreasuryYieldsAnyOf(dates);
+    ASSERT_TRUE(env.has_value()) << env.error();
+
+    EXPECT_EQ(http->lastUrl, "https://api.massive.com/fed/v1/treasury-yields");
+    EXPECT_EQ(http->lastParams.at("apiKey"), "injected_key");
+    EXPECT_EQ(http->lastParams.at("date.any_of"), "2024-03-01,2024-03-04");
+    EXPECT_EQ(http->lastParams.at("sort"), "date.asc");
+    ASSERT_EQ(env->results.size(), 2u);
+    EXPECT_EQ(env->results[0].date, "2024-03-01");
+    EXPECT_EQ(env->results[1].date, "2024-03-04");
+}
+
+TEST(MarketAPI_MassiveClient, TreasuryYields_NextUrlInjectsKey)
+{
+    static constexpr const char* kOkJson = R"({"status":"OK","results":[]})";
+    auto http = std::make_shared<RecordingHttpClient>(kOkJson);
+    auto keys = std::make_shared<FixedKeyProvider>();
+    MassiveClient client(http, keys);
+
+    const std::string nextUrl = "https://api.massive.com/fed/v1/treasury-yields?cursor=abc&apiKey=evil_key";
+    auto env = client.getTreasuryYieldsNextUrl(nextUrl);
+    ASSERT_TRUE(env.has_value()) << env.error();
+    EXPECT_EQ(http->lastUrl, "https://api.massive.com/fed/v1/treasury-yields");
+    EXPECT_EQ(http->lastParams.at("apiKey"), "injected_key");
+    EXPECT_EQ(http->lastParams.at("cursor"), "abc");
+}
+
 TEST(MarketAPI_MassiveClient, MissingApiKeyReturnsError)
 {
     class NoKeyProvider : public IApiKeyProvider

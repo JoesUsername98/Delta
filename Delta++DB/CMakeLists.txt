@@ -7,6 +7,13 @@ configure_file(
   @ONLY
 )
 
+file(READ "${CMAKE_CURRENT_LIST_DIR}/sql/market_schema.sql" MARKET_SCHEMA_SQL_CONTENT)
+configure_file(
+  "${CMAKE_CURRENT_LIST_DIR}/cmake/market_schema_embed.cpp.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/market_schema_embed.cpp"
+  @ONLY
+)
+
 include(FetchContent)
 FetchContent_Declare(
   sqlite3_amalgamation
@@ -30,7 +37,11 @@ file(GLOB_RECURSE ${DPP_DB_LIB_NAME}_SRC
   ${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
 )
 
-add_library(${DPP_DB_LIB_NAME} STATIC ${${DPP_DB_LIB_NAME}_SRC} "${CMAKE_CURRENT_BINARY_DIR}/schema_embed.cpp")
+add_library(${DPP_DB_LIB_NAME} STATIC
+  ${${DPP_DB_LIB_NAME}_SRC}
+  "${CMAKE_CURRENT_BINARY_DIR}/schema_embed.cpp"
+  "${CMAKE_CURRENT_BINARY_DIR}/market_schema_embed.cpp"
+)
 
 target_include_directories(${DPP_DB_LIB_NAME} PUBLIC
   "${CMAKE_CURRENT_LIST_DIR}/inc"

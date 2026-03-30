@@ -42,7 +42,9 @@ namespace DPP::DataSync
         std::cout << "Delta++DataSync\n"
                   << "  --job <name>                  e.g. option_contract_sync\n"
                   << "  --underlying_ticker SPX,NVDA  (comma-separated; required for option_contract_sync)\n"
-                  << "  --db <path>                   (required for option_contract_sync)\n";
+                  << "  --db <path>                   (required for option_contract_sync)\n"
+                  << "  --from_asof YYYY-MM-DD        (required for yield_curve)\n"
+                  << "  --to_asof YYYY-MM-DD          (required for yield_curve)\n";
     }
 
     std::optional<ParsedArgs> parseArgs(const int argc, char** argv)
@@ -104,6 +106,30 @@ namespace DPP::DataSync
                     return std::nullopt;
                 }
                 a.dbPath = std::filesystem::path(std::string(v));
+                continue;
+            }
+
+            if (arg.rfind("--from_asof", 0) == 0)
+            {
+                std::string_view v = arg;
+                if (!takeValue(v))
+                {
+                    std::cerr << "Missing value for --from_asof\n";
+                    return std::nullopt;
+                }
+                a.fromAsof = std::string(v);
+                continue;
+            }
+
+            if (arg.rfind("--to_asof", 0) == 0)
+            {
+                std::string_view v = arg;
+                if (!takeValue(v))
+                {
+                    std::cerr << "Missing value for --to_asof\n";
+                    return std::nullopt;
+                }
+                a.toAsof = std::string(v);
                 continue;
             }
 

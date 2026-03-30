@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 #include <string_view>
 
 namespace DPP
@@ -29,6 +30,20 @@ namespace DPP
 
         /// GET /fed/v1/treasury-yields with `date` filter; returns the row for that calendar date.
         std::expected<TreasuryYieldRow, std::string> getTreasuryYieldsForDate(std::string_view ymd) const;
+
+        /// GET /fed/v1/treasury-yields using `date.any_of` filter.
+        /// `apiKey` is injected from `MASSIVE_API_KEY`.
+        std::expected<TreasuryYieldsEnvelope, std::string>
+        getTreasuryYieldsAnyOf(const std::vector<std::string>& ymds) const;
+
+        /// GET /fed/v1/treasury-yields using `date.gte`/`date.lte` (inclusive) with a large limit.
+        /// `apiKey` is injected from `MASSIVE_API_KEY`.
+        std::expected<TreasuryYieldsEnvelope, std::string>
+        getTreasuryYieldsRange(std::string_view fromYmd, std::string_view toYmd, int limit = 50000) const;
+
+        /// Follows a Massive `next_url` returned by treasury yields requests.
+        /// Parses URL into base + query params, injects `apiKey` from `MASSIVE_API_KEY`.
+        std::expected<TreasuryYieldsEnvelope, std::string> getTreasuryYieldsNextUrl(std::string_view nextUrl) const;
 
         /// GET /v3/reference/options/contracts — pass `underlying_ticker`, `limit`, `expiration_date`, etc.
         /// `apiKey` is injected from `MASSIVE_API_KEY`.
