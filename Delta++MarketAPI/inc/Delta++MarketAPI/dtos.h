@@ -79,6 +79,18 @@ namespace DPP
         std::vector<OptionsContractRow> results;
     };
 
+    /// End-of-day index options quote (flat-file pipeline); `marketDB` table `options_eod_quotes`.
+    struct OptionsEodQuoteRow
+    {
+        std::string quote_date;
+        std::string expiration_date;
+        double strike_price{};
+        std::string underlying_ticker;
+        std::string contract_type;
+        std::optional<double> bid;
+        std::optional<double> ask;
+    };
+
     // --- GET /v2/aggs/ticker/{optionsTicker}/range/... ---
 
     struct OptionsAggregateBar

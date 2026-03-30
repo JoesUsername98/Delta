@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <vector>
 
 namespace DPP::DB::Market
 {
@@ -26,5 +28,16 @@ namespace DPP::DB::Market
 
     std::expected<std::optional<TreasuryYieldRow>, std::string> queryTreasuryYieldRow(const std::filesystem::path& dbPath,
                                                                                       std::string_view ymd);
+
+    std::expected<void, std::string> upsertOptionsEodQuotes(const std::filesystem::path& dbPath,
+                                                              const std::vector<OptionsEodQuoteRow>& rows);
+
+    std::expected<std::optional<OptionsEodQuoteRow>, std::string> queryOptionsEodQuote(
+        const std::filesystem::path& dbPath,
+        std::string_view quoteDate,
+        std::string_view expirationDate,
+        double strikePrice,
+        std::string_view underlyingTicker,
+        std::string_view contractType);
 }
 

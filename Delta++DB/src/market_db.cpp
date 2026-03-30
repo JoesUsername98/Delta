@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace DPP::DB::detail
 {
@@ -213,6 +214,135 @@ WHERE date = ?
         readOpt(11, row.yield_30_year);
 
         return std::optional<TreasuryYieldRow>(std::move(row));
+    }
+
+    std::expected<void, std::string> upsertOptionsEodQuotes(const std::filesystem::path& dbPath,
+                                                            const std::vector<OptionsEodQuoteRow>& rows)
+    {
+        if (rows.empty())
+            return {};
+
+        auto dbResult = openDb(dbPath);
+        if (!dbResult.has_value())
+            return std::unexpected(dbResult.error());
+        sqlite3* db = dbResult.value().get();
+
+        auto schemaResult = initSchema(db);
+        if (!schemaResult.has_value())
+            return schemaResult;
+
+        static constexpr const char* kUpsert = R"SQL(
+INSERT INTO options_eod_quotes (
+  quote_date, expiration_date, strike_price, underlying_ticker, contract_type, bid, ask
+) VALUES (?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(quote_date, expiration_date, strike_price, underlying_ticker, contract_type) DO UPDATE SET
+  bid = excluded.bid,
+  ask = excluded.ask
+)SQL";
+
+        sqlite3_stmt* stmtRaw = nullptr;
+        int rc = sqlite3_prepare_v2(db, kUpsert, static_cast<int>(std::strlen(kUpsert)), &stmtRaw, nullptr);
+        if (rc != SQLITE_OK)
+            return std::unexpected(std::string("prepare: ") + sqlite3_errmsg(db));
+        Sqlite3StmtPtr stmt(stmtRaw);
+
+        rc = sqlite3_exec(db, "BEGIN IMMEDIATE", nullptr, nullptr, nullptr);
+        if (rc != SQLITE_OK)
+            return std::unexpected(std::string("BEGIN: ") + sqlite3_errmsg(db));
+
+        for (const auto& row : rows)
+        {
+            sqlite3_reset(stmt.get());
+            sqlite3_clear_bindings(stmt.get());
+
+            sqlite3_bind_text(stmt.get(), 1, row.quote_date.c_str(),
+                              static_cast<int>(row.quote_date.size()), SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt.get(), 2, row.expiration_date.c_str(),
+                              static_cast<int>(row.expiration_date.size()), SQLITE_TRANSIENT);
+            sqlite3_bind_double(stmt.get(), 3, row.strike_price);
+            sqlite3_bind_text(stmt.get(), 4, row.underlying_ticker.c_str(),
+                              static_cast<int>(row.underlying_ticker.size()), SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt.get(), 5, row.contract_type.c_str(),
+                              static_cast<int>(row.contract_type.size()), SQLITE_TRANSIENT);
+            bindOptionalDouble(stmt.get(), 6, row.bid);
+            bindOptionalDouble(stmt.get(), 7, row.ask);
+
+            rc = sqlite3_step(stmt.get());
+            if (rc != SQLITE_DONE)
+            {
+                sqlite3_exec(db, "ROLLBACK", nullptr, nullptr, nullptr);
+                return std::unexpected(std::string("step: ") + sqlite3_errmsg(db));
+            }
+        }
+
+        rc = sqlite3_exec(db, "COMMIT", nullptr, nullptr, nullptr);
+        if (rc != SQLITE_OK)
+            return std::unexpected(std::string("COMMIT: ") + sqlite3_errmsg(db));
+
+        return {};
+    }
+
+    std::expected<std::optional<OptionsEodQuoteRow>, std::string> queryOptionsEodQuote(
+        const std::filesystem::path& dbPath,
+        const std::string_view quoteDate,
+        const std::string_view expirationDate,
+        const double strikePrice,
+        const std::string_view underlyingTicker,
+        const std::string_view contractType)
+    {
+        auto dbResult = openDb(dbPath);
+        if (!dbResult.has_value())
+            return std::unexpected(dbResult.error());
+        sqlite3* db = dbResult.value().get();
+
+        auto schemaResult = initSchema(db);
+        if (!schemaResult.has_value())
+            return std::unexpected(schemaResult.error());
+
+        static constexpr const char* kSelect = R"SQL(
+SELECT quote_date, expiration_date, strike_price, underlying_ticker, contract_type, bid, ask
+FROM options_eod_quotes
+WHERE quote_date = ?
+  AND expiration_date = ?
+  AND strike_price = ?
+  AND underlying_ticker = ?
+  AND contract_type = ?
+)SQL";
+
+        sqlite3_stmt* stmtRaw = nullptr;
+        int rc = sqlite3_prepare_v2(db, kSelect, static_cast<int>(std::strlen(kSelect)), &stmtRaw, nullptr);
+        if (rc != SQLITE_OK)
+            return std::unexpected(std::string("prepare: ") + sqlite3_errmsg(db));
+        Sqlite3StmtPtr stmt(stmtRaw);
+
+        const std::string qd(quoteDate);
+        const std::string ed(expirationDate);
+        const std::string ut(underlyingTicker);
+        const std::string ct(contractType);
+        sqlite3_bind_text(stmt.get(), 1, qd.c_str(), static_cast<int>(qd.size()), SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt.get(), 2, ed.c_str(), static_cast<int>(ed.size()), SQLITE_TRANSIENT);
+        sqlite3_bind_double(stmt.get(), 3, strikePrice);
+        sqlite3_bind_text(stmt.get(), 4, ut.c_str(), static_cast<int>(ut.size()), SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt.get(), 5, ct.c_str(), static_cast<int>(ct.size()), SQLITE_TRANSIENT);
+
+        rc = sqlite3_step(stmt.get());
+        if (rc == SQLITE_DONE)
+            return std::optional<OptionsEodQuoteRow>{};
+        if (rc != SQLITE_ROW)
+            return std::unexpected(std::string("step: ") + sqlite3_errmsg(db));
+
+        OptionsEodQuoteRow row;
+        row.quote_date = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
+        row.expiration_date = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+        row.strike_price = sqlite3_column_double(stmt.get(), 2);
+        row.underlying_ticker = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 3));
+        row.contract_type = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 4));
+        if (sqlite3_column_type(stmt.get(), 5) != SQLITE_NULL)
+            row.bid = sqlite3_column_double(stmt.get(), 5);
+        if (sqlite3_column_type(stmt.get(), 6) != SQLITE_NULL)
+            row.ask = sqlite3_column_double(stmt.get(), 6);
+
+        return std::optional<OptionsEodQuoteRow>(std::move(row));
     }
 }
 

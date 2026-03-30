@@ -50,6 +50,31 @@ ctest --preset wsl-debug-test
 ctest --preset win-debug-test
 ```
 
+### Market data and flat-file loading
+
+**Massive API key (required for live Massive HTTP calls)**  
+Features that use `Delta++MarketAPI` against Massive.com—API Tester, `Delta++DataSync` jobs such as `option_contract_sync` and `yield_curve`, and similar—need an API key in the environment:
+
+- Set `MASSIVE_API_KEY` to your Massive API key before running those executables (same process environment as the app or shell you use to launch them).
+
+**UV (required for the Python flat-file EOD loader)**  
+The SPX EOD CSV → `marketDB` pipeline under `data/flat_files/loader` is managed with [uv](https://docs.astral.sh/uv/). Install uv (see the uv docs for your OS), then from the repository root:
+
+```bash
+cd data/flat_files/loader
+uv sync
+uv run load-flat-files
+```
+
+Alternatively:
+
+```bash
+cd data/flat_files/loader
+uv run python -m flat_files_loader
+```
+
+The loader reads `data/flat_files/spx_eod_2023*.txt` and upserts into `data/marketDB.sqlite` (table `options_eod_quotes`). It does not call the Massive API; only the UV + pandas toolchain is required for this script.
+
 ### Code Coverage
 
 To generate the code coverage report (WSL/Linux):

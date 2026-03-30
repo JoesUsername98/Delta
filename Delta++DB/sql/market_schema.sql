@@ -15,5 +15,19 @@ CREATE TABLE IF NOT EXISTS treasury_yields (
     yield_30_year REAL
 );
 
-PRAGMA user_version = 1;
+CREATE TABLE IF NOT EXISTS options_eod_quotes (
+    quote_date TEXT NOT NULL,
+    expiration_date TEXT NOT NULL,
+    strike_price REAL NOT NULL,
+    underlying_ticker TEXT NOT NULL,
+    contract_type TEXT NOT NULL,
+    bid REAL,
+    ask REAL,
+    PRIMARY KEY (quote_date, expiration_date, strike_price, underlying_ticker, contract_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_options_eod_underlying_quote
+    ON options_eod_quotes(underlying_ticker, quote_date);
+
+PRAGMA user_version = 2;
 

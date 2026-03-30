@@ -353,9 +353,15 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
+# too big for git; keep local
+*.sqlite
 # SQLite WAL mode sidecar files (not the main .sqlite file)
 *.sqlite-shm
 *.sqlite-wal
+
+# Flat-file EOD inputs (large; keep local)
+data/flat_files/**/*.txt
+data/flatfiles/**/*.txt
 
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
@@ -392,3 +398,5 @@ _codeql_detected_source_root
 # Keep shared VS Code workspace config in source control.
 !.vscode/
 !.vscode/**
+data/referenceDB.sqlite
+data/marketDB.sqlite
