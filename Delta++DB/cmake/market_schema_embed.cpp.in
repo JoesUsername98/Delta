@@ -1,0 +1,12 @@
+#include <cstddef>
+
+namespace DPP::DB::detail
+{
+const char* marketSchemaSql()
+{
+    return R"DPPMARKET(
+@MARKET_SCHEMA_SQL_CONTENT@
+)DPPMARKET";
+}
+}
+
