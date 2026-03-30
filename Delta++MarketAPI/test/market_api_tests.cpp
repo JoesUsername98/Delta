@@ -39,6 +39,61 @@ TEST(MarketAPI_EnvKey, MissingKeyReturnsError)
     EXPECT_FALSE(result.has_value());
 }
 
+namespace
+{
+    class RecordingHttpClient : public IHttpClient
+    {
+    public:
+        mutable std::string lastUrl;
+        mutable std::map<std::string, std::string> lastParams;
+        std::string response;
+
+        explicit RecordingHttpClient(std::string resp) : response(std::move(resp)) {}
+
+        HttpResponse get(const std::string& url, const std::map<std::string, std::string>& params) const override
+        {
+            lastUrl = url;
+            lastParams = params;
+            return response;
+        }
+    };
+
+    class FixedKeyProvider : public IApiKeyProvider
+    {
+    public:
+        std::expected<std::string, std::string> getKey(const std::string& /*name*/) const override
+        {
+            return std::string("injected_key");
+        }
+    };
+}
+
+TEST(MarketAPI_MassiveClient, OptionsContracts_NextUrlParsesAndInjectsKeyAndForcesLimit)
+{
+    static constexpr const char* kOkJson = R"({"status":"OK","results":[]})";
+
+    auto http = std::make_shared<RecordingHttpClient>(kOkJson);
+    auto keys = std::make_shared<FixedKeyProvider>();
+    MassiveClient client(http, keys);
+
+    // Note: cursor is percent-encoded and must be decoded before CurlHttpClient escapes it again.
+    const std::string nextUrl =
+        "https://api.massive.com/v3/reference/options/contracts?cursor=YXA9JTdCJTIySUQlMjIlM0ElMjIxJTIyJTdE"
+        "&underlying_ticker=SPX&limit=10&apiKey=evil_key";
+
+    auto res = client.getOptionsContractsNextUrl(nextUrl);
+    ASSERT_TRUE(res.has_value()) << res.error();
+
+    EXPECT_EQ(http->lastUrl, "https://api.massive.com/v3/reference/options/contracts");
+    EXPECT_EQ(http->lastParams.at("apiKey"), "injected_key");
+    EXPECT_EQ(http->lastParams.at("underlying_ticker"), "SPX");
+    EXPECT_EQ(http->lastParams.at("limit"), "1000");
+
+    // Cursor should be decoded (not contain percent-escapes) before CurlHttpClient escapes it again.
+    ASSERT_TRUE(http->lastParams.contains("cursor"));
+    EXPECT_EQ(http->lastParams.at("cursor").find('%'), std::string::npos);
+}
+
 TEST(MarketAPI_MassiveJson, ParsesMinimalEnvelope)
 {
     const char* json = R"({"status":"OK","results":[{"date":"1962-01-02","yield_10_year":4.06,"yield_1_year":3.22,"yield_5_year":3.88}]})";

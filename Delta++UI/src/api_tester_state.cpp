@@ -6,6 +6,7 @@
 #include <Delta++MarketAPI/curl_http_client.h>
 #include <Delta++MarketAPI/http_client.h>
 #include <Delta++MarketAPI/massive_client.h>
+#include <Delta++DB/reference_db.h>
 
 #include <map>
 #include <memory>
@@ -237,6 +238,32 @@ void ApiTesterState::fetchOptionsContracts()
     catch (const std::exception& e)
     {
         m_optionsContractsMsg = std::string("Exception: ") + e.what();
+    }
+}
+
+void ApiTesterState::commitOptionsContractsToDb()
+{
+    m_optionsCommitDbMsg.clear();
+    if (!m_hasOptionsContracts || !m_optionsContractsResult.has_value())
+    {
+        m_optionsCommitDbMsg = "No fetched contracts to commit.";
+        return;
+    }
+    try
+    {
+        const auto& env = *m_optionsContractsResult;
+        const auto path = DPP::DB::defaultReferenceDbPath();
+        auto r = DPP::DB::upsertOptionsContracts(path, env.results);
+        if (!r.has_value())
+            m_optionsCommitDbMsg = "SQLite: " + r.error();
+        else
+            m_optionsCommitDbMsg =
+                "Committed " + std::to_string(env.results.size()) + " row(s) to " + path.string()
+                + " (current fetch page only; use next_url for more).";
+    }
+    catch (const std::exception& e)
+    {
+        m_optionsCommitDbMsg = std::string("Exception: ") + e.what();
     }
 }
 

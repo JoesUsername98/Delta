@@ -353,6 +353,10 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
+# SQLite WAL mode sidecar files (not the main .sqlite file)
+*.sqlite-shm
+*.sqlite-wal
+
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 

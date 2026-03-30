@@ -277,7 +277,13 @@ void ApiTesterWindow::renderMassiveOptionsContractsSection()
     if (ImGui::Button("Fetch options contracts"))
         m_state.fetchOptionsContracts();
 
+    ImGui::SameLine();
+    if (ImGui::Button("Commit fetched rows to SQLite"))
+        m_state.commitOptionsContractsToDb();
+
     ImGui::TextWrapped("%s", m_state.m_optionsContractsMsg.c_str());
+    if (!m_state.m_optionsCommitDbMsg.empty())
+        ImGui::TextWrapped("%s", m_state.m_optionsCommitDbMsg.c_str());
 
     if (m_state.m_hasOptionsContracts && m_state.m_optionsContractsResult.has_value())
     {

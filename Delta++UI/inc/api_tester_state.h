@@ -52,11 +52,13 @@ struct ApiTesterState
     std::optional<DPP::OptionsContractsEnvelope> m_optionsContractsResult;
     std::optional<DPP::OptionsAggregatesEnvelope> m_optionsAggsResult;
     std::string m_optionsContractsMsg;
+    std::string m_optionsCommitDbMsg;
     std::string m_optionsAggsMsg;
 
     void refreshCurveAtT();
     void fetchYieldCurve();
     void fetchVolSurfaceFromAv();
     void fetchOptionsContracts();
+    void commitOptionsContractsToDb();
     void fetchOptionsAggregates();
 };

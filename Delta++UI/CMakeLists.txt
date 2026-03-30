@@ -17,6 +17,10 @@ target_include_directories(${EXECUTABLE_NAME} PUBLIC
 "../walnut_custom"
 )
 
-target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} walnut_custom magic_enum::magic_enum Delta++Market)
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${DPP_LIB_NAME} walnut_custom magic_enum::magic_enum Delta++Market
+    Delta++DB)
+
+target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
+    "DPP_REFERENCE_DB_PATH=\"${CMAKE_SOURCE_DIR}/data/referenceDB.sqlite\"")
 
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES FOLDER "Delta++")

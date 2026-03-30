@@ -35,6 +35,11 @@ namespace DPP
         std::expected<OptionsContractsEnvelope, std::string>
         getOptionsContracts(const std::map<std::string, std::string>& queryParams = {}) const;
 
+        /// Follows a Massive `next_url` returned by `getOptionsContracts`.
+        /// This parses the URL into base + query params, injects `apiKey` from `MASSIVE_API_KEY`,
+        /// and forces `limit=1000` so pagination keeps pulling max-sized pages.
+        std::expected<OptionsContractsEnvelope, std::string> getOptionsContractsNextUrl(std::string_view nextUrl) const;
+
         /// GET /v2/aggs/ticker/{optionsTicker}/range/{multiplier}/{timespan}/{from}/{to}
         /// Path segments are URL-encoded; optional `adjusted`, `sort`, `limit` as query params per Massive docs.
         std::expected<OptionsAggregatesEnvelope, std::string>
