@@ -1,31 +1,33 @@
-#include <Delta++Math/distributions.h>
-
 #include "Delta++/black_scholes_engine.h"
+
+#include <Delta++BlackScholes/black_scholes.h>
 
 namespace DPP
 {
     double BlackScholesEngine::getD1() const
     {
         const double r = m_mkt.zeroRate(m_trd.m_maturity);
-        return ( log( m_mkt.m_underlyingPrice / m_trd.m_strike ) + ( r + m_mkt.m_vol * m_mkt.m_vol * .5 ) * m_trd.m_maturity ) /
-            ( m_mkt.m_vol * sqrt( m_trd.m_maturity ) );
+        return BlackScholes::d1(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, 0.0, m_mkt.m_vol);
     }
 
     double BlackScholesEngine::getD2() const
     {
-        return getD1() - ( m_mkt.m_vol * sqrt( m_trd.m_maturity ) );
+        const double r = m_mkt.zeroRate(m_trd.m_maturity);
+        return BlackScholes::d2(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, 0.0, m_mkt.m_vol);
     }
 
     double BlackScholesEngine::callPrice() const
     {
+        const double r = m_mkt.zeroRate(m_trd.m_maturity);
         const double df = m_mkt.discount(m_trd.m_maturity);
-        return DPPMath::cumDensity( getD1() ) * m_mkt.m_underlyingPrice  -  DPPMath::cumDensity( getD2() ) * m_trd.m_strike * df;
+        return BlackScholes::callPriceDf(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, df, m_mkt.m_vol);
     }
 
     double BlackScholesEngine::putPrice() const
     {
+        const double r = m_mkt.zeroRate(m_trd.m_maturity);
         const double df = m_mkt.discount(m_trd.m_maturity);
-        return  DPPMath::cumDensity( -getD2() ) * m_trd.m_strike * df -  DPPMath::cumDensity( -getD1() ) * m_mkt.m_underlyingPrice ;
+        return BlackScholes::putPriceDf(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, df, m_mkt.m_vol);
     }
 
     CalculationResult BlackScholesEngine::calcPV(const CalcData& calc) const
@@ -46,12 +48,13 @@ namespace DPP
         if ( m_trd.m_optionExerciseType != OptionExerciseType::European )
             return std::unexpected("BlackScholes can only handle European Exercise");
 
+        const double r = m_mkt.zeroRate(m_trd.m_maturity);
         switch ( m_trd.m_optionPayoffType )
         {
         case OptionPayoffType::Call:
-            return DPPMath::cumDensity( getD1() );
+            return BlackScholes::callDelta(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, 0.0, m_mkt.m_vol);
         case OptionPayoffType::Put:
-            return DPPMath::cumDensity( getD1() ) - 1.;
+            return BlackScholes::putDelta(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, 0.0, m_mkt.m_vol);
         default:
             return std::unexpected("Only Call and Put are supported PayoffTypes");
         }
@@ -103,11 +106,12 @@ namespace DPP
 
     CalculationResult BlackScholesEngine::calcVega(const CalcData& calc) const
     {
+        const double r = m_mkt.zeroRate(m_trd.m_maturity);
         switch ( m_trd.m_optionPayoffType )
         {
         case OptionPayoffType::Call:
         case OptionPayoffType::Put:
-            return m_mkt.m_underlyingPrice *  DPPMath::probDensity( getD1() ) * sqrt( m_trd.m_maturity );
+            return BlackScholes::vega(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, 0.0, m_mkt.m_vol);
         default:
             return std::unexpected("Only Call and Put are supported PayoffTypes" );
         }
@@ -115,11 +119,12 @@ namespace DPP
 
     CalculationResult BlackScholesEngine::calcGamma(const CalcData& calc) const
     {
+        const double r = m_mkt.zeroRate(m_trd.m_maturity);
         switch ( m_trd.m_optionPayoffType )
         {
         case OptionPayoffType::Call:
         case OptionPayoffType::Put:
-            return DPPMath::probDensity( getD1() ) / ( m_mkt.m_underlyingPrice * m_mkt.m_vol * sqrt( m_trd.m_maturity ) );
+            return BlackScholes::gamma(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, 0.0, m_mkt.m_vol);
         default:
             return std::unexpected("Only Call and Put are supported PayoffTypes" );
         }

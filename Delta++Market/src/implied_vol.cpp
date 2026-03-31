@@ -1,6 +1,6 @@
 #include <Delta++Market/implied_vol.h>
 
-#include <Delta++Math/distributions.h>
+#include <Delta++BlackScholes/black_scholes.h>
 
 #include <algorithm>
 #include <cmath>
@@ -14,32 +14,12 @@ namespace
 
     double bsCallPrice(double S, double K, double T, double r, double q, double vol)
     {
-        if (T <= 0.0)
-            return std::max(0.0, S - K);
-        if (vol <= 0.0)
-        {
-            const double fwd = S * std::exp((r - q) * T);
-            const double df = std::exp(-r * T);
-            return df * std::max(0.0, fwd - K);
-        }
-
-        const double sqrtT = std::sqrt(T);
-        const double sigSqrtT = vol * sqrtT;
-        const double d1 = (std::log(S / K) + (r - q + 0.5 * vol * vol) * T) / sigSqrtT;
-        const double d2 = d1 - sigSqrtT;
-        const double df_r = std::exp(-r * T);
-        const double df_q = std::exp(-q * T);
-        return S * df_q * DPPMath::cumDensity(d1) - K * df_r * DPPMath::cumDensity(d2);
+        return DPP::BlackScholes::callPrice(S, K, T, r, q, vol);
     }
 
     double bsVega(double S, double K, double T, double r, double q, double vol)
     {
-        if (T <= 0.0 || vol <= 0.0)
-            return 0.0;
-        const double sqrtT = std::sqrt(T);
-        const double d1 = (std::log(S / K) + (r - q + 0.5 * vol * vol) * T) / (vol * sqrtT);
-        const double df_q = std::exp(-q * T);
-        return S * df_q * DPPMath::probDensity(d1) * sqrtT;
+        return DPP::BlackScholes::vega(S, K, T, r, q, vol);
     }
 }
 

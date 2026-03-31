@@ -17,6 +17,7 @@ target_include_directories(${DPP_MARKET_LIB_NAME} PUBLIC
 
 target_link_libraries(${DPP_MARKET_LIB_NAME} PUBLIC
     ${DPP_MATH_LIB_NAME}
+    Delta++BlackScholes
     "Delta++Solver"
     "Delta++MarketAPI")
 

@@ -83,6 +83,7 @@ endif ( ENABLE_COVERAGE )
 
 add_subdirectory(configured)
 add_subdirectory(Delta++Math)
+add_subdirectory(Delta++BlackScholes)
 add_subdirectory(Delta++Solver)
 add_subdirectory(Delta++MarketAPI)
 add_subdirectory(Delta++DB)
