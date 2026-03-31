@@ -47,6 +47,19 @@ namespace DPP
         std::vector<TreasuryYieldRow> results;
     };
 
+    // --- Delta++ market DB (SQLite) DTOs ---
+    // Mirrors `options_eod_quotes` in `Delta++DB/sql/market_schema.sql`.
+    struct OptionsEodQuoteRow
+    {
+        std::string quote_date;        // YYYY-MM-DD
+        std::string expiration_date;   // YYYY-MM-DD
+        double strike_price{};
+        std::string underlying_ticker; // e.g. "SPX"
+        std::string contract_type;     // "call" or "put"
+        std::optional<double> bid;
+        std::optional<double> ask;
+    };
+
     // --- GET /v3/reference/options/contracts ---
 
     struct OptionsAdditionalUnderlying
