@@ -3,7 +3,6 @@
 #include <Delta++DB/market_db.h>
 #include <Delta++Market/market_data_builder.h>
 #include <Delta++Market/market_data_service.h>
-#include <Delta++MarketAPI/alpha_vantage_client.h>
 #include <Delta++MarketAPI/api_key_provider.h>
 #include <Delta++MarketAPI/curl_http_client.h>
 #include <Delta++MarketAPI/http_client.h>
@@ -11,7 +10,6 @@
 
 #include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "shared_curve_cache.h"
@@ -142,11 +140,9 @@ void ApiTesterState::fetchYieldCurve()
                 http = std::make_shared<DPP::CurlHttpClient>();
                 keys = std::make_shared<DPP::EnvApiKeyProvider>();
             }
-
-            auto av = std::make_shared<DPP::AlphaVantageClient>(http, keys);
             auto massive = std::make_shared<DPP::MassiveClient>(http, keys);
 
-            MarketDataService svc(av, massive);
+            MarketDataService svc(massive);
             curveRes = svc.buildYieldCurve(date);
         }
 
@@ -164,54 +160,6 @@ void ApiTesterState::fetchYieldCurve()
         refreshCurveAtT();
 
         m_status = std::string(sourceTag) + " OK: " + date;
-    }
-    catch (const std::exception& e)
-    {
-        m_status = std::string("Exception: ") + e.what();
-    }
-}
-
-void ApiTesterState::fetchVolSurfaceFromAv()
-{
-    m_hasVol = false;
-    m_status.clear();
-
-    const std::string symbol(m_optionSymbol);
-
-    try
-    {
-        std::shared_ptr<DPP::IHttpClient> http;
-        std::shared_ptr<DPP::IApiKeyProvider> keys;
-
-        if (m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::Stub)
-        {
-            http = std::make_shared<ApiTesterStubHttpClient>();
-            keys = std::make_shared<StubApiKeyProvider>();
-        }
-        else
-        {
-            http = std::make_shared<DPP::CurlHttpClient>();
-            keys = std::make_shared<DPP::EnvApiKeyProvider>();
-        }
-
-        auto av = std::make_shared<DPP::AlphaVantageClient>(http, keys);
-        auto massive = std::make_shared<DPP::MassiveClient>(http, keys);
-        MarketDataService svc(av, massive);
-
-        auto volRes = svc.buildVolSurface(symbol);
-        if (!volRes.has_value())
-        {
-            m_status = "AlphaVantage error (placeholder): " + volRes.error();
-            return;
-        }
-
-        const auto& surf = volRes.value();
-        m_hasVol = true;
-        m_volAtPoint = surf.vol(m_avExpiryYears, m_avStrike);
-
-        std::ostringstream oss;
-        oss << "AV OK (placeholder): vol(" << m_avExpiryYears << ", " << m_avStrike << ") = " << m_volAtPoint;
-        m_status = oss.str();
     }
     catch (const std::exception& e)
     {

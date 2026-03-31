@@ -27,24 +27,4 @@ namespace DPP
 
         return quotes;
     }
-
-    std::vector<OptionQuote> avToOptionQuotes(const OptionChainResponse& response)
-    {
-        std::vector<OptionQuote> quotes;
-
-        for (const auto& entry : response.options)
-        {
-            quotes.push_back({
-                .expiry = entry.expiry,
-                .strike = entry.strike,
-                .bid = entry.bid,
-                .ask = entry.ask,
-                .impliedVol = entry.impliedVol,
-                .underlying = response.underlying,
-                .date = response.date
-            });
-        }
-
-        return quotes;
-    }
 }
