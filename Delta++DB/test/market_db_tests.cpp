@@ -87,3 +87,42 @@ TEST(DeltaPP_MarketDB, OptionsEodUpsertConflictAndQuery)
     std::filesystem::remove(path, ec);
 }
 
+TEST(DeltaPP_MarketDB, DistinctUnderlyingsAndEquityLastAndCallMids)
+{
+    const auto path = makeTempDbPath();
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
+
+    // Seed a single options quote row.
+    OptionsEodQuoteRow a;
+    a.quote_date = "2023-06-01";
+    a.expiration_date = "2023-06-16";
+    a.strike_price = 4200.0;
+    a.underlying_ticker = "SPX";
+    a.contract_type = "call";
+    a.bid = 1.0;
+    a.ask = 3.0;
+    ASSERT_TRUE(DB::Market::upsertOptionsEodQuotes(path, {a}).has_value());
+
+    // Distinct underlyings for date.
+    auto und = DB::Market::queryDistinctUnderlyingsForDate(path, "2023-06-01");
+    ASSERT_TRUE(und.has_value()) << und.error();
+    ASSERT_EQ(und->size(), 1u);
+    EXPECT_EQ((*und)[0], "SPX");
+
+    // Equity last should be missing unless loader populated equities table.
+    auto lastMissing = DB::Market::queryEquityLast(path, "2023-06-01", "SPX");
+    ASSERT_TRUE(lastMissing.has_value()) << lastMissing.error();
+    EXPECT_FALSE(lastMissing->has_value());
+
+    // Call mids should return one point with mid=(1+3)/2=2.
+    auto mids = DB::Market::queryCallMidsForDateUnderlying(path, "2023-06-01", "SPX");
+    ASSERT_TRUE(mids.has_value()) << mids.error();
+    ASSERT_EQ(mids->size(), 1u);
+    EXPECT_NEAR((*mids)[0].mid, 2.0, 1e-12);
+    EXPECT_DOUBLE_EQ((*mids)[0].strike, 4200.0);
+    EXPECT_GT((*mids)[0].yearsToExpiry, 0.0);
+
+    std::filesystem::remove(path, ec);
+}
+

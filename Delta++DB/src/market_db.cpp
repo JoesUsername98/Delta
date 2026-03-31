@@ -2,11 +2,15 @@
 
 #include <sqlite3.h>
 
+#include <expected>
 #include <cstring>
+#include <cstdio>
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
+#include <chrono>
 
 namespace DPP::DB::detail
 {
@@ -15,6 +19,31 @@ namespace DPP::DB::detail
 
 namespace
 {
+    std::expected<std::chrono::sys_days, std::string> parseYmdToSysDays(std::string_view ymd)
+    {
+        int y = 0, m = 0, d = 0;
+        if (std::sscanf(std::string(ymd).c_str(), "%d-%d-%d", &y, &m, &d) != 3)
+            return std::unexpected("Invalid date (expected YYYY-MM-DD): " + std::string(ymd));
+        using namespace std::chrono;
+        const year_month_day ymdv{year{y}, month{static_cast<unsigned>(m)}, day{static_cast<unsigned>(d)}};
+        if (!ymdv.ok())
+            return std::unexpected("Invalid calendar date: " + std::string(ymd));
+        return sys_days{ymdv};
+    }
+
+    std::expected<double, std::string> yearFractionAct365_25(std::string_view fromYmd, std::string_view toYmd)
+    {
+        const auto a = parseYmdToSysDays(fromYmd);
+        if (!a.has_value())
+            return std::unexpected(a.error());
+        const auto b = parseYmdToSysDays(toYmd);
+        if (!b.has_value())
+            return std::unexpected(b.error());
+        using namespace std::chrono;
+        const auto dd = (b.value() - a.value()).count();
+        return static_cast<double>(dd) / 365.25;
+    }
+
     struct Sqlite3Deleter
     {
         void operator()(sqlite3* p) const
@@ -343,6 +372,146 @@ WHERE quote_date = ?
             row.ask = sqlite3_column_double(stmt.get(), 6);
 
         return std::optional<OptionsEodQuoteRow>(std::move(row));
+    }
+
+    std::expected<std::vector<std::string>, std::string>
+    queryDistinctUnderlyingsForDate(const std::filesystem::path& dbPath, const std::string_view quoteDate)
+    {
+        auto dbResult = openDb(dbPath);
+        if (!dbResult.has_value())
+            return std::unexpected(dbResult.error());
+        sqlite3* db = dbResult.value().get();
+
+        auto schemaResult = initSchema(db);
+        if (!schemaResult.has_value())
+            return std::unexpected(schemaResult.error());
+
+        static constexpr const char* kSql = R"SQL(
+SELECT DISTINCT underlying_ticker
+FROM options_eod_quotes
+WHERE quote_date = ?
+ORDER BY underlying_ticker
+)SQL";
+
+        sqlite3_stmt* stmtRaw = nullptr;
+        int rc = sqlite3_prepare_v2(db, kSql, static_cast<int>(std::strlen(kSql)), &stmtRaw, nullptr);
+        if (rc != SQLITE_OK)
+            return std::unexpected(std::string("prepare: ") + sqlite3_errmsg(db));
+        Sqlite3StmtPtr stmt(stmtRaw);
+
+        const std::string qd(quoteDate);
+        sqlite3_bind_text(stmt.get(), 1, qd.c_str(), static_cast<int>(qd.size()), SQLITE_TRANSIENT);
+
+        std::vector<std::string> out;
+        while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW)
+        {
+            const char* s = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
+            if (s && *s)
+                out.emplace_back(s);
+        }
+        if (rc != SQLITE_DONE)
+            return std::unexpected(std::string("step: ") + sqlite3_errmsg(db));
+
+        return out;
+    }
+
+    std::expected<std::optional<double>, std::string>
+    queryEquityLast(const std::filesystem::path& dbPath, const std::string_view quoteDate, const std::string_view ticker)
+    {
+        auto dbResult = openDb(dbPath);
+        if (!dbResult.has_value())
+            return std::unexpected(dbResult.error());
+        sqlite3* db = dbResult.value().get();
+
+        auto schemaResult = initSchema(db);
+        if (!schemaResult.has_value())
+            return std::unexpected(schemaResult.error());
+
+        static constexpr const char* kSql = R"SQL(
+SELECT last
+FROM equities
+WHERE quote_date = ?
+  AND ticker = ?
+LIMIT 1
+)SQL";
+
+        sqlite3_stmt* stmtRaw = nullptr;
+        int rc = sqlite3_prepare_v2(db, kSql, static_cast<int>(std::strlen(kSql)), &stmtRaw, nullptr);
+        if (rc != SQLITE_OK)
+            return std::unexpected(std::string("prepare: ") + sqlite3_errmsg(db));
+        Sqlite3StmtPtr stmt(stmtRaw);
+
+        const std::string qd(quoteDate);
+        const std::string tk(ticker);
+        sqlite3_bind_text(stmt.get(), 1, qd.c_str(), static_cast<int>(qd.size()), SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt.get(), 2, tk.c_str(), static_cast<int>(tk.size()), SQLITE_TRANSIENT);
+
+        rc = sqlite3_step(stmt.get());
+        if (rc == SQLITE_DONE)
+            return std::optional<double>{};
+        if (rc != SQLITE_ROW)
+            return std::unexpected(std::string("step: ") + sqlite3_errmsg(db));
+        if (sqlite3_column_type(stmt.get(), 0) == SQLITE_NULL)
+            return std::optional<double>{};
+        return std::optional<double>{sqlite3_column_double(stmt.get(), 0)};
+    }
+
+    std::expected<std::vector<CallMidPoint>, std::string>
+    queryCallMidsForDateUnderlying(const std::filesystem::path& dbPath,
+                                   const std::string_view quoteDate,
+                                   const std::string_view underlyingTicker)
+    {
+        auto dbResult = openDb(dbPath);
+        if (!dbResult.has_value())
+            return std::unexpected(dbResult.error());
+        sqlite3* db = dbResult.value().get();
+
+        auto schemaResult = initSchema(db);
+        if (!schemaResult.has_value())
+            return std::unexpected(schemaResult.error());
+
+        static constexpr const char* kSql = R"SQL(
+SELECT expiration_date, strike_price, bid, ask
+FROM options_eod_quotes
+WHERE quote_date = ?
+  AND underlying_ticker = ?
+  AND contract_type = 'call'
+  AND bid IS NOT NULL
+  AND ask IS NOT NULL
+)SQL";
+
+        sqlite3_stmt* stmtRaw = nullptr;
+        int rc = sqlite3_prepare_v2(db, kSql, static_cast<int>(std::strlen(kSql)), &stmtRaw, nullptr);
+        if (rc != SQLITE_OK)
+            return std::unexpected(std::string("prepare: ") + sqlite3_errmsg(db));
+        Sqlite3StmtPtr stmt(stmtRaw);
+
+        const std::string qd(quoteDate);
+        const std::string ut(underlyingTicker);
+        sqlite3_bind_text(stmt.get(), 1, qd.c_str(), static_cast<int>(qd.size()), SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt.get(), 2, ut.c_str(), static_cast<int>(ut.size()), SQLITE_TRANSIENT);
+
+        std::vector<CallMidPoint> out;
+        while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW)
+        {
+            const char* exp = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
+            const double strike = sqlite3_column_double(stmt.get(), 1);
+            const double bid = sqlite3_column_double(stmt.get(), 2);
+            const double ask = sqlite3_column_double(stmt.get(), 3);
+
+            if (!exp || !*exp)
+                continue;
+
+            const auto yf = yearFractionAct365_25(quoteDate, exp);
+            if (!yf.has_value())
+                continue;
+            const double mid = 0.5 * (bid + ask);
+            out.push_back({yf.value(), strike, mid});
+        }
+        if (rc != SQLITE_DONE)
+            return std::unexpected(std::string("step: ") + sqlite3_errmsg(db));
+
+        return out;
     }
 }
 

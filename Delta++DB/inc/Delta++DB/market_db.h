@@ -17,8 +17,29 @@ namespace DPP::DB::Market
         return std::filesystem::path(DPP_MARKET_DB_PATH);
     }
 #else
+    inline std::filesystem::path findRepoRootForDb()
+    {
+        std::error_code ec;
+        auto p = std::filesystem::current_path(ec);
+        if (ec)
+            return {};
+
+        // Walk up a few levels looking for a stable repo marker.
+        for (int i = 0; i < 12; ++i)
+        {
+            if (std::filesystem::is_regular_file(p / "Delta++DB" / "sql" / "market_schema.sql"))
+                return p;
+            if (!p.has_parent_path())
+                break;
+            p = p.parent_path();
+        }
+        return {};
+    }
+
     inline std::filesystem::path defaultMarketDbPath()
     {
+        if (const auto root = findRepoRootForDb(); !root.empty())
+            return root / "data" / "marketDB.sqlite";
         return std::filesystem::path("data") / "marketDB.sqlite";
     }
 #endif
@@ -39,5 +60,23 @@ namespace DPP::DB::Market
         double strikePrice,
         std::string_view underlyingTicker,
         std::string_view contractType);
+
+    struct CallMidPoint
+    {
+        double yearsToExpiry{};
+        double strike{};
+        double mid{};
+    };
+
+    std::expected<std::vector<std::string>, std::string>
+    queryDistinctUnderlyingsForDate(const std::filesystem::path& dbPath, std::string_view quoteDate);
+
+    std::expected<std::optional<double>, std::string>
+    queryEquityLast(const std::filesystem::path& dbPath, std::string_view quoteDate, std::string_view ticker);
+
+    std::expected<std::vector<CallMidPoint>, std::string>
+    queryCallMidsForDateUnderlying(const std::filesystem::path& dbPath,
+                                   std::string_view quoteDate,
+                                   std::string_view underlyingTicker);
 }
 

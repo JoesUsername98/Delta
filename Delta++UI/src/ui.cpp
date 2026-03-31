@@ -7,6 +7,7 @@
 #include "pricer_view.h"
 #include "demo_view.h"
 #include "api_tester_view.h"
+#include "local_vol_surface_view.h"
 
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
@@ -34,6 +35,10 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 				{
 					app->PushLayer<ApiTesterWindow>();
 				}
+                if (ImGui::MenuItem("Local Vol Surface"))
+                {
+                    app->PushLayer<LocalVolSurfaceWindow>();
+                }
 				
 				ImGui::EndMenu();
 			}

@@ -12,7 +12,7 @@ struct ApiTesterState
 {
     DPP::YieldCurveSource m_yieldCurveSource = DPP::YieldCurveSource::Stub;
 
-    char m_buildDate[11] = "2024-03-01";
+    char m_buildDate[11] = "2023-01-04";
     double m_tYears = 1.0;
 
     char m_optionSymbol[32] = "AAPL";
