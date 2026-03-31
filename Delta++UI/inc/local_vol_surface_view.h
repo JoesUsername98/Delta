@@ -13,5 +13,8 @@ public:
 
 private:
     DPP::LocalVolSurfaceState m_state;
+    bool m_showIv3d = false;
+    bool m_showLv3d = false;
+    bool m_showCall3d = false;
 };
 
