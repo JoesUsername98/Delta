@@ -29,5 +29,15 @@ CREATE TABLE IF NOT EXISTS options_eod_quotes (
 CREATE INDEX IF NOT EXISTS idx_options_eod_underlying_quote
     ON options_eod_quotes(underlying_ticker, quote_date);
 
-PRAGMA user_version = 2;
+CREATE TABLE IF NOT EXISTS equities (
+    quote_date DATE NOT NULL,
+    ticker TEXT NOT NULL,
+    last REAL NOT NULL,
+    UNIQUE (quote_date, ticker)
+);
+
+CREATE INDEX IF NOT EXISTS idx_equities_ticker_date
+    ON equities(ticker, quote_date);
+
+PRAGMA user_version = 3;
 
