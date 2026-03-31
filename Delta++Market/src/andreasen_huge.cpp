@@ -6,6 +6,9 @@
 
 namespace
 {
+    constexpr double kLocalVolMin = 0.01;
+    constexpr double kLocalVolMax = 3.0;
+
     bool isStrictlyIncreasing(const std::vector<double>& xs)
     {
         for (size_t i = 1; i < xs.size(); ++i)
@@ -146,7 +149,10 @@ namespace DPP
                 }
 
                 const double lv2 = numer / denom;
-                sig[i][j] = (lv2 > 0.0) ? std::sqrt(lv2) : std::numeric_limits<double>::quiet_NaN();
+                if (lv2 > 0.0)
+                    sig[i][j] = std::clamp(std::sqrt(lv2), kLocalVolMin, kLocalVolMax);
+                else
+                    sig[i][j] = std::numeric_limits<double>::quiet_NaN();
             }
         }
 
@@ -174,7 +180,9 @@ namespace DPP
             }
             for (double& v : s)
                 if (!std::isfinite(v))
-                    v = 0.0;
+                    v = kLocalVolMin;
+            for (double& v : s)
+                v = std::clamp(v, kLocalVolMin, kLocalVolMax);
         }
 
         return LocalVolSurface::build(in.expiries, in.strikes, in.callPrices, std::move(sig));
