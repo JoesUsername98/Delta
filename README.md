@@ -50,6 +50,33 @@ ctest --preset wsl-debug-test
 ctest --preset win-debug-test
 ```
 
+### Market data and flat-file loading
+
+**Massive API key (required for live Massive HTTP calls)**  
+Anything that calls Massive.com via `Delta++MarketAPI` needs an API key in the process environment:
+
+- Set `MASSIVE_API_KEY` before running the API tester / `Delta++DataSync` jobs that fetch from Massive.
+
+**UV (required for the Python flat-file loader)**  
+The flat-file loader under `data/flat_files/loader` is managed with [uv](https://docs.astral.sh/uv/).
+
+```bash
+cd data/flat_files/loader
+uv sync
+```
+
+Load options EOD quotes into `data/marketDB.sqlite` (table `options_eod_quotes`):
+
+```bash
+uv run load-flat-files --load options
+```
+
+Load equity last prices into `data/marketDB.sqlite` (table `equities`):
+
+```bash
+uv run load-flat-files --load equities
+```
+
 ### Code Coverage
 
 To generate the code coverage report (WSL/Linux):
