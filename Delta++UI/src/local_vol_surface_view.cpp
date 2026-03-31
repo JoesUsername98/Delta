@@ -3,9 +3,14 @@
 #include <imgui.h>
 #include <implot.h>
 #include <implot_internal.h>
+#include <implot3d.h>
 
 #include <cstdio>
 #include <ctime>
+#include <algorithm>
+#include <limits>
+#include <numeric>
+#include <optional>
 
 namespace
 {
@@ -51,6 +56,8 @@ namespace
             ImGui::EndPopup();
         }
     }
+
+    // (3D grids and IV surface evaluation are cached in LocalVolSurfaceState at Bootstrap time.)
 }
 
 LocalVolSurfaceWindow::LocalVolSurfaceWindow()
@@ -106,7 +113,20 @@ void LocalVolSurfaceWindow::OnUIRender()
         m_state.bootstrap();
     }
 
+    ImGui::SameLine();
+    if (ImGui::Button("Show IV 3D"))
+        m_showIv3d = true;
+    ImGui::SameLine();
+    if (ImGui::Button("Show LocalVol 3D"))
+        m_showLv3d = true;
+    ImGui::SameLine();
+    if (ImGui::Button("Show Call 3D"))
+        m_showCall3d = true;
+
     const auto& data = m_state.data();
+    const auto& surfOpt = m_state.surface();
+    const bool haveSurf = surfOpt.has_value();
+    const bool haveIv = !data.texp_years.empty();
     ImGui::Separator();
     ImGui::Text("Points: %d", static_cast<int>(data.texp_years.size()));
     if (!m_state.status().empty())
@@ -140,6 +160,103 @@ void LocalVolSurfaceWindow::OnUIRender()
                 ImGui::EndTable();
             }
         }
+    }
+
+    // -------- 2D slice plots (ImPlot) --------
+    if (ImGui::CollapsingHeader("Slices (3M / 6M / 1Y)", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        const auto& Kgrid = m_state.sliceK();
+        const auto& Ts = m_state.sliceT();
+        const auto& iv = m_state.sliceIv();
+        const auto& lv = m_state.sliceLv();
+
+        if (Kgrid.size() < 3 || Ts.empty())
+        {
+            ImGui::TextDisabled("No precomputed slices yet. Click Bootstrap first.");
+        }
+        else
+        {
+            for (size_t it = 0; it < Ts.size(); ++it)
+            {
+                const double Tsl = Ts[it];
+                char title[64];
+                std::snprintf(title, sizeof(title), "Slice T=%.2f", Tsl);
+                if (ImPlot::BeginPlot(title, ImVec2(-1, 220)))
+                {
+                    ImPlot::SetupAxes("Strike (K)", "Vol");
+                    if (it < iv.size() && iv[it].size() == Kgrid.size())
+                        ImPlot::PlotLine("ImpliedVol", Kgrid.data(), iv[it].data(), static_cast<int>(Kgrid.size()));
+                    if (it < lv.size() && lv[it].size() == Kgrid.size())
+                        ImPlot::PlotLine("LocalVol", Kgrid.data(), lv[it].data(), static_cast<int>(Kgrid.size()));
+                    ImPlot::EndPlot();
+                }
+            }
+        }
+    }
+
+    // -------- 3D windows (ImPlot3D) --------
+    const auto& ivGridOpt = m_state.ivGrid3d();
+    const auto& lvGridOpt = m_state.lvGrid3d();
+    const auto& callGridOpt = m_state.callGrid3d();
+
+    if (m_showIv3d)
+    {
+        ImGui::Begin("Implied Vol Surface (3D)", &m_showIv3d);
+        if (!ivGridOpt.has_value() || ivGridOpt->empty())
+        {
+            ImGui::TextDisabled("No cached IV surface yet. Click Bootstrap first.");
+        }
+        else
+        {
+            const auto& g = *ivGridOpt;
+            if (ImPlot3D::BeginPlot("IV(T,K)", ImVec2(-1, -1)))
+            {
+                ImPlot3D::SetupAxes("Strike (K)", "Expiry (T)", "ImpliedVol");
+                ImPlot3D::PlotSurface("IV", g.xs.data(), g.ys.data(), g.zs.data(), g.xCount, g.yCount);
+                ImPlot3D::EndPlot();
+            }
+        }
+        ImGui::End();
+    }
+
+    if (m_showLv3d)
+    {
+        ImGui::Begin("Local Vol Surface (3D)", &m_showLv3d);
+        if (!lvGridOpt.has_value() || lvGridOpt->empty())
+        {
+            ImGui::TextDisabled("No cached local vol surface yet. Bootstrap must succeed (>=2 expiries, >=3 strikes/expiry).");
+        }
+        else
+        {
+            const auto& g = *lvGridOpt;
+            if (ImPlot3D::BeginPlot("LocalVol(T,K)", ImVec2(-1, -1)))
+            {
+                ImPlot3D::SetupAxes("Strike (K)", "Expiry (T)", "LocalVol");
+                ImPlot3D::PlotSurface("sigma_loc", g.xs.data(), g.ys.data(), g.zs.data(), g.xCount, g.yCount);
+                ImPlot3D::EndPlot();
+            }
+        }
+        ImGui::End();
+    }
+
+    if (m_showCall3d)
+    {
+        ImGui::Begin("Call Price Surface (3D)", &m_showCall3d);
+        if (!callGridOpt.has_value() || callGridOpt->empty())
+        {
+            ImGui::TextDisabled("No cached call surface yet. Bootstrap must succeed.");
+        }
+        else
+        {
+            const auto& g = *callGridOpt;
+            if (ImPlot3D::BeginPlot("C(T,K)", ImVec2(-1, -1)))
+            {
+                ImPlot3D::SetupAxes("Strike (K)", "Expiry (T)", "CallPrice");
+                ImPlot3D::PlotSurface("C", g.xs.data(), g.ys.data(), g.zs.data(), g.xCount, g.yCount);
+                ImPlot3D::EndPlot();
+            }
+        }
+        ImGui::End();
     }
 
     ImGui::End();

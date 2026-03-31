@@ -97,12 +97,37 @@ target_include_directories(implot_lib PUBLIC
 target_link_libraries(implot_lib PUBLIC imgui)
 target_compile_definitions(implot_lib PUBLIC IMPLOT_DISABLE_DEMO)
 
+# Use FetchContent for ImPlot3D (kept alongside ImPlot in walnut_custom)
+FetchContent_Declare(
+    implot3d
+    GIT_REPOSITORY https://github.com/brenocq/implot3d.git
+    GIT_TAG v0.3
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(implot3d)
+
+set(IMPLOT3D_DIR ${implot3d_SOURCE_DIR})
+
+add_library(implot3d_lib STATIC
+    ${IMPLOT3D_DIR}/implot3d.h
+    ${IMPLOT3D_DIR}/implot3d_internal.h
+    ${IMPLOT3D_DIR}/implot3d.cpp
+    ${IMPLOT3D_DIR}/implot3d_items.cpp
+)
+
+target_include_directories(implot3d_lib PUBLIC
+    ${IMPLOT3D_DIR}
+)
+target_link_libraries(implot3d_lib PUBLIC imgui)
+target_compile_definitions(implot3d_lib PUBLIC IMPLOT3D_DISABLE_DEMO)
+
 # Link against required libraries
 target_link_libraries(walnut_custom PUBLIC
     OpenGL::GL
     glfw
     imgui
     implot_lib
+    implot3d_lib
 )
 
 # Define WALNUT_USE_OPENGL for this library
