@@ -68,6 +68,15 @@ namespace DPP::DB::Market
         double mid{};
     };
 
+    struct PutCallMidPoint
+    {
+        std::string expirationDate; // YYYY-MM-DD
+        double yearsToExpiry{};
+        double strike{};
+        std::optional<double> callMid{};
+        std::optional<double> putMid{};
+    };
+
     std::expected<std::vector<std::string>, std::string>
     queryDistinctUnderlyingsForDate(const std::filesystem::path& dbPath, std::string_view quoteDate);
 
@@ -78,5 +87,10 @@ namespace DPP::DB::Market
     queryCallMidsForDateUnderlying(const std::filesystem::path& dbPath,
                                    std::string_view quoteDate,
                                    std::string_view underlyingTicker);
+
+    std::expected<std::vector<PutCallMidPoint>, std::string>
+    queryPutCallMidsForDateUnderlying(const std::filesystem::path& dbPath,
+                                      std::string_view quoteDate,
+                                      std::string_view underlyingTicker);
 }
 

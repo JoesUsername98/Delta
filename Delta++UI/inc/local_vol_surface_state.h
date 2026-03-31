@@ -51,6 +51,20 @@ namespace DPP
         const std::optional<LocalVolGrid3D>& ivGrid3d() const { return m_ivGrid3d; }
         const std::optional<LocalVolGrid3D>& lvGrid3d() const { return m_lvGrid3d; }
         const std::optional<LocalVolGrid3D>& callGrid3d() const { return m_callGrid3d; }
+        struct ParityYieldRow
+        {
+            std::string expirationDate;
+            double texp_years{};
+            double r{};
+            double q{};
+            double A{};
+            double B{};
+            double forward{};
+            int nUsed{};
+            double rmse{};
+        };
+        const std::vector<ParityYieldRow>& parityYields() const { return m_parityYields; }
+        long long parityCurveMs() const { return m_parityCurveMs; }
         const std::string& status() const { return m_status; }
 
         bool refreshUnderlyings();
@@ -76,6 +90,8 @@ namespace DPP
         std::optional<LocalVolGrid3D> m_ivGrid3d;
         std::optional<LocalVolGrid3D> m_lvGrid3d;
         std::optional<LocalVolGrid3D> m_callGrid3d;
+        std::vector<ParityYieldRow> m_parityYields;
+        long long m_parityCurveMs = 0;
         std::string m_status;
     };
 }
