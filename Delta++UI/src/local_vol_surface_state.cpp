@@ -4,11 +4,14 @@
 #include <Delta++Market/andreasen_huge.h>
 #include <Delta++Market/implied_vol.h>
 #include <Delta++Market/market_data_builder.h>
+#include <Delta++Market/put_call_parity.h>
 
 #include "shared_curve_cache.h"
 
 #include <algorithm>
 #include <chrono>
+#include <map>
+#include <numeric>
 #include <limits>
 
 #include <Delta++Solver/interpolation.h>
@@ -85,6 +88,8 @@ namespace DPP
         m_ivGrid3d.reset();
         m_lvGrid3d.reset();
         m_callGrid3d.reset();
+        m_parityYields.clear();
+        m_parityCurveMs = 0;
 
         const std::string u = selectedUnderlying();
         if (u.empty())
@@ -131,88 +136,198 @@ namespace DPP
             curveOpt = curveRes.value();
         }
 
-        auto midsRes = DPP::DB::Market::queryCallMidsForDateUnderlying(dbPath(), m_asof, u);
-        if (!midsRes.has_value())
+        auto chainRes = DPP::DB::Market::queryPutCallMidsForDateUnderlying(dbPath(), m_asof, u);
+        if (!chainRes.has_value())
         {
-            m_status = midsRes.error();
+            m_status = chainRes.error();
             return false;
         }
+
+        const auto tParityStart = std::chrono::steady_clock::now();
 
         const auto& curve = *curveOpt;
         const double S = *m_lastPrice;
 
-        int nTotal = 0;
-        int nUsed = 0;
+        struct ExpiryBucket
+        {
+            std::string expirationDate;
+            double T{};
+            double q{};
+            std::vector<double> strikesPaired;
+            std::vector<double> callsPaired;
+            std::vector<double> putsPaired;
+            std::vector<double> strikesCalls;
+            std::vector<double> callsOnly;
+        };
+        std::map<std::string, ExpiryBucket> buckets;
+
+        int nRows = 0;
+        int nPairs = 0;
+        for (const auto& row : chainRes.value())
+        {
+            ++nRows;
+            auto& b = buckets[row.expirationDate];
+            b.expirationDate = row.expirationDate;
+            b.T = row.yearsToExpiry;
+
+            if (row.callMid.has_value() && (*row.callMid > 0.0) && (row.strike > 0.0))
+            {
+                b.strikesCalls.push_back(row.strike);
+                b.callsOnly.push_back(*row.callMid);
+            }
+            if (row.callMid.has_value() && row.putMid.has_value() &&
+                (*row.callMid > 0.0) && (*row.putMid > 0.0) && (row.strike > 0.0))
+            {
+                ++nPairs;
+                b.strikesPaired.push_back(row.strike);
+                b.callsPaired.push_back(*row.callMid);
+                b.putsPaired.push_back(*row.putMid);
+            }
+        }
+
+        // Produce q(T) curve (parity yields per expiry)
         int nIvOk = 0;
         int nIvErr = 0;
+        int nCallUsed = 0;
 
         const auto tIvStart = std::chrono::steady_clock::now();
-        for (const auto& p : midsRes.value())
+        for (auto& [exp, b] : buckets)
         {
-            ++nTotal;
-            const double T = p.yearsToExpiry;
-            const double K = p.strike;
-            const double mid = p.mid;
-            if (!(T > 0.0) || !(K > 0.0) || !(mid > 0.0))
+            if (!(b.T > 0.0))
                 continue;
 
-            ++nUsed;
-            const double r = curve.zeroRate(T);
-            const auto iv = impliedVolCall(mid, S, K, T, r, 0.06); // q=0.06 Minimises failures for test case 2023-01-04 SPX 
-            if (!iv.has_value())
+            // Ensure stable ordering for downstream splines and AH input.
+            auto sortByStrike = [](std::vector<double>& Ks, std::vector<double>& Vs) {
+                std::vector<size_t> idx(Ks.size());
+                std::iota(idx.begin(), idx.end(), size_t{0});
+                std::sort(idx.begin(), idx.end(), [&](size_t a, size_t c) { return Ks[a] < Ks[c]; });
+                std::vector<double> Ks2, Vs2;
+                Ks2.reserve(Ks.size());
+                Vs2.reserve(Vs.size());
+                for (size_t i : idx) { Ks2.push_back(Ks[i]); Vs2.push_back(Vs[i]); }
+                Ks.swap(Ks2);
+                Vs.swap(Vs2);
+            };
+
+            auto sortByStrike2 = [](std::vector<double>& Ks, std::vector<double>& V1, std::vector<double>& V2) {
+                std::vector<size_t> idx(Ks.size());
+                std::iota(idx.begin(), idx.end(), size_t{0});
+                std::sort(idx.begin(), idx.end(), [&](size_t a, size_t c) { return Ks[a] < Ks[c]; });
+                std::vector<double> Ks2, V12, V22;
+                Ks2.reserve(Ks.size());
+                V12.reserve(V1.size());
+                V22.reserve(V2.size());
+                for (size_t i : idx)
+                {
+                    Ks2.push_back(Ks[i]);
+                    V12.push_back(V1[i]);
+                    V22.push_back(V2[i]);
+                }
+                Ks.swap(Ks2);
+                V1.swap(V12);
+                V2.swap(V22);
+            };
+
+            sortByStrike(b.strikesCalls, b.callsOnly);
+            sortByStrike2(b.strikesPaired, b.callsPaired, b.putsPaired);
+
+            const double r = curve.zeroRate(b.T);
+            const auto fitRes = DPP::inferDividendYieldFromPutCallParity(S, b.T, r, b.strikesPaired, b.callsPaired, b.putsPaired);
+            double qT = 0.0;
+            if (fitRes.has_value())
             {
-                ++nIvErr;
-                continue;
+                qT = fitRes->q;
+                b.q = qT;
+                m_parityYields.push_back(ParityYieldRow{
+                    .expirationDate = b.expirationDate,
+                    .texp_years = b.T,
+                    .r = r,
+                    .q = fitRes->q,
+                    .A = fitRes->A,
+                    .B = fitRes->B,
+                    .forward = fitRes->forward,
+                    .nUsed = fitRes->nUsed,
+                    .rmse = fitRes->rmse,
+                });
+            }
+            else
+            {
+                b.q = 0.0;
+                m_parityYields.push_back(ParityYieldRow{
+                    .expirationDate = b.expirationDate,
+                    .texp_years = b.T,
+                    .r = r,
+                    .q = 0.0,
+                    .A = std::numeric_limits<double>::quiet_NaN(),
+                    .B = std::numeric_limits<double>::quiet_NaN(),
+                    .forward = std::numeric_limits<double>::quiet_NaN(),
+                    .nUsed = static_cast<int>(b.strikesPaired.size()),
+                    .rmse = std::numeric_limits<double>::quiet_NaN(),
+                });
             }
 
-            ++nIvOk;
-            m_data.texp_years.push_back(T);
-            m_data.strikes.push_back(K);
-            m_data.call_mids.push_back(mid);
-            m_data.implied_vol.push_back(iv.value());
+            for (size_t i = 0; i < b.strikesCalls.size(); ++i)
+            {
+                const double K = b.strikesCalls[i];
+                const double mid = b.callsOnly[i];
+                if (!(K > 0.0) || !(mid > 0.0))
+                    continue;
+
+                ++nCallUsed;
+                const auto iv = impliedVolCall(mid, S, K, b.T, r, qT);
+                if (!iv.has_value())
+                {
+                    ++nIvErr;
+                    continue;
+                }
+
+                ++nIvOk;
+                m_data.texp_years.push_back(b.T);
+                m_data.strikes.push_back(K);
+                m_data.call_mids.push_back(mid);
+                m_data.implied_vol.push_back(iv.value());
+            }
         }
+        const auto tParityEnd = std::chrono::steady_clock::now();
+        m_parityCurveMs = std::chrono::duration_cast<std::chrono::milliseconds>(tParityEnd - tParityStart).count();
         const auto tIvEnd = std::chrono::steady_clock::now();
         const auto ivMs = std::chrono::duration_cast<std::chrono::milliseconds>(tIvEnd - tIvStart).count();
 
         m_status =
-            "Fetched " + std::to_string(nTotal) +
-            " call(s); used " + std::to_string(nUsed) +
+            "Fetched " + std::to_string(nRows) +
+            " chain row(s); paired " + std::to_string(nPairs) +
+            "; q(T) time " + std::to_string(m_parityCurveMs) + " ms" +
+            "; calls used " + std::to_string(nCallUsed) +
             "; IV ok " + std::to_string(nIvOk) +
             "; IV failed " + std::to_string(nIvErr) +
             "; IV time " + std::to_string(ivMs) + " ms";
 
-        // Build AH input using raw knots grouped by expiry.
-        // This is a minimal wiring: group by exact expiry (years) and keep strikes/mids as-is.
-        // Prices are call mids; curve is cached in g_lastBuiltYieldCurve; q=0.
-        if (!m_data.texp_years.empty())
+        // Build AH input using raw call knots grouped by expiry (and inferred q(T) per expiry).
+        if (!buckets.empty())
         {
-            struct Row { double T; double K; double mid; };
-            std::vector<Row> rows;
-            rows.reserve(m_data.texp_years.size());
-            for (size_t i = 0; i < m_data.texp_years.size(); ++i)
-                rows.push_back({m_data.texp_years[i], m_data.strikes[i], m_data.call_mids[i]});
-
-            std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) {
-                if (a.T != b.T) return a.T < b.T;
-                return a.K < b.K;
-            });
-
             std::vector<double> Ts;
+            std::vector<double> qs;
             std::vector<std::vector<double>> KsByT;
             std::vector<std::vector<double>> CsByT;
-            for (const auto& r0 : rows)
+
+            Ts.reserve(buckets.size());
+            qs.reserve(buckets.size());
+            KsByT.reserve(buckets.size());
+            CsByT.reserve(buckets.size());
+
+            for (const auto& [exp, b] : buckets)
             {
-                if (Ts.empty() || r0.T != Ts.back())
-                {
-                    Ts.push_back(r0.T);
-                    KsByT.emplace_back();
-                    CsByT.emplace_back();
-                }
-                KsByT.back().push_back(r0.K);
-                CsByT.back().push_back(r0.mid);
+                if (!(b.T > 0.0))
+                    continue;
+                if (b.strikesCalls.size() < 3 || b.callsOnly.size() != b.strikesCalls.size())
+                    continue;
+
+                Ts.push_back(b.T);
+                qs.push_back(b.q);
+                KsByT.push_back(b.strikesCalls);
+                CsByT.push_back(b.callsOnly);
             }
 
-            // Need >=2 expiries and >=3 strikes/expiry; otherwise skip AH.
             bool okGrid = Ts.size() >= 2;
             for (size_t i = 0; i < KsByT.size(); ++i)
                 okGrid = okGrid && (KsByT[i].size() >= 3);
@@ -223,6 +338,7 @@ namespace DPP
                     .spot = S,
                     .curve = curve,
                     .expiries = std::move(Ts),
+                    .dividendYields = std::move(qs),
                     .strikes = std::move(KsByT),
                     .callPrices = std::move(CsByT),
                 };
@@ -237,7 +353,6 @@ namespace DPP
                 else
                 {
                     m_surface = *surf;
-                    // Basic diagnostics: local vol at ATM for each expiry.
                     m_status += "\nAH OK; time " + std::to_string(ahMs) + " ms. ";
                 }
             }

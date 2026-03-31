@@ -75,6 +75,8 @@ namespace DPP
             return std::unexpected("expiries must be strictly increasing");
         if (in.strikes.size() != in.expiries.size() || in.callPrices.size() != in.expiries.size())
             return std::unexpected("strikes/callPrices must match expiries size");
+        if (!in.dividendYields.empty() && in.dividendYields.size() != in.expiries.size())
+            return std::unexpected("dividendYields must be empty or match expiries size");
 
         // Build a local vol estimate on the raw knots using the Dupire local vol relation.
         // This is a pragmatic \"paper-default\" starting point over irregular raw knots.
@@ -109,6 +111,8 @@ namespace DPP
         {
             const double T = in.expiries[i];
             const double rT = in.curve.zeroRate(T);
+            const double qT = in.dividendYields.empty() ? 0.0 : in.dividendYields[i];
+            const double rq = rT - qT;
 
             const auto& Ks = in.strikes[i];
             const auto& Cs = in.callPrices[i];
@@ -133,7 +137,7 @@ namespace DPP
                 const double Ckk = d2C_dK2(Ks, Cs, j);
 
                 const double denom = 0.5 * K * K * Ckk;
-                const double numer = Ct + rT * K * Ck - rT * C; // q=0
+                const double numer = Ct + rq * K * Ck - rq * C; // incorporates continuous dividend yield q(T)
 
                 if (!(std::abs(denom) > 1e-14) || !(numer >= 0.0))
                 {

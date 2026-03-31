@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <ctime>
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <numeric>
 #include <optional>
@@ -139,6 +140,77 @@ void LocalVolSurfaceWindow::OnUIRender()
     ImGui::Text("Points: %d", static_cast<int>(data.texp_years.size()));
     if (!m_state.status().empty())
         ImGui::TextWrapped("%s", m_state.status().c_str());
+
+    const auto& py = m_state.parityYields();
+    if (!py.empty() && ImGui::CollapsingHeader("Implied dividend yield q(T) (put-call parity)", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Text("q(T) curve build time: %lld ms", m_state.parityCurveMs());
+
+        // Plot q(T)
+        std::vector<double> Ts;
+        std::vector<double> qs;
+        Ts.reserve(py.size());
+        qs.reserve(py.size());
+        for (const auto& row : py)
+        {
+            Ts.push_back(row.texp_years);
+            qs.push_back(row.q);
+        }
+        if (Ts.size() >= 2 && ImPlot::BeginPlot("q(T)", ImVec2(-1, 220)))
+        {
+            ImPlot::SetupAxes("T (years)", "q");
+            ImPlot::PlotLine("q", Ts.data(), qs.data(), static_cast<int>(Ts.size()));
+            ImPlot::EndPlot();
+        }
+
+        if (ImGui::BeginTable("lv_parity_yields", 8, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+        {
+            ImGui::TableSetupColumn("Expiry");
+            ImGui::TableSetupColumn("T (years)");
+            ImGui::TableSetupColumn("r");
+            ImGui::TableSetupColumn("q");
+            ImGui::TableSetupColumn("F");
+            ImGui::TableSetupColumn("A");
+            ImGui::TableSetupColumn("B");
+            ImGui::TableSetupColumn("RMSE / n");
+            ImGui::TableHeadersRow();
+
+            for (const auto& row : py)
+            {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::TextUnformatted(row.expirationDate.c_str());
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("%.6f", row.texp_years);
+                ImGui::TableSetColumnIndex(2);
+                ImGui::Text("%.6f", row.r);
+                ImGui::TableSetColumnIndex(3);
+                ImGui::Text("%.6f", row.q);
+                ImGui::TableSetColumnIndex(4);
+                if (std::isfinite(row.forward))
+                    ImGui::Text("%.6f", row.forward);
+                else
+                    ImGui::TextDisabled("-");
+                ImGui::TableSetColumnIndex(5);
+                if (std::isfinite(row.A))
+                    ImGui::Text("%.6f", row.A);
+                else
+                    ImGui::TextDisabled("-");
+                ImGui::TableSetColumnIndex(6);
+                if (std::isfinite(row.B))
+                    ImGui::Text("%.6f", row.B);
+                else
+                    ImGui::TextDisabled("-");
+                ImGui::TableSetColumnIndex(7);
+                if (std::isfinite(row.rmse))
+                    ImGui::Text("%.6g / %d", row.rmse, row.nUsed);
+                else
+                    ImGui::TextDisabled("- / %d", row.nUsed);
+            }
+
+            ImGui::EndTable();
+        }
+    }
 
     if (!data.texp_years.empty())
     {
