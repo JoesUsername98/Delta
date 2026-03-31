@@ -107,6 +107,14 @@ void LocalVolSurfaceWindow::OnUIRender()
     else
         ImGui::TextDisabled("Last Price: (missing; load equities)");
 
+    ImGui::Separator();
+    ImGui::TextUnformatted("Yield curve source");
+    int ycSrc = static_cast<int>(m_state.m_yieldCurveSource);
+    ImGui::RadioButton("API (cached)", &ycSrc, static_cast<int>(DPP::LocalVolYieldCurveSource::ApiCache));
+    ImGui::SameLine();
+    ImGui::RadioButton("MarketDB (treasury_yields)", &ycSrc, static_cast<int>(DPP::LocalVolYieldCurveSource::MarketDb));
+    m_state.m_yieldCurveSource = static_cast<DPP::LocalVolYieldCurveSource>(ycSrc);
+
     if (ImGui::Button("Bootstrap"))
     {
         m_state.refreshLastPrice();

@@ -2,15 +2,24 @@
 
 #include <Delta++Market/yield_curve.h>
 #include <Delta++MarketAPI/dtos.h>
-#include <Delta++MarketAPI/enums.h>
 
 #include <optional>
 #include <string>
 #include <vector>
 
+namespace DPP
+{
+    enum class ApiTesterYieldCurveSource
+    {
+        Stub = 0,
+        Massive = 1,
+        MarketDb = 2,
+    };
+}
+
 struct ApiTesterState
 {
-    DPP::YieldCurveSource m_yieldCurveSource = DPP::YieldCurveSource::Stub;
+    DPP::ApiTesterYieldCurveSource m_yieldCurveSource = DPP::ApiTesterYieldCurveSource::Stub;
 
     char m_buildDate[11] = "2023-01-04";
     double m_tYears = 1.0;
