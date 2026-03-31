@@ -1,5 +1,7 @@
 #include "api_tester_state.h"
 
+#include <Delta++DB/market_db.h>
+#include <Delta++Market/market_data_builder.h>
 #include <Delta++Market/market_data_service.h>
 #include <Delta++MarketAPI/alpha_vantage_client.h>
 #include <Delta++MarketAPI/api_key_provider.h>
@@ -100,28 +102,53 @@ void ApiTesterState::fetchYieldCurve()
 
     try
     {
-        std::shared_ptr<DPP::IHttpClient> http;
-        std::shared_ptr<DPP::IApiKeyProvider> keys;
+        const char* sourceTag =
+            (m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::Stub)     ? "Stub"
+            : (m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::MarketDb) ? "MarketDB"
+                                                                               : "Massive";
 
-        if (m_yieldCurveSource == DPP::YieldCurveSource::Stub)
+        std::expected<DPP::YieldCurve, std::string> curveRes = std::unexpected(std::string("uninitialised"));
+
+        if (m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::MarketDb)
         {
-            http = std::make_shared<ApiTesterStubHttpClient>();
-            keys = std::make_shared<StubApiKeyProvider>();
+            const auto dbPath = DPP::DB::Market::defaultMarketDbPath();
+            const auto rowRes = DPP::DB::Market::queryTreasuryYieldRow(dbPath, date);
+            if (!rowRes.has_value())
+            {
+                m_status = std::string(sourceTag) + " error @ " + date + " : " + rowRes.error();
+                return;
+            }
+            if (!rowRes.value().has_value())
+            {
+                m_status = std::string(sourceTag) + " error @ " + date + " : no treasury_yields row";
+                return;
+            }
+
+            const auto quotes = DPP::massiveTreasuryRowToRateQuotes(*rowRes.value());
+            curveRes = DPP::YieldCurve::build(quotes);
         }
         else
         {
-            http = std::make_shared<DPP::CurlHttpClient>();
-            keys = std::make_shared<DPP::EnvApiKeyProvider>();
+            std::shared_ptr<DPP::IHttpClient> http;
+            std::shared_ptr<DPP::IApiKeyProvider> keys;
+
+            if (m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::Stub)
+            {
+                http = std::make_shared<ApiTesterStubHttpClient>();
+                keys = std::make_shared<StubApiKeyProvider>();
+            }
+            else
+            {
+                http = std::make_shared<DPP::CurlHttpClient>();
+                keys = std::make_shared<DPP::EnvApiKeyProvider>();
+            }
+
+            auto av = std::make_shared<DPP::AlphaVantageClient>(http, keys);
+            auto massive = std::make_shared<DPP::MassiveClient>(http, keys);
+
+            MarketDataService svc(av, massive);
+            curveRes = svc.buildYieldCurve(date);
         }
-
-        auto av = std::make_shared<DPP::AlphaVantageClient>(http, keys);
-        auto massive = std::make_shared<DPP::MassiveClient>(http, keys);
-
-        MarketDataService svc(av, massive);
-
-        const std::expected<DPP::YieldCurve, std::string> curveRes = svc.buildYieldCurve(date);
-
-        const char* sourceTag = (m_yieldCurveSource == DPP::YieldCurveSource::Stub) ? "Stub" : "Massive";
 
         if (!curveRes.has_value())
         {
@@ -156,7 +183,7 @@ void ApiTesterState::fetchVolSurfaceFromAv()
         std::shared_ptr<DPP::IHttpClient> http;
         std::shared_ptr<DPP::IApiKeyProvider> keys;
 
-        if (m_yieldCurveSource == DPP::YieldCurveSource::Stub)
+        if (m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::Stub)
         {
             http = std::make_shared<ApiTesterStubHttpClient>();
             keys = std::make_shared<StubApiKeyProvider>();
@@ -203,7 +230,7 @@ void ApiTesterState::fetchOptionsContracts()
         std::shared_ptr<DPP::IHttpClient> http;
         std::shared_ptr<DPP::IApiKeyProvider> keys;
 
-        if (m_yieldCurveSource == DPP::YieldCurveSource::Stub)
+        if (m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::Stub)
         {
             http = std::make_shared<ApiTesterStubHttpClient>();
             keys = std::make_shared<StubApiKeyProvider>();
@@ -251,7 +278,7 @@ void ApiTesterState::fetchOptionsAggregates()
         std::shared_ptr<DPP::IHttpClient> http;
         std::shared_ptr<DPP::IApiKeyProvider> keys;
 
-        if (m_yieldCurveSource == DPP::YieldCurveSource::Stub)
+        if (m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::Stub)
         {
             http = std::make_shared<ApiTesterStubHttpClient>();
             keys = std::make_shared<StubApiKeyProvider>();

@@ -3,6 +3,7 @@
 #include <Delta++DB/market_db.h>
 #include <Delta++Market/andreasen_huge.h>
 #include <Delta++Market/implied_vol.h>
+#include <Delta++Market/market_data_builder.h>
 
 #include "shared_curve_cache.h"
 
@@ -96,10 +97,38 @@ namespace DPP
             m_status = "Missing equity last price; run loader with --load equities";
             return false;
         }
-        if (!DPPUI::g_lastBuiltYieldCurve.has_value())
+        std::optional<DPP::YieldCurve> curveOpt;
+        if (m_yieldCurveSource == LocalVolYieldCurveSource::ApiCache)
         {
-            m_status = "No yield curve cached. Open API Tester and Fetch yield curve first.";
-            return false;
+            if (!DPPUI::g_lastBuiltYieldCurve.has_value())
+            {
+                m_status = "No yield curve cached. Open API Tester and Fetch yield curve first.";
+                return false;
+            }
+            curveOpt = *DPPUI::g_lastBuiltYieldCurve;
+        }
+        else
+        {
+            const auto rowRes = DPP::DB::Market::queryTreasuryYieldRow(dbPath(), m_asof);
+            if (!rowRes.has_value())
+            {
+                m_status = rowRes.error();
+                return false;
+            }
+            if (!rowRes.value().has_value())
+            {
+                m_status = "No treasury_yields row for this AsOf date";
+                return false;
+            }
+
+            const auto quotes = DPP::massiveTreasuryRowToRateQuotes(*rowRes.value());
+            const auto curveRes = DPP::YieldCurve::build(quotes);
+            if (!curveRes.has_value())
+            {
+                m_status = curveRes.error();
+                return false;
+            }
+            curveOpt = curveRes.value();
         }
 
         auto midsRes = DPP::DB::Market::queryCallMidsForDateUnderlying(dbPath(), m_asof, u);
@@ -109,7 +138,7 @@ namespace DPP
             return false;
         }
 
-        const auto& curve = *DPPUI::g_lastBuiltYieldCurve;
+        const auto& curve = *curveOpt;
         const double S = *m_lastPrice;
 
         int nTotal = 0;

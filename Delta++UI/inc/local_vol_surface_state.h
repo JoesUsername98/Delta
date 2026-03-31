@@ -11,6 +11,12 @@
 
 namespace DPP
 {
+    enum class LocalVolYieldCurveSource
+    {
+        ApiCache = 0,
+        MarketDb = 1,
+    };
+
     struct LocalVolBootstrapInput
     {
         std::vector<double> texp_years;
@@ -53,6 +59,7 @@ namespace DPP
 
         char m_asof[11] = "2023-01-04";
         int m_underlyingIdx = 0;
+        LocalVolYieldCurveSource m_yieldCurveSource = LocalVolYieldCurveSource::ApiCache;
 
     private:
         std::filesystem::path dbPath() const;

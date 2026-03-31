@@ -140,15 +140,19 @@ void ApiTesterWindow::OnUIRender()
 
     ImGui::TextUnformatted("Yield curve source");
     ImGui::SameLine();
-    if (ImGui::RadioButton("Stub", m_state.m_yieldCurveSource == DPP::YieldCurveSource::Stub))
-        m_state.m_yieldCurveSource = DPP::YieldCurveSource::Stub;
+    if (ImGui::RadioButton("Stub", m_state.m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::Stub))
+        m_state.m_yieldCurveSource = DPP::ApiTesterYieldCurveSource::Stub;
     ImGui::SameLine();
-    if (ImGui::RadioButton("Massive", m_state.m_yieldCurveSource == DPP::YieldCurveSource::Massive))
-        m_state.m_yieldCurveSource = DPP::YieldCurveSource::Massive;
+    if (ImGui::RadioButton("Massive", m_state.m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::Massive))
+        m_state.m_yieldCurveSource = DPP::ApiTesterYieldCurveSource::Massive;
+    ImGui::SameLine();
+    if (ImGui::RadioButton("MarketDB", m_state.m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::MarketDb))
+        m_state.m_yieldCurveSource = DPP::ApiTesterYieldCurveSource::MarketDb;
     ImGui::SameLine();
     ImGui::TextDisabled("%s",
-                        m_state.m_yieldCurveSource == DPP::YieldCurveSource::Stub ? "(no network)"
-                                                                             : "(live network; MASSIVE_API_KEY)");
+                        m_state.m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::Stub     ? "(no network)"
+                        : m_state.m_yieldCurveSource == DPP::ApiTesterYieldCurveSource::MarketDb ? "(from data/marketDB.sqlite)"
+                                                                                                 : "(live network; MASSIVE_API_KEY)");
 
     ImGui::Separator();
 
