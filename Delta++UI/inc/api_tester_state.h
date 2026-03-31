@@ -24,10 +24,6 @@ struct ApiTesterState
     char m_buildDate[11] = "2023-01-04";
     double m_tYears = 1.0;
 
-    char m_optionSymbol[32] = "AAPL";
-    double m_avExpiryYears = 0.5;
-    double m_avStrike = 100.0;
-
     std::string m_status;
 
     bool m_hasCurve = false;
@@ -36,9 +32,6 @@ struct ApiTesterState
     double m_curveDiscountAtT = 1.0;
     std::vector<double> m_curveTenors;
     std::vector<double> m_curveZeroRates;
-
-    bool m_hasVol = false;
-    double m_volAtPoint = 0.0;
 
     // Massive GET /v3/reference/options/contracts
     char m_ocUnderlying[32] = "AAPL";
@@ -65,7 +58,6 @@ struct ApiTesterState
 
     void refreshCurveAtT();
     void fetchYieldCurve();
-    void fetchVolSurfaceFromAv();
     void fetchOptionsContracts();
     void fetchOptionsAggregates();
 };

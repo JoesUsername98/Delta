@@ -160,10 +160,6 @@ void ApiTesterWindow::OnUIRender()
 
     ImGui::Separator();
 
-    renderAlphaVantageSection();
-
-    ImGui::Separator();
-
     renderMassiveOptionsContractsSection();
 
     ImGui::Separator();
@@ -243,24 +239,6 @@ void ApiTesterWindow::renderZeroRatePlot()
         ImPlot::PlotLine("zeroRate(t)", plotT.data(), plotZr.data(), static_cast<int>(plotT.size()));
         ImPlot::EndPlot();
     }
-}
-
-void ApiTesterWindow::renderAlphaVantageSection()
-{
-    if (!ImGui::CollapsingHeader("AlphaVantage Option Chain (placeholder)", ImGuiTreeNodeFlags_DefaultOpen))
-        return;
-
-    ImGui::InputText("Option Symbol", m_state.m_optionSymbol, sizeof(m_state.m_optionSymbol));
-    ImGui::InputDouble("Expiry (years)", &m_state.m_avExpiryYears, 0.01, 0.25, "%.2f");
-    ImGui::InputDouble("Strike", &m_state.m_avStrike, 0.25, 10.0, "%.2f");
-
-    if (ImGui::Button("Fetch Vol Surface (AV placeholder)"))
-        m_state.fetchVolSurfaceFromAv();
-
-    if (!m_state.m_hasVol)
-        return;
-
-    ImGui::Text("vol(expiry, strike) = %.8f", m_state.m_volAtPoint);
 }
 
 void ApiTesterWindow::renderMassiveOptionsContractsSection()

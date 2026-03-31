@@ -2,10 +2,8 @@
 #include <cmath>
 
 #include <Delta++Market/yield_curve.h>
-#include <Delta++Market/vol_surface.h>
 #include <Delta++Market/market_data_builder.h>
 #include <Delta++Market/market_data_service.h>
-#include <Delta++MarketAPI/alpha_vantage_client.h>
 #include <Delta++MarketAPI/http_client.h>
 #include <Delta++MarketAPI/api_key_provider.h>
 #include <Delta++MarketAPI/massive_client.h>
@@ -63,12 +61,6 @@ TEST(Market_YieldCurve, EmptyQuotesError)
     EXPECT_FALSE(result.has_value());
 }
 
-TEST(Market_VolSurface, EmptyQuotesError)
-{
-    auto result = VolSurface::build({});
-    EXPECT_FALSE(result.has_value());
-}
-
 TEST(Market_Builder, MassiveTreasuryRowToRateQuotes)
 {
     TreasuryYieldRow row;
@@ -90,9 +82,8 @@ TEST(Market_Service, BuildYieldCurveEndToEnd)
         "yield_3_month":4.50,"yield_1_year":4.55,"yield_2_year":4.60,"yield_5_year":4.70,"yield_10_year":4.80,"yield_30_year":4.90}]})";
     auto http = std::make_shared<StubHttp>(json);
     auto keys = std::make_shared<StubKeys>();
-    auto av = std::make_shared<AlphaVantageClient>(http, keys);
     auto massive = std::make_shared<MassiveClient>(http, keys);
-    MarketDataService svc(av, massive);
+    MarketDataService svc(massive);
 
     auto result = svc.buildYieldCurve("2024-03-01");
     ASSERT_TRUE(result.has_value()) << result.error();
@@ -114,9 +105,8 @@ TEST(Market_Service, BuildYieldCurveSparseYields)
         R"({"status":"OK","results":[{"date":"2024-03-01","yield_1_year":3.0,"yield_2_year":3.2,"yield_5_year":3.5,"yield_10_year":4.0}]})";
     auto http = std::make_shared<StubHttp>(json);
     auto keys = std::make_shared<StubKeys>();
-    auto av = std::make_shared<AlphaVantageClient>(http, keys);
     auto massive = std::make_shared<MassiveClient>(http, keys);
-    MarketDataService svc(av, massive);
+    MarketDataService svc(massive);
 
     auto result = svc.buildYieldCurve("2024-03-01");
     ASSERT_TRUE(result.has_value()) << result.error();
