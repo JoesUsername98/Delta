@@ -134,6 +134,8 @@ void LocalVolSurfaceWindow::OnUIRender()
             "Andreasen–Huge only uses expiries at least this many calendar days after AsOf.\n"
             "Example: 5 excludes 3-day-to-expiry options (DTE < 5).");
 
+    ImGui::Checkbox("AH: strikes on multiple of 100 only", &m_state.m_filterAhStrikesToHundredMultiples);
+
     if (ImGui::Button("Bootstrap"))
     {
         m_state.refreshLastPrice();

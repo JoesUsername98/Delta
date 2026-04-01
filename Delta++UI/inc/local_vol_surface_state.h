@@ -79,6 +79,8 @@ namespace DPP
         double m_optionsMinVolume = 3.0;
         /// Andreasen–Huge: only use expiries at least this many calendar days after AsOf (0 = no minimum).
         int m_minCalendarDaysToExpiryForAh = 0;
+        /// Andreasen–Huge: only use call quotes whose strike is a multiple of 100 (integer strike, K % 100 == 0).
+        bool m_filterAhStrikesToHundredMultiples = false;
 
     private:
         std::filesystem::path dbPath() const;
