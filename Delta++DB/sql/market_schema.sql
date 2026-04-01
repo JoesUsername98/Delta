@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS options_eod_quotes (
     contract_type TEXT NOT NULL,
     bid REAL,
     ask REAL,
+    volume REAL,
     PRIMARY KEY (quote_date, expiration_date, strike_price, underlying_ticker, contract_type)
 );
 
@@ -39,5 +40,5 @@ CREATE TABLE IF NOT EXISTS equities (
 CREATE INDEX IF NOT EXISTS idx_equities_ticker_date
     ON equities(ticker, quote_date);
 
-PRAGMA user_version = 3;
+PRAGMA user_version = 4;
 

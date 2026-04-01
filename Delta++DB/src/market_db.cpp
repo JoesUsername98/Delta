@@ -99,9 +99,39 @@ namespace
         return {};
     }
 
+    std::expected<void, std::string> migrateOptionsEodVolumeColumn(sqlite3* db)
+    {
+        sqlite3_stmt* stmtRaw = nullptr;
+        int rc = sqlite3_prepare_v2(db, "PRAGMA table_info(options_eod_quotes)", -1, &stmtRaw, nullptr);
+        if (rc != SQLITE_OK)
+            return std::unexpected(std::string("prepare pragma table_info: ") + sqlite3_errmsg(db));
+        Sqlite3StmtPtr stmt(stmtRaw);
+
+        bool hasVolume = false;
+        while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW)
+        {
+            const char* name = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 1));
+            if (name && std::strcmp(name, "volume") == 0)
+            {
+                hasVolume = true;
+                break;
+            }
+        }
+        if (rc != SQLITE_DONE && rc != SQLITE_ROW)
+            return std::unexpected(std::string("pragma table_info step: ") + sqlite3_errmsg(db));
+
+        if (hasVolume)
+            return {};
+
+        return execSql(db, "ALTER TABLE options_eod_quotes ADD COLUMN volume REAL");
+    }
+
     std::expected<void, std::string> initSchema(sqlite3* db)
     {
-        return execSql(db, DPP::DB::detail::marketSchemaSql());
+        auto r = execSql(db, DPP::DB::detail::marketSchemaSql());
+        if (!r.has_value())
+            return r;
+        return migrateOptionsEodVolumeColumn(db);
     }
 
     void bindOptionalDouble(sqlite3_stmt* stmt, int idx, const std::optional<double>& v)
