@@ -14,8 +14,31 @@
 #include <numeric>
 #include <limits>
 #include <optional>
+#include <string>
+#include <cstdio>
 
 #include <Delta++Solver/interpolation.h>
+
+namespace
+{
+    /// Calendar days from AsOf (quote) to Expiry; returns -1 if parsing fails.
+    int calendarDaysBetweenQuoteAndExpiry(const char* quoteYmd, const std::string& expYmd)
+    {
+        int qy = 0, qm = 0, qd = 0, ey = 0, em = 0, ed = 0;
+        if (std::sscanf(quoteYmd, "%d-%d-%d", &qy, &qm, &qd) != 3)
+            return -1;
+        if (std::sscanf(expYmd.c_str(), "%d-%d-%d", &ey, &em, &ed) != 3)
+            return -1;
+        using namespace std::chrono;
+        const year_month_day q{year{qy}, month{unsigned(qm)}, day{unsigned(qd)}};
+        const year_month_day e{year{ey}, month{unsigned(em)}, day{unsigned(ed)}};
+        if (!q.ok() || !e.ok())
+            return -1;
+        const sys_days qs{q};
+        const sys_days es{e};
+        return static_cast<int>((es - qs).count());
+    }
+}
 
 namespace DPP
 {
@@ -319,10 +342,20 @@ namespace DPP
             KsByT.reserve(buckets.size());
             CsByT.reserve(buckets.size());
 
+            int nAhSkippedShortDte = 0;
             for (const auto& [exp, b] : buckets)
             {
                 if (!(b.T > 0.0))
                     continue;
+                if (m_minCalendarDaysToExpiryForAh > 0)
+                {
+                    const int dte = calendarDaysBetweenQuoteAndExpiry(m_asof, b.expirationDate);
+                    if (dte >= 0 && dte < m_minCalendarDaysToExpiryForAh)
+                    {
+                        ++nAhSkippedShortDte;
+                        continue;
+                    }
+                }
                 if (b.strikesCalls.size() < 3 || b.callsOnly.size() != b.strikesCalls.size())
                     continue;
 
@@ -338,6 +371,12 @@ namespace DPP
 
             if (okGrid)
             {
+                if (m_minCalendarDaysToExpiryForAh > 0 && nAhSkippedShortDte > 0)
+                {
+                    m_status += "\nAH: excluded " + std::to_string(nAhSkippedShortDte) +
+                               " expiry(ies) with calendar DTE < " +
+                               std::to_string(m_minCalendarDaysToExpiryForAh) + " days";
+                }
                 AHInput ah{
                     .spot = S,
                     .curve = curve,
@@ -363,6 +402,11 @@ namespace DPP
             else
             {
                 m_status += "\nAH skipped: need >=2 expiries and >=3 strikes per expiry";
+                if (m_minCalendarDaysToExpiryForAh > 0 && nAhSkippedShortDte > 0)
+                {
+                    m_status += " (" + std::to_string(nAhSkippedShortDte) +
+                                " expiry(ies) excluded by min calendar DTE)";
+                }
             }
         }
 

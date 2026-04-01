@@ -123,6 +123,17 @@ void LocalVolSurfaceWindow::OnUIRender()
     ImGui::InputDouble("Min volume##optchainvol", &m_state.m_optionsMinVolume, 1.0, 10.0, "%.2f");
     ImGui::EndDisabled();
 
+    ImGui::SetNextItemWidth(120);
+    ImGui::InputInt("Min calendar DTE for AH (0 = off)", &m_state.m_minCalendarDaysToExpiryForAh);
+    if (m_state.m_minCalendarDaysToExpiryForAh < 0)
+        m_state.m_minCalendarDaysToExpiryForAh = 0;
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip(
+            "Andreasen–Huge only uses expiries at least this many calendar days after AsOf.\n"
+            "Example: 5 excludes 3-day-to-expiry options (DTE < 5).");
+
     if (ImGui::Button("Bootstrap"))
     {
         m_state.refreshLastPrice();
