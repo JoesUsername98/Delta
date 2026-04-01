@@ -116,6 +116,13 @@ void LocalVolSurfaceWindow::OnUIRender()
     ImGui::RadioButton("MarketDB (treasury_yields)", &ycSrc, static_cast<int>(DPP::LocalVolYieldCurveSource::MarketDb));
     m_state.m_yieldCurveSource = static_cast<DPP::LocalVolYieldCurveSource>(ycSrc);
 
+    ImGui::Checkbox("Filter option chain by min volume", &m_state.m_filterOptionsByMinVolume);
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!m_state.m_filterOptionsByMinVolume);
+    ImGui::SetNextItemWidth(140);
+    ImGui::InputDouble("Min volume##optchainvol", &m_state.m_optionsMinVolume, 1.0, 10.0, "%.2f");
+    ImGui::EndDisabled();
+
     if (ImGui::Button("Bootstrap"))
     {
         m_state.refreshLastPrice();

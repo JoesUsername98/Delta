@@ -547,7 +547,8 @@ WHERE quote_date = ?
     std::expected<std::vector<PutCallMidPoint>, std::string>
     queryPutCallMidsForDateUnderlying(const std::filesystem::path& dbPath,
                                       const std::string_view quoteDate,
-                                      const std::string_view underlyingTicker)
+                                      const std::string_view underlyingTicker,
+                                      const std::optional<double> minVolume)
     {
         auto dbResult = openDb(dbPath);
         if (!dbResult.has_value())
@@ -574,8 +575,26 @@ GROUP BY expiration_date, strike_price
 ORDER BY expiration_date, strike_price
 )SQL";
 
+        static constexpr const char* kSqlMinVolume = R"SQL(
+SELECT
+  expiration_date,
+  strike_price,
+  MAX(CASE WHEN contract_type = 'call' THEN 0.5 * (bid + ask) END) AS call_mid,
+  MAX(CASE WHEN contract_type = 'put'  THEN 0.5 * (bid + ask) END) AS put_mid
+FROM options_eod_quotes
+WHERE quote_date = ?
+  AND underlying_ticker = ?
+  AND contract_type IN ('call','put')
+  AND bid IS NOT NULL
+  AND ask IS NOT NULL
+  AND COALESCE(volume, 0) >= ?
+GROUP BY expiration_date, strike_price
+ORDER BY expiration_date, strike_price
+)SQL";
+
+        const char* sql = minVolume.has_value() ? kSqlMinVolume : kSql;
         sqlite3_stmt* stmtRaw = nullptr;
-        int rc = sqlite3_prepare_v2(db, kSql, static_cast<int>(std::strlen(kSql)), &stmtRaw, nullptr);
+        int rc = sqlite3_prepare_v2(db, sql, static_cast<int>(std::strlen(sql)), &stmtRaw, nullptr);
         if (rc != SQLITE_OK)
             return std::unexpected(std::string("prepare: ") + sqlite3_errmsg(db));
         Sqlite3StmtPtr stmt(stmtRaw);
@@ -584,6 +603,8 @@ ORDER BY expiration_date, strike_price
         const std::string ut(underlyingTicker);
         sqlite3_bind_text(stmt.get(), 1, qd.c_str(), static_cast<int>(qd.size()), SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt.get(), 2, ut.c_str(), static_cast<int>(ut.size()), SQLITE_TRANSIENT);
+        if (minVolume.has_value())
+            sqlite3_bind_double(stmt.get(), 3, *minVolume);
 
         std::vector<PutCallMidPoint> out;
         while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW)
