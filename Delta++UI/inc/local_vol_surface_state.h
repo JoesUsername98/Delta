@@ -77,6 +77,8 @@ namespace DPP
         /// When true, `queryPutCallMidsForDateUnderlying` uses `m_optionsMinVolume`; when false, no volume filter.
         bool m_filterOptionsByMinVolume = true;
         double m_optionsMinVolume = 3.0;
+        /// Andreasen–Huge: only use expiries at least this many calendar days after AsOf (0 = no minimum).
+        int m_minCalendarDaysToExpiryForAh = 0;
 
     private:
         std::filesystem::path dbPath() const;
