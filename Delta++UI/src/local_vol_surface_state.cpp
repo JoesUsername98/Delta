@@ -13,6 +13,7 @@
 #include <map>
 #include <numeric>
 #include <limits>
+#include <optional>
 
 #include <Delta++Solver/interpolation.h>
 
@@ -135,8 +136,11 @@ namespace DPP
             }
             curveOpt = curveRes.value();
         }
-
-        auto chainRes = DPP::DB::Market::queryPutCallMidsForDateUnderlying(dbPath(), m_asof, u);
+        const std::optional<double> minVol =
+            m_filterOptionsByMinVolume
+                ? std::optional<double>((std::max)(0.0, m_optionsMinVolume))
+                : std::nullopt;
+        auto chainRes = DPP::DB::Market::queryPutCallMidsForDateUnderlying(dbPath(), m_asof, u, minVol);
         if (!chainRes.has_value())
         {
             m_status = chainRes.error();
