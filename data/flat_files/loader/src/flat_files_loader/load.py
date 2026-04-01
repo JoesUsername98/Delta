@@ -33,11 +33,12 @@ MARKET_SCHEMA_SQL = REPO_ROOT / "Delta++DB" / "sql" / "market_schema.sql"
 
 OPTIONS_UPSERT_SQL = """
 INSERT INTO options_eod_quotes (
-  quote_date, expiration_date, strike_price, underlying_ticker, contract_type, bid, ask
-) VALUES (?, ?, ?, ?, ?, ?, ?)
+  quote_date, expiration_date, strike_price, underlying_ticker, contract_type, bid, ask, volume
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(quote_date, expiration_date, strike_price, underlying_ticker, contract_type) DO UPDATE SET
   bid = excluded.bid,
-  ask = excluded.ask
+  ask = excluded.ask,
+  volume = excluded.volume
 """
 
 EQUITIES_UPSERT_SQL = """
@@ -51,9 +52,18 @@ ON CONFLICT(quote_date, ticker) DO UPDATE SET
 CHUNK_ROWS = 10000
 
 
+def _ensure_options_eod_volume_column(conn: sqlite3.Connection) -> None:
+    """Add `volume` when upgrading DBs created before schema v4."""
+    cur = conn.execute("PRAGMA table_info(options_eod_quotes)")
+    if any(row[1] == "volume" for row in cur.fetchall()):
+        return
+    conn.execute("ALTER TABLE options_eod_quotes ADD COLUMN volume REAL")
+
+
 def _ensure_schema(conn: sqlite3.Connection) -> None:
     sql = MARKET_SCHEMA_SQL.read_text(encoding="utf-8")
     conn.executescript(sql)
+    _ensure_options_eod_volume_column(conn)
 
 
 def read_spx_eod_2023(flat_files_dir: Path = FLAT_FILES_DIR) -> pd.DataFrame:
@@ -80,8 +90,10 @@ def build_options_long(spx_eod_2023: pd.DataFrame) -> pd.DataFrame:
         "[STRIKE]",
         "[C_BID]",
         "[C_ASK]",
+        "[C_VOLUME]",
         "[P_BID]",
         "[P_ASK]",
+        "[P_VOLUME]",
     ]
     df = spx_eod_2023[useful_cols].copy()
     df["underlying_ticker"] = "SPX"
@@ -92,16 +104,22 @@ def build_options_long(spx_eod_2023: pd.DataFrame) -> pd.DataFrame:
             "[STRIKE]": "strike_price",
             "[C_BID]": "c_bid",
             "[C_ASK]": "c_ask",
+            "[C_VOLUME]": "c_volume",
             "[P_BID]": "p_bid",
             "[P_ASK]": "p_ask",
+            "[P_VOLUME]": "p_volume",
         },
         inplace=True,
     )
 
     common = ["quote_date", "expiration_date", "strike_price", "underlying_ticker"]
-    calls = df[common + ["c_bid", "c_ask"]].copy().rename(columns={"c_bid": "bid", "c_ask": "ask"})
+    calls = df[common + ["c_bid", "c_ask", "c_volume"]].copy().rename(
+        columns={"c_bid": "bid", "c_ask": "ask", "c_volume": "volume"}
+    )
     calls["contract_type"] = "call"
-    puts = df[common + ["p_bid", "p_ask"]].copy().rename(columns={"p_bid": "bid", "p_ask": "ask"})
+    puts = df[common + ["p_bid", "p_ask", "p_volume"]].copy().rename(
+        columns={"p_bid": "bid", "p_ask": "ask", "p_volume": "volume"}
+    )
     puts["contract_type"] = "put"
     return pd.concat([calls, puts], ignore_index=True)
 
@@ -120,9 +138,12 @@ def upsert_options_long(options_long: pd.DataFrame, db_path: Path | None = None)
         "contract_type",
         "bid",
         "ask",
+        "volume",
     ]
     df = df[cols]
-    df = df.where(pd.notna(df), None)
+    df["volume"] = pd.to_numeric(df["volume"], errors="coerce").fillna(0.0)
+    non_volume = [c for c in cols if c != "volume"]
+    df[non_volume] = df[non_volume].where(pd.notna(df[non_volume]), None)
 
     with sqlite3.connect(path) as conn:
         _ensure_schema(conn)
@@ -139,6 +160,7 @@ def upsert_options_long(options_long: pd.DataFrame, db_path: Path | None = None)
                     r["contract_type"],
                     r["bid"],
                     r["ask"],
+                    float(r["volume"]),
                 )
                 for _, r in chunk.iterrows()
             ]
