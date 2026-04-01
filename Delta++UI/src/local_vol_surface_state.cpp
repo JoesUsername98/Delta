@@ -16,11 +16,23 @@
 #include <optional>
 #include <string>
 #include <cstdio>
+#include <cmath>
 
 #include <Delta++Solver/interpolation.h>
 
 namespace
 {
+    /// True if strike is (nearly) an integer and that integer is a multiple of 100.
+    bool strikeIsMultipleOf100(double K)
+    {
+        if (!std::isfinite(K) || !(K > 0.0))
+            return false;
+        const long long k = std::llround(K);
+        if (std::fabs(K - static_cast<double>(k)) > 1e-3)
+            return false;
+        return (k % 100) == 0;
+    }
+
     /// Calendar days from AsOf (quote) to Expiry; returns -1 if parsing fails.
     int calendarDaysBetweenQuoteAndExpiry(const char* quoteYmd, const std::string& expYmd)
     {
@@ -356,13 +368,32 @@ namespace DPP
                         continue;
                     }
                 }
-                if (b.strikesCalls.size() < 3 || b.callsOnly.size() != b.strikesCalls.size())
+                std::vector<double> kAh = b.strikesCalls;
+                std::vector<double> cAh = b.callsOnly;
+                if (m_filterAhStrikesToHundredMultiples)
+                {
+                    std::vector<double> kf;
+                    std::vector<double> cf;
+                    kf.reserve(kAh.size());
+                    cf.reserve(cAh.size());
+                    for (size_t i = 0; i < kAh.size() && i < cAh.size(); ++i)
+                    {
+                        if (strikeIsMultipleOf100(kAh[i]))
+                        {
+                            kf.push_back(kAh[i]);
+                            cf.push_back(cAh[i]);
+                        }
+                    }
+                    kAh = std::move(kf);
+                    cAh = std::move(cf);
+                }
+                if (kAh.size() < 3 || cAh.size() != kAh.size())
                     continue;
 
                 Ts.push_back(b.T);
                 qs.push_back(b.q);
-                KsByT.push_back(b.strikesCalls);
-                CsByT.push_back(b.callsOnly);
+                KsByT.push_back(std::move(kAh));
+                CsByT.push_back(std::move(cAh));
             }
 
             bool okGrid = Ts.size() >= 2;
