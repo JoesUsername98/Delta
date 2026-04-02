@@ -91,7 +91,6 @@ namespace DPP::DB::Market
     std::expected<std::vector<PutCallMidPoint>, std::string>
     queryPutCallMidsForDateUnderlying(const std::filesystem::path& dbPath,
                                       std::string_view quoteDate,
-                                      std::string_view underlyingTicker,
-                                      std::optional<double> minVolume = std::nullopt);
+                                      std::string_view underlyingTicker);
 }
 

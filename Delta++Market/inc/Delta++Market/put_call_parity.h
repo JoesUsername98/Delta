@@ -26,7 +26,6 @@ namespace DPP
     std::expected<PutCallParityFit, std::string> inferDividendYieldFromPutCallParity(
         double spot,
         double tYears,
-        double r,
         const std::vector<double>& strikes,
         const std::vector<double>& callMids,
         const std::vector<double>& putMids);

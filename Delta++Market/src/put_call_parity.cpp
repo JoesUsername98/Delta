@@ -15,13 +15,10 @@ namespace DPP
     std::expected<PutCallParityFit, std::string> inferDividendYieldFromPutCallParity(
         const double spot,
         const double tYears,
-        const double r,
         const std::vector<double>& strikes,
         const std::vector<double>& callMids,
         const std::vector<double>& putMids)
     {
-        (void)r; // r is included for callers’ diagnostics; not required for q(A).
-
         if (!(spot > 0.0))
             return std::unexpected("spot must be > 0");
         if (!(tYears > 0.0))
