@@ -1,5 +1,6 @@
 {
-    "C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json",
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "cmake.configureOnOpen": true,
     "files.associations": {
         "random": "cpp",
         "algorithm": "cpp",
