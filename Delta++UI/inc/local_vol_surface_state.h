@@ -2,9 +2,11 @@
 
 #include <Delta++DB/market_db.h>
 #include <Delta++Market/local_vol_surface.h>
+#include <Delta++Market/yield_curve.h>
 
 #include <expected>
 #include <filesystem>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -69,8 +71,24 @@ namespace DPP
         int m_underlyingIdx = 0;
 
     private:
+        /// Per-expiry option chain buckets for local-vol bootstrap (AH input).
+        struct AhExpiryBucket
+        {
+            std::string expirationDate;
+            double T{};
+            double q{};
+            std::vector<double> strikesPaired;
+            std::vector<double> callsPaired;
+            std::vector<double> putsPaired;
+            std::vector<double> strikesCalls;
+            std::vector<double> callsOnly;
+        };
+
         std::filesystem::path dbPath() const;
         std::string selectedUnderlying() const;
+        void tryBootstrapAndreasenHugeFromBuckets(const std::map<std::string, AhExpiryBucket>& buckets,
+                                                  double spot,
+                                                  const YieldCurve& curve);
         /// Fills slice K/T/IV/LV and optional 3D grids from `m_data` and `m_surface` after bootstrap.
         void recomputeSliceAndGridsFromBootstrap();
 

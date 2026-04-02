@@ -24,89 +24,6 @@
 
 namespace DPP
 {
-    namespace
-    {
-        /// Per-expiry option chain buckets for local-vol bootstrap (AH input).
-        struct AhExpiryBucket
-        {
-            std::string expirationDate;
-            double T{};
-            double q{};
-            std::vector<double> strikesPaired;
-            std::vector<double> callsPaired;
-            std::vector<double> putsPaired;
-            std::vector<double> strikesCalls;
-            std::vector<double> callsOnly;
-        };
-
-        void tryBootstrapAndreasenHugeFromBuckets(const std::map<std::string, AhExpiryBucket>& buckets,
-                                                  double spot,
-                                                  const YieldCurve& curve,
-                                                  std::string& status,
-                                                  std::optional<LocalVolSurface>& surface)
-        {
-            if (buckets.empty())
-                return;
-
-            std::vector<double> Ts;
-            std::vector<double> qs;
-            std::vector<std::vector<double>> KsByT;
-            std::vector<std::vector<double>> CsByT;
-
-            Ts.reserve(buckets.size());
-            qs.reserve(buckets.size());
-            KsByT.reserve(buckets.size());
-            CsByT.reserve(buckets.size());
-
-            for (const auto& [exp, b] : buckets)
-            {
-                if (!(b.T > 0.0))
-                    continue;
-                std::vector<double> kAh = b.strikesCalls;
-                std::vector<double> cAh = b.callsOnly;
-                if (kAh.size() < 3 || cAh.size() != kAh.size())
-                    continue;
-
-                Ts.push_back(b.T);
-                qs.push_back(b.q);
-                KsByT.push_back(std::move(kAh));
-                CsByT.push_back(std::move(cAh));
-            }
-
-            bool okGrid = Ts.size() >= 2;
-            for (size_t i = 0; i < KsByT.size(); ++i)
-                okGrid = okGrid && (KsByT[i].size() >= 3);
-
-            if (!okGrid)
-            {
-                status += "\nAH skipped: need >=2 expiries and >=3 strikes per expiry";
-                return;
-            }
-
-            AHInput ah{
-                .spot = spot,
-                .curve = curve,
-                .expiries = std::move(Ts),
-                .dividendYields = std::move(qs),
-                .strikes = std::move(KsByT),
-                .callPrices = std::move(CsByT),
-            };
-            const auto tAhStart = std::chrono::steady_clock::now();
-            const auto surf = bootstrapAndreasenHuge(ah);
-            const auto tAhEnd = std::chrono::steady_clock::now();
-            const auto ahMs = std::chrono::duration_cast<std::chrono::milliseconds>(tAhEnd - tAhStart).count();
-
-            if (!surf.has_value())
-            {
-                status += "\nAH bootstrap error: " + surf.error();
-                return;
-            }
-
-            surface = *surf;
-            status += "\nAH OK; time " + std::to_string(ahMs) + " ms. ";
-        }
-    } // namespace
-
     LocalVolSurfaceState::LocalVolSurfaceState() = default;
 
     std::filesystem::path LocalVolSurfaceState::dbPath() const
@@ -357,11 +274,76 @@ namespace DPP
             "; IV time " + std::to_string(ivMs) + " ms";
 
         // Build AH input using raw call knots grouped by expiry (and inferred q(T) per expiry).
-        tryBootstrapAndreasenHugeFromBuckets(buckets, S, curve, m_status, m_surface);
+        tryBootstrapAndreasenHugeFromBuckets(buckets, S, curve);
 
         recomputeSliceAndGridsFromBootstrap();
 
         return !m_data.implied_vol.empty();
+    }
+
+    void LocalVolSurfaceState::tryBootstrapAndreasenHugeFromBuckets(const std::map<std::string, AhExpiryBucket>& buckets,
+                                                                  double spot,
+                                                                  const YieldCurve& curve)
+    {
+        if (buckets.empty())
+            return;
+
+        std::vector<double> Ts;
+        std::vector<double> qs;
+        std::vector<std::vector<double>> KsByT;
+        std::vector<std::vector<double>> CsByT;
+
+        Ts.reserve(buckets.size());
+        qs.reserve(buckets.size());
+        KsByT.reserve(buckets.size());
+        CsByT.reserve(buckets.size());
+
+        for (const auto& [exp, b] : buckets)
+        {
+            if (!(b.T > 0.0))
+                continue;
+            std::vector<double> kAh = b.strikesCalls;
+            std::vector<double> cAh = b.callsOnly;
+            if (kAh.size() < 3 || cAh.size() != kAh.size())
+                continue;
+
+            Ts.push_back(b.T);
+            qs.push_back(b.q);
+            KsByT.push_back(std::move(kAh));
+            CsByT.push_back(std::move(cAh));
+        }
+
+        bool okGrid = Ts.size() >= 2;
+        for (size_t i = 0; i < KsByT.size(); ++i)
+            okGrid = okGrid && (KsByT[i].size() >= 3);
+
+        if (!okGrid)
+        {
+            m_status += "\nAH skipped: need >=2 expiries and >=3 strikes per expiry";
+            return;
+        }
+
+        AHInput ah{
+            .spot = spot,
+            .curve = curve,
+            .expiries = std::move(Ts),
+            .dividendYields = std::move(qs),
+            .strikes = std::move(KsByT),
+            .callPrices = std::move(CsByT),
+        };
+        const auto tAhStart = std::chrono::steady_clock::now();
+        const auto surf = bootstrapAndreasenHuge(ah);
+        const auto tAhEnd = std::chrono::steady_clock::now();
+        const auto ahMs = std::chrono::duration_cast<std::chrono::milliseconds>(tAhEnd - tAhStart).count();
+
+        if (!surf.has_value())
+        {
+            m_status += "\nAH bootstrap error: " + surf.error();
+            return;
+        }
+
+        m_surface = *surf;
+        m_status += "\nAH OK; time " + std::to_string(ahMs) + " ms. ";
     }
 
     void LocalVolSurfaceState::recomputeSliceAndGridsFromBootstrap()
@@ -452,17 +434,16 @@ namespace DPP
         m_sliceLv.assign(m_sliceT.size(),
                          std::vector<double>(m_sliceK.size(), std::numeric_limits<double>::quiet_NaN()));
 
-        for (size_t it = 0; it < m_sliceT.size(); ++it)
+        for (auto [iT, iK] :
+             std::views::cartesian_product(std::views::iota(0uz, m_sliceT.size()),
+                                           std::views::iota(0uz, m_sliceK.size())))
         {
-            const double Tsl = m_sliceT[it];
-            for (size_t ik = 0; ik < m_sliceK.size(); ++ik)
-            {
-                const double K = m_sliceK[ik];
-                if (!Ts.empty())
-                    m_sliceIv[it][ik] = ivSurface(Tsl, K);
-                if (m_surface.has_value())
-                    m_sliceLv[it][ik] = m_surface->localVol(Tsl, K);
-            }
+            const double Tsl = m_sliceT[iT];
+            const double K = m_sliceK[iK];
+            if (!Ts.empty())
+                m_sliceIv[iT][iK] = ivSurface(Tsl, K);
+            if (m_surface.has_value())
+                m_sliceLv[iT][iK] = m_surface->localVol(Tsl, K);
         }
 
         // Precompute 3D grids once (avoid per-frame evaluation when 3D windows are open).
@@ -475,16 +456,13 @@ namespace DPP
             g.xs.resize(n);
             g.ys.resize(n);
             g.zs.resize(n);
-            size_t idx = 0;
-            for (double Tq : TsGrid)
+            for (auto [i, tk] :
+                 std::views::enumerate(std::views::cartesian_product(TsGrid, KsGrid)))
             {
-                for (double Kq : KsGrid)
-                {
-                    g.xs[idx] = static_cast<float>(Kq);
-                    g.ys[idx] = static_cast<float>(Tq);
-                    g.zs[idx] = static_cast<float>(f_TK(Tq, Kq));
-                    ++idx;
-                }
+                const auto& [Tq, Kq] = tk;
+                g.xs[static_cast<size_t>(i)] = static_cast<float>(Kq);
+                g.ys[static_cast<size_t>(i)] = static_cast<float>(Tq);
+                g.zs[static_cast<size_t>(i)] = static_cast<float>(f_TK(Tq, Kq));
             }
             return g;
         };
