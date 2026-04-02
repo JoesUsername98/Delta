@@ -6,6 +6,7 @@
 #include <Delta++Market/market_data_builder.h>
 #include <Delta++Market/dividend_yield_curve.h>
 #include <Delta++Market/yield_curve.h>
+#include <Delta++Math/numeric.h>
 
 #include "shared_curve_cache.h"
 
@@ -465,22 +466,6 @@ namespace DPP
         }
 
         // Precompute 3D grids once (avoid per-frame evaluation when 3D windows are open).
-        auto linspace = [](double a, double b, int n) -> std::vector<double> {
-            std::vector<double> out;
-            if (n <= 1)
-            {
-                out.push_back(a);
-                return out;
-            }
-            out.resize(static_cast<size_t>(n));
-            for (int i = 0; i < n; ++i)
-            {
-                const double t = static_cast<double>(i) / static_cast<double>(n - 1);
-                out[static_cast<size_t>(i)] = a + (b - a) * t;
-            }
-            return out;
-        };
-
         auto buildGrid = [&](const std::vector<double>& TsGrid, const std::vector<double>& KsGrid,
                              const auto& f_TK) -> LocalVolGrid3D {
             LocalVolGrid3D g;
@@ -531,8 +516,8 @@ namespace DPP
 
         const int nK = 60;
         const int nT = 30;
-        const auto KsGrid = linspace(minK, maxK, nK);
-        const auto TsGrid = linspace(minT, maxT, nT);
+        const auto KsGrid = DPPMath::linspace(minK, maxK, nK);
+        const auto TsGrid = DPPMath::linspace(minT, maxT, nT);
 
         // IV grid only if we have IV knots.
         if (!Ts.empty())
