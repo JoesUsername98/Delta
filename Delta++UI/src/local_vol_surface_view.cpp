@@ -111,19 +111,6 @@ void LocalVolSurfaceWindow::OnUIRender()
     ImGui::Separator();
     ImGui::TextDisabled("Yield curve: treasury_yields from MarketDB (cached in shared curve on bootstrap)");
 
-    ImGui::SetNextItemWidth(120);
-    ImGui::InputInt("Min calendar DTE for AH (0 = off)", &m_state.m_minCalendarDaysToExpiryForAh);
-    if (m_state.m_minCalendarDaysToExpiryForAh < 0)
-        m_state.m_minCalendarDaysToExpiryForAh = 0;
-    ImGui::SameLine();
-    ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip(
-            "Andreasen–Huge only uses expiries at least this many calendar days after AsOf.\n"
-            "Example: 5 excludes 3-day-to-expiry options (DTE < 5).");
-
-    ImGui::Checkbox("AH: strikes on multiple of 100 only", &m_state.m_filterAhStrikesToHundredMultiples);
-
     if (ImGui::Button("Bootstrap"))
     {
         m_state.refreshLastPrice();

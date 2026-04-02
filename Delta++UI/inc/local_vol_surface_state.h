@@ -67,14 +67,12 @@ namespace DPP
 
         char m_asof[11] = "2023-01-04";
         int m_underlyingIdx = 0;
-        /// Andreasen–Huge: only use expiries at least this many calendar days after AsOf (0 = no minimum).
-        int m_minCalendarDaysToExpiryForAh = 0;
-        /// Andreasen–Huge: only use call quotes whose strike is a multiple of 100 (integer strike, K % 100 == 0).
-        bool m_filterAhStrikesToHundredMultiples = false;
 
     private:
         std::filesystem::path dbPath() const;
         std::string selectedUnderlying() const;
+        /// Fills slice K/T/IV/LV and optional 3D grids from `m_data` and `m_surface` after bootstrap.
+        void recomputeSliceAndGridsFromBootstrap();
 
         std::vector<std::string> m_underlyings;
         std::optional<double> m_lastPrice;

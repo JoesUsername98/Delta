@@ -5,6 +5,7 @@
 #include <Delta++Market/implied_vol.h>
 #include <Delta++Market/market_data_builder.h>
 #include <Delta++Market/dividend_yield_curve.h>
+#include <Delta++Market/yield_curve.h>
 
 #include "shared_curve_cache.h"
 
@@ -16,45 +17,95 @@
 #include <optional>
 #include <span>
 #include <string>
-#include <cstdio>
 #include <cmath>
 
 #include <Delta++Solver/interpolation.h>
 
-namespace
-{
-    /// True if strike is (nearly) an integer and that integer is a multiple of 100.
-    bool strikeIsMultipleOf100(double K)
-    {
-        if (!std::isfinite(K) || !(K > 0.0))
-            return false;
-        const long long k = std::llround(K);
-        if (std::fabs(K - static_cast<double>(k)) > 1e-3)
-            return false;
-        return (k % 100) == 0;
-    }
-
-    /// Calendar days from AsOf (quote) to Expiry; returns -1 if parsing fails.
-    int calendarDaysBetweenQuoteAndExpiry(const char* quoteYmd, const std::string& expYmd)
-    {
-        int qy = 0, qm = 0, qd = 0, ey = 0, em = 0, ed = 0;
-        if (std::sscanf(quoteYmd, "%d-%d-%d", &qy, &qm, &qd) != 3)
-            return -1;
-        if (std::sscanf(expYmd.c_str(), "%d-%d-%d", &ey, &em, &ed) != 3)
-            return -1;
-        using namespace std::chrono;
-        const year_month_day q{year{qy}, month{unsigned(qm)}, day{unsigned(qd)}};
-        const year_month_day e{year{ey}, month{unsigned(em)}, day{unsigned(ed)}};
-        if (!q.ok() || !e.ok())
-            return -1;
-        const sys_days qs{q};
-        const sys_days es{e};
-        return static_cast<int>((es - qs).count());
-    }
-}
-
 namespace DPP
 {
+    namespace
+    {
+        /// Per-expiry option chain buckets for local-vol bootstrap (AH input).
+        struct AhExpiryBucket
+        {
+            std::string expirationDate;
+            double T{};
+            double q{};
+            std::vector<double> strikesPaired;
+            std::vector<double> callsPaired;
+            std::vector<double> putsPaired;
+            std::vector<double> strikesCalls;
+            std::vector<double> callsOnly;
+        };
+
+        void tryBootstrapAndreasenHugeFromBuckets(const std::map<std::string, AhExpiryBucket>& buckets,
+                                                  double spot,
+                                                  const YieldCurve& curve,
+                                                  std::string& status,
+                                                  std::optional<LocalVolSurface>& surface)
+        {
+            if (buckets.empty())
+                return;
+
+            std::vector<double> Ts;
+            std::vector<double> qs;
+            std::vector<std::vector<double>> KsByT;
+            std::vector<std::vector<double>> CsByT;
+
+            Ts.reserve(buckets.size());
+            qs.reserve(buckets.size());
+            KsByT.reserve(buckets.size());
+            CsByT.reserve(buckets.size());
+
+            for (const auto& [exp, b] : buckets)
+            {
+                if (!(b.T > 0.0))
+                    continue;
+                std::vector<double> kAh = b.strikesCalls;
+                std::vector<double> cAh = b.callsOnly;
+                if (kAh.size() < 3 || cAh.size() != kAh.size())
+                    continue;
+
+                Ts.push_back(b.T);
+                qs.push_back(b.q);
+                KsByT.push_back(std::move(kAh));
+                CsByT.push_back(std::move(cAh));
+            }
+
+            bool okGrid = Ts.size() >= 2;
+            for (size_t i = 0; i < KsByT.size(); ++i)
+                okGrid = okGrid && (KsByT[i].size() >= 3);
+
+            if (!okGrid)
+            {
+                status += "\nAH skipped: need >=2 expiries and >=3 strikes per expiry";
+                return;
+            }
+
+            AHInput ah{
+                .spot = spot,
+                .curve = curve,
+                .expiries = std::move(Ts),
+                .dividendYields = std::move(qs),
+                .strikes = std::move(KsByT),
+                .callPrices = std::move(CsByT),
+            };
+            const auto tAhStart = std::chrono::steady_clock::now();
+            const auto surf = bootstrapAndreasenHuge(ah);
+            const auto tAhEnd = std::chrono::steady_clock::now();
+            const auto ahMs = std::chrono::duration_cast<std::chrono::milliseconds>(tAhEnd - tAhStart).count();
+
+            if (!surf.has_value())
+            {
+                status += "\nAH bootstrap error: " + surf.error();
+                return;
+            }
+
+            surface = *surf;
+            status += "\nAH OK; time " + std::to_string(ahMs) + " ms. ";
+        }
+    } // namespace
+
     LocalVolSurfaceState::LocalVolSurfaceState() = default;
 
     std::filesystem::path LocalVolSurfaceState::dbPath() const
@@ -85,9 +136,11 @@ namespace DPP
 
         m_underlyings = std::move(res.value());
         if (m_underlyings.empty())
+        {
             m_underlyingIdx = 0;
-        else
-            m_underlyingIdx = std::clamp(m_underlyingIdx, 0, static_cast<int>(m_underlyings.size() - 1));
+            return true;
+        }
+        m_underlyingIdx = std::clamp(m_underlyingIdx, 0, static_cast<int>(m_underlyings.size() - 1));
         return true;
     }
 
@@ -170,18 +223,7 @@ namespace DPP
 
         const double S = *m_lastPrice;
 
-        struct ExpiryBucket
-        {
-            std::string expirationDate;
-            double T{};
-            double q{};
-            std::vector<double> strikesPaired;
-            std::vector<double> callsPaired;
-            std::vector<double> putsPaired;
-            std::vector<double> strikesCalls;
-            std::vector<double> callsOnly;
-        };
-        std::map<std::string, ExpiryBucket> buckets;
+        std::map<std::string, AhExpiryBucket> buckets;
 
         int nRows = 0;
         int nPairs = 0;
@@ -314,281 +356,194 @@ namespace DPP
             "; IV time " + std::to_string(ivMs) + " ms";
 
         // Build AH input using raw call knots grouped by expiry (and inferred q(T) per expiry).
-        if (!buckets.empty())
-        {
-            std::vector<double> Ts;
-            std::vector<double> qs;
-            std::vector<std::vector<double>> KsByT;
-            std::vector<std::vector<double>> CsByT;
+        tryBootstrapAndreasenHugeFromBuckets(buckets, S, curve, m_status, m_surface);
 
-            Ts.reserve(buckets.size());
-            qs.reserve(buckets.size());
-            KsByT.reserve(buckets.size());
-            CsByT.reserve(buckets.size());
-
-            int nAhSkippedShortDte = 0;
-            for (const auto& [exp, b] : buckets)
-            {
-                if (!(b.T > 0.0))
-                    continue;
-                if (m_minCalendarDaysToExpiryForAh > 0)
-                {
-                    const int dte = calendarDaysBetweenQuoteAndExpiry(m_asof, b.expirationDate);
-                    if (dte >= 0 && dte < m_minCalendarDaysToExpiryForAh)
-                    {
-                        ++nAhSkippedShortDte;
-                        continue;
-                    }
-                }
-                std::vector<double> kAh = b.strikesCalls;
-                std::vector<double> cAh = b.callsOnly;
-                if (m_filterAhStrikesToHundredMultiples)
-                {
-                    std::vector<double> kf;
-                    std::vector<double> cf;
-                    kf.reserve(kAh.size());
-                    cf.reserve(cAh.size());
-                    for (size_t i = 0; i < kAh.size() && i < cAh.size(); ++i)
-                    {
-                        if (strikeIsMultipleOf100(kAh[i]))
-                        {
-                            kf.push_back(kAh[i]);
-                            cf.push_back(cAh[i]);
-                        }
-                    }
-                    kAh = std::move(kf);
-                    cAh = std::move(cf);
-                }
-                if (kAh.size() < 3 || cAh.size() != kAh.size())
-                    continue;
-
-                Ts.push_back(b.T);
-                qs.push_back(b.q);
-                KsByT.push_back(std::move(kAh));
-                CsByT.push_back(std::move(cAh));
-            }
-
-            bool okGrid = Ts.size() >= 2;
-            for (size_t i = 0; i < KsByT.size(); ++i)
-                okGrid = okGrid && (KsByT[i].size() >= 3);
-
-            if (okGrid)
-            {
-                if (m_minCalendarDaysToExpiryForAh > 0 && nAhSkippedShortDte > 0)
-                {
-                    m_status += "\nAH: excluded " + std::to_string(nAhSkippedShortDte) +
-                               " expiry(ies) with calendar DTE < " +
-                               std::to_string(m_minCalendarDaysToExpiryForAh) + " days";
-                }
-                AHInput ah{
-                    .spot = S,
-                    .curve = curve,
-                    .expiries = std::move(Ts),
-                    .dividendYields = std::move(qs),
-                    .strikes = std::move(KsByT),
-                    .callPrices = std::move(CsByT),
-                };
-                const auto tAhStart = std::chrono::steady_clock::now();
-                const auto surf = bootstrapAndreasenHuge(ah);
-                const auto tAhEnd = std::chrono::steady_clock::now();
-                const auto ahMs = std::chrono::duration_cast<std::chrono::milliseconds>(tAhEnd - tAhStart).count();
-                if (!surf.has_value())
-                {
-                    m_status += "\nAH bootstrap error: " + surf.error();
-                }
-                else
-                {
-                    m_surface = *surf;
-                    m_status += "\nAH OK; time " + std::to_string(ahMs) + " ms. ";
-                }
-            }
-            else
-            {
-                m_status += "\nAH skipped: need >=2 expiries and >=3 strikes per expiry";
-                if (m_minCalendarDaysToExpiryForAh > 0 && nAhSkippedShortDte > 0)
-                {
-                    m_status += " (" + std::to_string(nAhSkippedShortDte) +
-                                " expiry(ies) excluded by min calendar DTE)";
-                }
-            }
-        }
-
-        // Precompute slice curves once (avoid evaluating IV surface every frame).
-        // Strike grid: unique observed strikes from IV points (fallback to surface knots).
-        if (!m_data.strikes.empty() || m_surface.has_value())
-        {
-            m_sliceK = m_data.strikes;
-            if (m_sliceK.empty() && m_surface.has_value())
-            {
-                for (const auto& Ks : m_surface->strikes())
-                    m_sliceK.insert(m_sliceK.end(), Ks.begin(), Ks.end());
-            }
-            std::sort(m_sliceK.begin(), m_sliceK.end());
-            m_sliceK.erase(std::unique(m_sliceK.begin(), m_sliceK.end()), m_sliceK.end());
-
-            // Paper/UI requested slices.
-            m_sliceT = {0.25, 0.5, 1.0};
-
-            if (m_sliceK.size() >= 3)
-            {
-                // Group IV knots by expiry and build per-expiry spline once.
-                struct Row { double T; double K; double iv; };
-                std::vector<Row> rows;
-                rows.reserve(m_data.texp_years.size());
-                for (size_t i = 0; i < m_data.texp_years.size(); ++i)
-                    rows.push_back({m_data.texp_years[i], m_data.strikes[i], m_data.implied_vol[i]});
-
-                std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) {
-                    if (a.T != b.T) return a.T < b.T;
-                    return a.K < b.K;
-                });
-
-                std::vector<double> Ts;
-                std::vector<std::vector<double>> KsByT;
-                std::vector<std::vector<double>> IvsByT;
-                for (const auto& r : rows)
-                {
-                    if (Ts.empty() || r.T != Ts.back())
-                    {
-                        Ts.push_back(r.T);
-                        KsByT.emplace_back();
-                        IvsByT.emplace_back();
-                    }
-                    KsByT.back().push_back(r.K);
-                    IvsByT.back().push_back(r.iv);
-                }
-
-                auto ivAt = [&](size_t iT, double Kq) -> double {
-                    const auto& Ks = KsByT[iT];
-                    const auto& Vs = IvsByT[iT];
-                    if (Ks.size() < 2)
-                        return Vs.empty() ? std::numeric_limits<double>::quiet_NaN() : Vs.front();
-                    CubicSplineInterpolator s(Ks, Vs);
-                    return s(Kq);
-                };
-
-                auto ivSurface = [&](double Tq, double Kq) -> double {
-                    if (Ts.empty())
-                        return std::numeric_limits<double>::quiet_NaN();
-                    if (Tq <= Ts.front())
-                        return ivAt(0, Kq);
-                    if (Tq >= Ts.back())
-                        return ivAt(Ts.size() - 1, Kq);
-                    const auto it = std::upper_bound(Ts.begin(), Ts.end(), Tq);
-                    const size_t i1 = static_cast<size_t>(it - Ts.begin());
-                    const size_t i0 = i1 - 1;
-                    const double t0 = Ts[i0];
-                    const double t1 = Ts[i1];
-                    const double v0 = ivAt(i0, Kq);
-                    const double v1 = ivAt(i1, Kq);
-                    const double w = (t1 > t0) ? (Tq - t0) / (t1 - t0) : 0.0;
-                    return v0 + (v1 - v0) * w;
-                };
-
-                m_sliceIv.assign(m_sliceT.size(), std::vector<double>(m_sliceK.size(), std::numeric_limits<double>::quiet_NaN()));
-                m_sliceLv.assign(m_sliceT.size(), std::vector<double>(m_sliceK.size(), std::numeric_limits<double>::quiet_NaN()));
-
-                for (size_t it = 0; it < m_sliceT.size(); ++it)
-                {
-                    const double Tsl = m_sliceT[it];
-                    for (size_t ik = 0; ik < m_sliceK.size(); ++ik)
-                    {
-                        const double K = m_sliceK[ik];
-                        if (!Ts.empty())
-                            m_sliceIv[it][ik] = ivSurface(Tsl, K);
-                        if (m_surface.has_value())
-                            m_sliceLv[it][ik] = m_surface->localVol(Tsl, K);
-                    }
-                }
-
-                // Precompute 3D grids once (avoid per-frame evaluation when 3D windows are open).
-                auto linspace = [](double a, double b, int n) -> std::vector<double> {
-                    std::vector<double> out;
-                    if (n <= 1)
-                    {
-                        out.push_back(a);
-                        return out;
-                    }
-                    out.resize(static_cast<size_t>(n));
-                    for (int i = 0; i < n; ++i)
-                    {
-                        const double t = static_cast<double>(i) / static_cast<double>(n - 1);
-                        out[static_cast<size_t>(i)] = a + (b - a) * t;
-                    }
-                    return out;
-                };
-
-                auto buildGrid = [&](const std::vector<double>& TsGrid,
-                                    const std::vector<double>& KsGrid,
-                                    const auto& f_TK) -> LocalVolGrid3D {
-                    LocalVolGrid3D g;
-                    g.xCount = static_cast<int>(KsGrid.size());
-                    g.yCount = static_cast<int>(TsGrid.size());
-                    const size_t n = static_cast<size_t>(g.xCount) * static_cast<size_t>(g.yCount);
-                    g.xs.resize(n);
-                    g.ys.resize(n);
-                    g.zs.resize(n);
-                    size_t idx = 0;
-                    for (double Tq : TsGrid)
-                    {
-                        for (double Kq : KsGrid)
-                        {
-                            g.xs[idx] = static_cast<float>(Kq);
-                            g.ys[idx] = static_cast<float>(Tq);
-                            g.zs[idx] = static_cast<float>(f_TK(Tq, Kq));
-                            ++idx;
-                        }
-                    }
-                    return g;
-                };
-
-                // Determine overall [minK,maxK] and [minT,maxT] for grid generation.
-                double minK = std::numeric_limits<double>::infinity();
-                double maxK = -std::numeric_limits<double>::infinity();
-                for (double k : m_sliceK)
-                {
-                    minK = (std::min)(minK, k);
-                    maxK = (std::max)(maxK, k);
-                }
-                double minT = std::numeric_limits<double>::infinity();
-                double maxT = -std::numeric_limits<double>::infinity();
-                for (double t : Ts)
-                {
-                    minT = (std::min)(minT, t);
-                    maxT = (std::max)(maxT, t);
-                }
-                if (m_surface.has_value())
-                {
-                    const auto& TsKnots = m_surface->expiries();
-                    if (!TsKnots.empty())
-                    {
-                        minT = (std::min)(minT, TsKnots.front());
-                        maxT = (std::max)(maxT, TsKnots.back());
-                    }
-                }
-
-                if (std::isfinite(minK) && std::isfinite(maxK) && std::isfinite(minT) && std::isfinite(maxT))
-                {
-                    const int nK = 60;
-                    const int nT = 30;
-                    const auto KsGrid = linspace(minK, maxK, nK);
-                    const auto TsGrid = linspace(minT, maxT, nT);
-
-                    // IV grid only if we have IV knots.
-                    if (!Ts.empty())
-                        m_ivGrid3d = buildGrid(TsGrid, KsGrid, [&](double Tq, double Kq) { return ivSurface(Tq, Kq); });
-
-                    if (m_surface.has_value())
-                    {
-                        const auto& surf = *m_surface;
-                        m_lvGrid3d = buildGrid(TsGrid, KsGrid, [&](double Tq, double Kq) { return surf.localVol(Tq, Kq); });
-                        m_callGrid3d = buildGrid(TsGrid, KsGrid, [&](double Tq, double Kq) { return surf.callPrice(Tq, Kq); });
-                    }
-                }
-            }
-        }
+        recomputeSliceAndGridsFromBootstrap();
 
         return !m_data.implied_vol.empty();
+    }
+
+    void LocalVolSurfaceState::recomputeSliceAndGridsFromBootstrap()
+    {
+        // Precompute slice curves once (avoid evaluating IV surface every frame).
+        // Strike grid: unique observed strikes from IV bootstrap points only.
+        if (m_data.strikes.empty() && !m_surface.has_value())
+            return;
+
+        m_sliceK = m_data.strikes;
+        if (m_sliceK.empty() && m_surface.has_value())
+        {
+            m_status +=
+                "\nSlice / IV grid: no strike samples from implied-vol bootstrap; "
+                "local vol surface alone does not define a strike mesh here.";
+        }
+        std::sort(m_sliceK.begin(), m_sliceK.end());
+        m_sliceK.erase(std::unique(m_sliceK.begin(), m_sliceK.end()), m_sliceK.end());
+
+        // Paper/UI requested slices.
+        m_sliceT = {0.25, 0.5, 1.0};
+
+        if (m_sliceK.size() < 3)
+            return;
+
+        // Group IV knots by expiry and build per-expiry spline once.
+        struct Row
+        {
+            double T;
+            double K;
+            double iv;
+        };
+        std::vector<Row> rows;
+        rows.reserve(m_data.texp_years.size());
+        for (size_t i = 0; i < m_data.texp_years.size(); ++i)
+            rows.push_back({m_data.texp_years[i], m_data.strikes[i], m_data.implied_vol[i]});
+
+        std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) {
+            if (a.T != b.T)
+                return a.T < b.T;
+            return a.K < b.K;
+        });
+
+        std::vector<double> Ts;
+        std::vector<std::vector<double>> KsByT;
+        std::vector<std::vector<double>> IvsByT;
+        for (const auto& r : rows)
+        {
+            if (Ts.empty() || r.T != Ts.back())
+            {
+                Ts.push_back(r.T);
+                KsByT.emplace_back();
+                IvsByT.emplace_back();
+            }
+            KsByT.back().push_back(r.K);
+            IvsByT.back().push_back(r.iv);
+        }
+
+        auto ivAt = [&](size_t iT, double Kq) -> double {
+            const auto& Ks = KsByT[iT];
+            const auto& Vs = IvsByT[iT];
+            if (Ks.size() < 2)
+                return Vs.empty() ? std::numeric_limits<double>::quiet_NaN() : Vs.front();
+            CubicSplineInterpolator s(Ks, Vs);
+            return s(Kq);
+        };
+
+        auto ivSurface = [&](double Tq, double Kq) -> double {
+            if (Ts.empty())
+                return std::numeric_limits<double>::quiet_NaN();
+            if (Tq <= Ts.front())
+                return ivAt(0, Kq);
+            if (Tq >= Ts.back())
+                return ivAt(Ts.size() - 1, Kq);
+            const auto it = std::upper_bound(Ts.begin(), Ts.end(), Tq);
+            const size_t i1 = static_cast<size_t>(it - Ts.begin());
+            const size_t i0 = i1 - 1;
+            const double t0 = Ts[i0];
+            const double t1 = Ts[i1];
+            const double v0 = ivAt(i0, Kq);
+            const double v1 = ivAt(i1, Kq);
+            const double w = (t1 > t0) ? (Tq - t0) / (t1 - t0) : 0.0;
+            return v0 + (v1 - v0) * w;
+        };
+
+        m_sliceIv.assign(m_sliceT.size(),
+                         std::vector<double>(m_sliceK.size(), std::numeric_limits<double>::quiet_NaN()));
+        m_sliceLv.assign(m_sliceT.size(),
+                         std::vector<double>(m_sliceK.size(), std::numeric_limits<double>::quiet_NaN()));
+
+        for (size_t it = 0; it < m_sliceT.size(); ++it)
+        {
+            const double Tsl = m_sliceT[it];
+            for (size_t ik = 0; ik < m_sliceK.size(); ++ik)
+            {
+                const double K = m_sliceK[ik];
+                if (!Ts.empty())
+                    m_sliceIv[it][ik] = ivSurface(Tsl, K);
+                if (m_surface.has_value())
+                    m_sliceLv[it][ik] = m_surface->localVol(Tsl, K);
+            }
+        }
+
+        // Precompute 3D grids once (avoid per-frame evaluation when 3D windows are open).
+        auto linspace = [](double a, double b, int n) -> std::vector<double> {
+            std::vector<double> out;
+            if (n <= 1)
+            {
+                out.push_back(a);
+                return out;
+            }
+            out.resize(static_cast<size_t>(n));
+            for (int i = 0; i < n; ++i)
+            {
+                const double t = static_cast<double>(i) / static_cast<double>(n - 1);
+                out[static_cast<size_t>(i)] = a + (b - a) * t;
+            }
+            return out;
+        };
+
+        auto buildGrid = [&](const std::vector<double>& TsGrid, const std::vector<double>& KsGrid,
+                             const auto& f_TK) -> LocalVolGrid3D {
+            LocalVolGrid3D g;
+            g.xCount = static_cast<int>(KsGrid.size());
+            g.yCount = static_cast<int>(TsGrid.size());
+            const size_t n = static_cast<size_t>(g.xCount) * static_cast<size_t>(g.yCount);
+            g.xs.resize(n);
+            g.ys.resize(n);
+            g.zs.resize(n);
+            size_t idx = 0;
+            for (double Tq : TsGrid)
+            {
+                for (double Kq : KsGrid)
+                {
+                    g.xs[idx] = static_cast<float>(Kq);
+                    g.ys[idx] = static_cast<float>(Tq);
+                    g.zs[idx] = static_cast<float>(f_TK(Tq, Kq));
+                    ++idx;
+                }
+            }
+            return g;
+        };
+
+        // Determine overall [minK,maxK] and [minT,maxT] for grid generation.
+        double minK = std::numeric_limits<double>::infinity();
+        double maxK = -std::numeric_limits<double>::infinity();
+        for (double k : m_sliceK)
+        {
+            minK = (std::min)(minK, k);
+            maxK = (std::max)(maxK, k);
+        }
+        double minT = std::numeric_limits<double>::infinity();
+        double maxT = -std::numeric_limits<double>::infinity();
+        for (double t : Ts)
+        {
+            minT = (std::min)(minT, t);
+            maxT = (std::max)(maxT, t);
+        }
+        if (m_surface.has_value() && !m_surface->expiries().empty())
+        {
+            const auto& TsKnots = m_surface->expiries();
+            minT = (std::min)(minT, TsKnots.front());
+            maxT = (std::max)(maxT, TsKnots.back());
+        }
+
+        if (!std::isfinite(minK) || !std::isfinite(maxK) || !std::isfinite(minT) || !std::isfinite(maxT))
+            return;
+
+        const int nK = 60;
+        const int nT = 30;
+        const auto KsGrid = linspace(minK, maxK, nK);
+        const auto TsGrid = linspace(minT, maxT, nT);
+
+        // IV grid only if we have IV knots.
+        if (!Ts.empty())
+            m_ivGrid3d = buildGrid(TsGrid, KsGrid, [&](double Tq, double Kq) { return ivSurface(Tq, Kq); });
+
+        if (!m_surface.has_value())
+            return;
+
+        const auto& surf = *m_surface;
+        m_lvGrid3d = buildGrid(TsGrid, KsGrid, [&](double Tq, double Kq) { return surf.localVol(Tq, Kq); });
+        m_callGrid3d = buildGrid(TsGrid, KsGrid, [&](double Tq, double Kq) { return surf.callPrice(Tq, Kq); });
     }
 }
 
