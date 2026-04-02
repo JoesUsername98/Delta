@@ -11,12 +11,6 @@
 
 namespace DPP
 {
-    enum class LocalVolYieldCurveSource
-    {
-        ApiCache = 0,
-        MarketDb = 1,
-    };
-
     struct LocalVolBootstrapInput
     {
         std::vector<double> texp_years;
@@ -73,10 +67,6 @@ namespace DPP
 
         char m_asof[11] = "2023-01-04";
         int m_underlyingIdx = 0;
-        LocalVolYieldCurveSource m_yieldCurveSource = LocalVolYieldCurveSource::ApiCache;
-        /// When true, `queryPutCallMidsForDateUnderlying` uses `m_optionsMinVolume`; when false, no volume filter.
-        bool m_filterOptionsByMinVolume = true;
-        double m_optionsMinVolume = 3.0;
         /// Andreasen–Huge: only use expiries at least this many calendar days after AsOf (0 = no minimum).
         int m_minCalendarDaysToExpiryForAh = 0;
         /// Andreasen–Huge: only use call quotes whose strike is a multiple of 100 (integer strike, K % 100 == 0).

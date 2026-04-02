@@ -4,16 +4,17 @@
 #include <Delta++Market/andreasen_huge.h>
 #include <Delta++Market/implied_vol.h>
 #include <Delta++Market/market_data_builder.h>
-#include <Delta++Market/put_call_parity.h>
+#include <Delta++Market/dividend_yield_curve.h>
 
 #include "shared_curve_cache.h"
 
 #include <algorithm>
 #include <chrono>
 #include <map>
-#include <numeric>
 #include <limits>
+#include <ranges>
 #include <optional>
+#include <span>
 #include <string>
 #include <cstdio>
 #include <cmath>
@@ -127,8 +128,8 @@ namespace DPP
         m_parityYields.clear();
         m_parityCurveMs = 0;
 
-        const std::string u = selectedUnderlying();
-        if (u.empty())
+        const std::string underlyingTicker = selectedUnderlying();
+        if (underlyingTicker.empty())
         {
             m_status = "No underlying selected";
             return false;
@@ -138,53 +139,35 @@ namespace DPP
             m_status = "Missing equity last price; run loader with --load equities";
             return false;
         }
-        std::optional<DPP::YieldCurve> curveOpt;
-        if (m_yieldCurveSource == LocalVolYieldCurveSource::ApiCache)
+        const auto rowRes = DPP::DB::Market::queryTreasuryYieldRow(dbPath(), m_asof);
+        if (!rowRes.has_value())
         {
-            if (!DPPUI::g_lastBuiltYieldCurve.has_value())
-            {
-                m_status = "No yield curve cached. Open API Tester and Fetch yield curve first.";
-                return false;
-            }
-            curveOpt = *DPPUI::g_lastBuiltYieldCurve;
+            m_status = rowRes.error();
+            return false;
         }
-        else
+        if (!rowRes.value().has_value())
         {
-            const auto rowRes = DPP::DB::Market::queryTreasuryYieldRow(dbPath(), m_asof);
-            if (!rowRes.has_value())
-            {
-                m_status = rowRes.error();
-                return false;
-            }
-            if (!rowRes.value().has_value())
-            {
-                m_status = "No treasury_yields row for this AsOf date";
-                return false;
-            }
+            m_status = "No treasury_yields row for this AsOf date";
+            return false;
+        }
 
-            const auto quotes = DPP::massiveTreasuryRowToRateQuotes(*rowRes.value());
-            const auto curveRes = DPP::YieldCurve::build(quotes);
-            if (!curveRes.has_value())
-            {
-                m_status = curveRes.error();
-                return false;
-            }
-            curveOpt = curveRes.value();
+        const auto quotes = DPP::massiveTreasuryRowToRateQuotes(*rowRes.value());
+        const auto curveRes = DPP::YieldCurve::build(quotes);
+        if (!curveRes.has_value())
+        {
+            m_status = curveRes.error();
+            return false;
         }
-        const std::optional<double> minVol =
-            m_filterOptionsByMinVolume
-                ? std::optional<double>((std::max)(0.0, m_optionsMinVolume))
-                : std::nullopt;
-        auto chainRes = DPP::DB::Market::queryPutCallMidsForDateUnderlying(dbPath(), m_asof, u, minVol);
+        DPPUI::g_lastBuiltYieldCurve = curveRes.value();
+        const DPP::YieldCurve& curve = *DPPUI::g_lastBuiltYieldCurve;
+        
+        auto chainRes = DPP::DB::Market::queryPutCallMidsForDateUnderlying(dbPath(), m_asof, underlyingTicker);
         if (!chainRes.has_value())
         {
             m_status = chainRes.error();
             return false;
         }
 
-        const auto tParityStart = std::chrono::steady_clock::now();
-
-        const auto& curve = *curveOpt;
         const double S = *m_lastPrice;
 
         struct ExpiryBucket
@@ -224,10 +207,63 @@ namespace DPP
             }
         }
 
-        // Produce q(T) curve (parity yields per expiry)
+        const auto tParityStart = std::chrono::steady_clock::now();
+
+        // q(T) from put–call parity (interpolated curve) + parity table rows
+        std::vector<DPP::ParityExpiryInput> parityInputs;
+        parityInputs.reserve(buckets.size());
+        for (auto& [exp, b] : buckets)
+        {
+            if (!(b.T > 0.0))
+                continue;
+            parityInputs.push_back(DPP::ParityExpiryInput{
+                .tYears = b.T,
+                .expirationDate = b.expirationDate,
+                .strikes = b.strikesPaired,
+                .callMids = b.callsPaired,
+                .putMids = b.putsPaired,
+            });
+        }
+
+        if (!parityInputs.empty())
+        {
+            auto divBuilt =
+                DPP::buildDividendYieldCurveFromParity(S, curve, std::span<const DPP::ParityExpiryInput>(parityInputs));
+            if (!divBuilt.has_value())
+            {
+                m_status = divBuilt.error();
+                return false;
+            }
+            for (const DPP::DividendYieldPillarDiag& d : divBuilt->pillars)
+            {
+                m_parityYields.push_back(ParityYieldRow{
+                    .expirationDate = d.expirationDate,
+                    .texp_years = d.texp_years,
+                    .r = d.r,
+                    .q = d.q,
+                    .A = d.A,
+                    .B = d.B,
+                    .forward = d.forward,
+                    .nUsed = d.nUsed,
+                    .rmse = d.rmse,
+                });
+            }
+            DPPUI::g_lastBuiltDividendYieldCurve = std::move(divBuilt->curve);
+        }
+
+        const auto tParityEnd = std::chrono::steady_clock::now();
+        m_parityCurveMs =
+            std::chrono::duration_cast<std::chrono::milliseconds>(tParityEnd - tParityStart).count();
+
         int nIvOk = 0;
         int nIvErr = 0;
         int nCallUsed = 0;
+
+        if (!DPPUI::g_lastBuiltDividendYieldCurve.has_value())
+        {
+            m_status = "Dividend yield curve is not available; cannot compute implied volatility.";
+            return false;
+        }
 
         const auto tIvStart = std::chrono::steady_clock::now();
         for (auto& [exp, b] : buckets)
@@ -235,75 +271,13 @@ namespace DPP
             if (!(b.T > 0.0))
                 continue;
 
-            // Ensure stable ordering for downstream splines and AH input.
-            auto sortByStrike = [](std::vector<double>& Ks, std::vector<double>& Vs) {
-                std::vector<size_t> idx(Ks.size());
-                std::iota(idx.begin(), idx.end(), size_t{0});
-                std::sort(idx.begin(), idx.end(), [&](size_t a, size_t c) { return Ks[a] < Ks[c]; });
-                std::vector<double> Ks2, Vs2;
-                Ks2.reserve(Ks.size());
-                Vs2.reserve(Vs.size());
-                for (size_t i : idx) { Ks2.push_back(Ks[i]); Vs2.push_back(Vs[i]); }
-                Ks.swap(Ks2);
-                Vs.swap(Vs2);
-            };
-
-            auto sortByStrike2 = [](std::vector<double>& Ks, std::vector<double>& V1, std::vector<double>& V2) {
-                std::vector<size_t> idx(Ks.size());
-                std::iota(idx.begin(), idx.end(), size_t{0});
-                std::sort(idx.begin(), idx.end(), [&](size_t a, size_t c) { return Ks[a] < Ks[c]; });
-                std::vector<double> Ks2, V12, V22;
-                Ks2.reserve(Ks.size());
-                V12.reserve(V1.size());
-                V22.reserve(V2.size());
-                for (size_t i : idx)
-                {
-                    Ks2.push_back(Ks[i]);
-                    V12.push_back(V1[i]);
-                    V22.push_back(V2[i]);
-                }
-                Ks.swap(Ks2);
-                V1.swap(V12);
-                V2.swap(V22);
-            };
-
-            sortByStrike(b.strikesCalls, b.callsOnly);
-            sortByStrike2(b.strikesPaired, b.callsPaired, b.putsPaired);
+            // Consistent strike ordering for downstream splines and AH input.
+            if (!b.strikesCalls.empty())
+                std::ranges::sort(std::views::zip(b.strikesCalls, b.callsOnly), {},
+                                  [](const auto& e) { return std::get<0>(e); });
 
             const double r = curve.zeroRate(b.T);
-            const auto fitRes = DPP::inferDividendYieldFromPutCallParity(S, b.T, r, b.strikesPaired, b.callsPaired, b.putsPaired);
-            double qT = 0.0;
-            if (fitRes.has_value())
-            {
-                qT = fitRes->q;
-                b.q = qT;
-                m_parityYields.push_back(ParityYieldRow{
-                    .expirationDate = b.expirationDate,
-                    .texp_years = b.T,
-                    .r = r,
-                    .q = fitRes->q,
-                    .A = fitRes->A,
-                    .B = fitRes->B,
-                    .forward = fitRes->forward,
-                    .nUsed = fitRes->nUsed,
-                    .rmse = fitRes->rmse,
-                });
-            }
-            else
-            {
-                b.q = 0.0;
-                m_parityYields.push_back(ParityYieldRow{
-                    .expirationDate = b.expirationDate,
-                    .texp_years = b.T,
-                    .r = r,
-                    .q = 0.0,
-                    .A = std::numeric_limits<double>::quiet_NaN(),
-                    .B = std::numeric_limits<double>::quiet_NaN(),
-                    .forward = std::numeric_limits<double>::quiet_NaN(),
-                    .nUsed = static_cast<int>(b.strikesPaired.size()),
-                    .rmse = std::numeric_limits<double>::quiet_NaN(),
-                });
-            }
+            b.q = DPPUI::g_lastBuiltDividendYieldCurve->q(b.T);
 
             for (size_t i = 0; i < b.strikesCalls.size(); ++i)
             {
@@ -313,7 +287,7 @@ namespace DPP
                     continue;
 
                 ++nCallUsed;
-                const auto iv = impliedVolCall(mid, S, K, b.T, r, qT);
+                const auto iv = impliedVolCall(mid, S, K, b.T, r, b.q);
                 if (!iv.has_value())
                 {
                     ++nIvErr;
@@ -327,8 +301,6 @@ namespace DPP
                 m_data.implied_vol.push_back(iv.value());
             }
         }
-        const auto tParityEnd = std::chrono::steady_clock::now();
-        m_parityCurveMs = std::chrono::duration_cast<std::chrono::milliseconds>(tParityEnd - tParityStart).count();
         const auto tIvEnd = std::chrono::steady_clock::now();
         const auto ivMs = std::chrono::duration_cast<std::chrono::milliseconds>(tIvEnd - tIvStart).count();
 
