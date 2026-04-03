@@ -4,7 +4,6 @@
 #include <Delta++Market/andreasen_huge.h>
 #include <Delta++Market/implied_vol.h>
 #include <Delta++Market/market_data_builder.h>
-#include <Delta++Market/dividend_yield_curve.h>
 #include <Delta++Market/yield_curve.h>
 #include <Delta++Math/numeric.h>
 
@@ -12,15 +11,21 @@
 
 #include <algorithm>
 #include <chrono>
-#include <map>
 #include <limits>
 #include <ranges>
 #include <optional>
-#include <span>
 #include <string>
 #include <cmath>
 
 #include <Delta++Solver/interpolation.h>
+
+namespace
+{
+    bool sameExpiry(const DPP::DB::Market::PutCallMidPoint& a, const DPP::DB::Market::PutCallMidPoint& b)
+    {
+        return a.expirationDate == b.expirationDate;
+    }
+}
 
 namespace DPP
 {
@@ -84,10 +89,10 @@ namespace DPP
         return true;
     }
 
-    bool LocalVolSurfaceState::bootstrap()
+    void LocalVolSurfaceState::resetState()
     {
         m_status.clear();
-        m_data = {};
+        m_LocalVolBootstrapInput = {};
         m_surface.reset();
         m_sliceK.clear();
         m_sliceT.clear();
@@ -96,8 +101,60 @@ namespace DPP
         m_ivGrid3d.reset();
         m_lvGrid3d.reset();
         m_callGrid3d.reset();
-        m_parityYields.clear();
         m_parityCurveMs = 0;
+    }
+
+    auto LocalVolSurfaceState::bucketOptionChain(const std::vector<DPP::DB::Market::PutCallMidPoint>& chain) const
+    {
+        return std::views::all(chain) | std::views::chunk_by(sameExpiry);
+    }
+
+    LocalVolSurfaceState::ImpliedVolBuildStats LocalVolSurfaceState::buildImpliedVolData(
+        const std::vector<DPP::DB::Market::PutCallMidPoint>& chain,
+        double spot,
+        const YieldCurve& curve)
+    {
+        ImpliedVolBuildStats stats;
+        const auto tIvStart = std::chrono::steady_clock::now();
+        for (auto&& chunk : bucketOptionChain(chain))
+        {
+            if (std::ranges::empty(chunk))
+                continue;
+            const double tYears = std::ranges::begin(chunk)->yearsToExpiry;
+            if (!(tYears > 0.0))
+                continue;
+
+            const double r = curve.zeroRate(tYears);
+            const double qDiv = DPPUI::g_lastBuiltDividendYieldCurve->q(tYears);
+
+            for (const auto& row : chunk)
+            {
+                const double K = row.strike;
+                const double mid = *row.callMid;
+
+                ++stats.nCallUsed;
+                const auto iv = impliedVolCall(mid, spot, K, tYears, r, qDiv);
+                if (!iv.has_value())
+                {
+                    ++stats.nIvErr;
+                    continue;
+                }
+
+                ++stats.nIvOk;
+                m_LocalVolBootstrapInput.texp_years.push_back(tYears);
+                m_LocalVolBootstrapInput.strikes.push_back(K);
+                m_LocalVolBootstrapInput.call_mids.push_back(mid);
+                m_LocalVolBootstrapInput.implied_vol.push_back(iv.value());
+            }
+        }
+        const auto tIvEnd = std::chrono::steady_clock::now();
+        stats.ivMs = std::chrono::duration_cast<std::chrono::milliseconds>(tIvEnd - tIvStart).count();
+        return stats;
+    }
+
+    bool LocalVolSurfaceState::bootstrap()
+    {
+        resetState();
 
         const std::string underlyingTicker = selectedUnderlying();
         if (underlyingTicker.empty())
@@ -139,153 +196,57 @@ namespace DPP
             return false;
         }
 
-        const double S = *m_lastPrice;
-
-        std::map<std::string, AhExpiryBucket> buckets;
-
-        int nRows = 0;
-        int nPairs = 0;
-        for (const auto& row : chainRes.value())
+        std::vector<DPP::DB::Market::PutCallMidPoint> chain = std::move(chainRes.value());
+        if (chain.empty())
         {
-            ++nRows;
-            auto& b = buckets[row.expirationDate];
-            b.expirationDate = row.expirationDate;
-            b.T = row.yearsToExpiry;
-
-            if (row.callMid.has_value() && (*row.callMid > 0.0) && (row.strike > 0.0))
-            {
-                b.strikesCalls.push_back(row.strike);
-                b.callsOnly.push_back(*row.callMid);
-            }
-            if (row.callMid.has_value() && row.putMid.has_value() &&
-                (*row.callMid > 0.0) && (*row.putMid > 0.0) && (row.strike > 0.0))
-            {
-                ++nPairs;
-                b.strikesPaired.push_back(row.strike);
-                b.callsPaired.push_back(*row.callMid);
-                b.putsPaired.push_back(*row.putMid);
-            }
-        }
-
-        const auto tParityStart = std::chrono::steady_clock::now();
-
-        // q(T) from put–call parity (interpolated curve) + parity table rows
-        std::vector<DPP::ParityExpiryInput> parityInputs;
-        parityInputs.reserve(buckets.size());
-        for (auto& [exp, b] : buckets)
-        {
-            if (!(b.T > 0.0))
-                continue;
-            parityInputs.push_back(DPP::ParityExpiryInput{
-                .tYears = b.T,
-                .expirationDate = b.expirationDate,
-                .strikes = b.strikesPaired,
-                .callMids = b.callsPaired,
-                .putMids = b.putsPaired,
-            });
-        }
-
-        if (!parityInputs.empty())
-        {
-            auto divBuilt =
-                DPP::buildDividendYieldCurveFromParity(S, curve, std::span<const DPP::ParityExpiryInput>(parityInputs));
-            if (!divBuilt.has_value())
-            {
-                m_status = divBuilt.error();
-                return false;
-            }
-            for (const DPP::DividendYieldPillarDiag& d : divBuilt->pillars)
-            {
-                m_parityYields.push_back(ParityYieldRow{
-                    .expirationDate = d.expirationDate,
-                    .texp_years = d.texp_years,
-                    .r = d.r,
-                    .q = d.q,
-                    .A = d.A,
-                    .B = d.B,
-                    .forward = d.forward,
-                    .nUsed = d.nUsed,
-                    .rmse = d.rmse,
-                });
-            }
-            DPPUI::g_lastBuiltDividendYieldCurve = std::move(divBuilt->curve);
-        }
-
-        const auto tParityEnd = std::chrono::steady_clock::now();
-        m_parityCurveMs =
-            std::chrono::duration_cast<std::chrono::milliseconds>(tParityEnd - tParityStart).count();
-
-        int nIvOk = 0;
-        int nIvErr = 0;
-        int nCallUsed = 0;
-
-        if (!DPPUI::g_lastBuiltDividendYieldCurve.has_value())
-        {
-            m_status = "Dividend yield curve is not available; cannot compute implied volatility.";
+            m_status = "No parity inputs found";
             return false;
         }
+        const double S = *m_lastPrice;
 
-        const auto tIvStart = std::chrono::steady_clock::now();
-        for (auto& [exp, b] : buckets)
+        const auto tParityStart = std::chrono::steady_clock::now();
+        // q(T) from put–call parity (interpolated curve) + parity table rows
+        auto pillars = bucketOptionChain(chain) | std::views::transform([](auto&& chunk) {
+            const auto& r0 = *std::ranges::begin(chunk);
+            return ParityExpiryPillar{
+                .tYears = r0.yearsToExpiry,
+                .expirationDate = r0.expirationDate,
+                .rows = std::span<const PutCallMidPoint>(std::ranges::data(chunk), std::ranges::size(chunk)),
+            };
+        });
+
+        auto divBuilt = DPP::buildDividendYieldCurveFromParity(S, curve, std::move(pillars));
+        if (!divBuilt.has_value())
         {
-            if (!(b.T > 0.0))
-                continue;
-
-            // Consistent strike ordering for downstream splines and AH input.
-            if (!b.strikesCalls.empty())
-                std::ranges::sort(std::views::zip(b.strikesCalls, b.callsOnly), {},
-                                  [](const auto& e) { return std::get<0>(e); });
-
-            const double r = curve.zeroRate(b.T);
-            b.q = DPPUI::g_lastBuiltDividendYieldCurve->q(b.T);
-
-            for (size_t i = 0; i < b.strikesCalls.size(); ++i)
-            {
-                const double K = b.strikesCalls[i];
-                const double mid = b.callsOnly[i];
-                if (!(K > 0.0) || !(mid > 0.0))
-                    continue;
-
-                ++nCallUsed;
-                const auto iv = impliedVolCall(mid, S, K, b.T, r, b.q);
-                if (!iv.has_value())
-                {
-                    ++nIvErr;
-                    continue;
-                }
-
-                ++nIvOk;
-                m_data.texp_years.push_back(b.T);
-                m_data.strikes.push_back(K);
-                m_data.call_mids.push_back(mid);
-                m_data.implied_vol.push_back(iv.value());
-            }
+            m_status = divBuilt.error();
+            return false;
         }
-        const auto tIvEnd = std::chrono::steady_clock::now();
-        const auto ivMs = std::chrono::duration_cast<std::chrono::milliseconds>(tIvEnd - tIvStart).count();
+        DPPUI::g_lastBuiltDividendYieldCurve = std::move(divBuilt->curve);
+        const auto tParityEnd = std::chrono::steady_clock::now();
+        m_parityCurveMs = std::chrono::duration_cast<std::chrono::milliseconds>(tParityEnd - tParityStart).count();
+
+        const auto ivStats = buildImpliedVolData(chain, S, curve);
 
         m_status =
-            "Fetched " + std::to_string(nRows) +
-            " chain row(s); paired " + std::to_string(nPairs) +
-            "; q(T) time " + std::to_string(m_parityCurveMs) + " ms" +
-            "; calls used " + std::to_string(nCallUsed) +
-            "; IV ok " + std::to_string(nIvOk) +
-            "; IV failed " + std::to_string(nIvErr) +
-            "; IV time " + std::to_string(ivMs) + " ms";
+            " q(T) time " + std::to_string(m_parityCurveMs) + " ms" +
+            "; calls used " + std::to_string(ivStats.nCallUsed) +
+            "; IV ok " + std::to_string(ivStats.nIvOk) +
+            "; IV failed " + std::to_string(ivStats.nIvErr) +
+            "; IV time " + std::to_string(ivStats.ivMs) + " ms";
 
         // Build AH input using raw call knots grouped by expiry (and inferred q(T) per expiry).
-        tryBootstrapAndreasenHugeFromBuckets(buckets, S, curve);
+        tryBootstrapAndreasenHugeFromChain(chain, S, curve);
 
         recomputeSliceAndGridsFromBootstrap();
 
-        return !m_data.implied_vol.empty();
+        return !m_LocalVolBootstrapInput.implied_vol.empty();
     }
 
-    void LocalVolSurfaceState::tryBootstrapAndreasenHugeFromBuckets(const std::map<std::string, AhExpiryBucket>& buckets,
+    void LocalVolSurfaceState::tryBootstrapAndreasenHugeFromChain(const std::vector<DPP::DB::Market::PutCallMidPoint>& chain,
                                                                   double spot,
                                                                   const YieldCurve& curve)
     {
-        if (buckets.empty())
+        if (chain.empty())
             return;
 
         std::vector<double> Ts;
@@ -293,22 +254,23 @@ namespace DPP
         std::vector<std::vector<double>> KsByT;
         std::vector<std::vector<double>> CsByT;
 
-        Ts.reserve(buckets.size());
-        qs.reserve(buckets.size());
-        KsByT.reserve(buckets.size());
-        CsByT.reserve(buckets.size());
-
-        for (const auto& [exp, b] : buckets)
+        for (auto&& chunk : bucketOptionChain(chain))
         {
-            if (!(b.T > 0.0))
+            if (std::ranges::size(chunk) < 3)
                 continue;
-            std::vector<double> kAh = b.strikesCalls;
-            std::vector<double> cAh = b.callsOnly;
-            if (kAh.size() < 3 || cAh.size() != kAh.size())
-                continue;
+            std::vector<double> kAh;
+            std::vector<double> cAh;
+            kAh.reserve(std::ranges::size(chunk));
+            cAh.reserve(std::ranges::size(chunk));
+            for (const auto& row : chunk)
+            {
+                kAh.push_back(row.strike);
+                cAh.push_back(*row.callMid);
+            }
 
-            Ts.push_back(b.T);
-            qs.push_back(b.q);
+            const double tYears = std::ranges::begin(chunk)->yearsToExpiry;
+            Ts.push_back(tYears);
+            qs.push_back(DPPUI::g_lastBuiltDividendYieldCurve->q(tYears));
             KsByT.push_back(std::move(kAh));
             CsByT.push_back(std::move(cAh));
         }
@@ -350,10 +312,10 @@ namespace DPP
     {
         // Precompute slice curves once (avoid evaluating IV surface every frame).
         // Strike grid: unique observed strikes from IV bootstrap points only.
-        if (m_data.strikes.empty() && !m_surface.has_value())
+        if (m_LocalVolBootstrapInput.strikes.empty() && !m_surface.has_value())
             return;
 
-        m_sliceK = m_data.strikes;
+        m_sliceK = m_LocalVolBootstrapInput.strikes;
         if (m_sliceK.empty() && m_surface.has_value())
         {
             m_status +=
@@ -377,9 +339,9 @@ namespace DPP
             double iv;
         };
         std::vector<Row> rows;
-        rows.reserve(m_data.texp_years.size());
-        for (size_t i = 0; i < m_data.texp_years.size(); ++i)
-            rows.push_back({m_data.texp_years[i], m_data.strikes[i], m_data.implied_vol[i]});
+        rows.reserve(m_LocalVolBootstrapInput.texp_years.size());
+        for (size_t i = 0; i < m_LocalVolBootstrapInput.texp_years.size(); ++i)
+            rows.push_back({m_LocalVolBootstrapInput.texp_years[i], m_LocalVolBootstrapInput.strikes[i], m_LocalVolBootstrapInput.implied_vol[i]});
 
         std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) {
             if (a.T != b.T)

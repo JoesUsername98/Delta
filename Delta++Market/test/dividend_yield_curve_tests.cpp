@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <span>
+#include <vector>
 
 #include <Delta++Market/dividend_yield_curve.h>
 #include <Delta++Market/yield_curve.h>
@@ -16,7 +17,8 @@ namespace
     }
 
     /// y = C - P = A - B*K with A = S*exp(-qT), B = A/S so F = S; pick C,P > 0 and C-P = y.
-    void addSyntheticPillar(std::vector<ParityExpiryInput>& pillars,
+    void addSyntheticPillar(std::vector<std::vector<PutCallMidPoint>>& rowBacking,
+                            std::vector<ParityExpiryPillar>& pillars,
                             const std::string& exp,
                             const double T,
                             const double S,
@@ -47,12 +49,25 @@ namespace
             calls.push_back(C);
             puts.push_back(P);
         }
-        pillars.push_back(ParityExpiryInput{
+
+        std::vector<PutCallMidPoint> rows;
+        rows.reserve(Ks.size());
+        for (size_t i = 0; i < Ks.size(); ++i)
+        {
+            rows.push_back(PutCallMidPoint{
+                .expirationDate = exp,
+                .yearsToExpiry = T,
+                .strike = Ks[i],
+                .callMid = calls[i],
+                .putMid = puts[i],
+            });
+        }
+        rowBacking.push_back(std::move(rows));
+        const auto& r = rowBacking.back();
+        pillars.push_back(ParityExpiryPillar{
             .tYears = T,
             .expirationDate = exp,
-            .strikes = std::move(Ks),
-            .callMids = std::move(calls),
-            .putMids = std::move(puts),
+            .rows = std::span<const PutCallMidPoint>(r.data(), r.size()),
         });
     }
 }
@@ -63,8 +78,8 @@ TEST(Market_DividendYieldCurve, EmptyPillarsError)
     auto yc = YieldCurve::build(quotes);
     ASSERT_TRUE(yc.has_value());
 
-    std::vector<ParityExpiryInput> empty;
-    auto r = buildDividendYieldCurveFromParity(100.0, *yc, std::span<const ParityExpiryInput>(empty));
+    std::vector<ParityExpiryPillar> empty;
+    auto r = buildDividendYieldCurveFromParity(100.0, *yc, empty);
     EXPECT_FALSE(r.has_value());
 }
 
@@ -76,10 +91,11 @@ TEST(Market_DividendYieldCurve, SinglePillarConstantQ)
 
     const double S = 100.0;
     const double qIn = 0.03;
-    std::vector<ParityExpiryInput> pillars;
-    addSyntheticPillar(pillars, "2025-01-01", 1.0, S, qIn);
+    std::vector<std::vector<PutCallMidPoint>> backing;
+    std::vector<ParityExpiryPillar> pillars;
+    addSyntheticPillar(backing, pillars, "2025-01-01", 1.0, S, qIn);
 
-    auto r = buildDividendYieldCurveFromParity(S, *yc, std::span<const ParityExpiryInput>(pillars));
+    auto r = buildDividendYieldCurveFromParity(S, *yc, pillars);
     ASSERT_TRUE(r.has_value());
     EXPECT_EQ(r->pillars.size(), 1u);
     EXPECT_NEAR(r->pillars[0].q, qIn, 1e-6);
@@ -98,11 +114,12 @@ TEST(Market_DividendYieldCurve, TwoPillarsSplineInterpolates)
     const double S = 100.0;
     const double qShort = 0.01;
     const double qLong = 0.04;
-    std::vector<ParityExpiryInput> pillars;
-    addSyntheticPillar(pillars, "2025-01-01", 0.5, S, qShort);
-    addSyntheticPillar(pillars, "2026-01-01", 2.0, S, qLong);
+    std::vector<std::vector<PutCallMidPoint>> backing;
+    std::vector<ParityExpiryPillar> pillars;
+    addSyntheticPillar(backing, pillars, "2025-01-01", 0.5, S, qShort);
+    addSyntheticPillar(backing, pillars, "2026-01-01", 2.0, S, qLong);
 
-    auto r = buildDividendYieldCurveFromParity(S, *yc, std::span<const ParityExpiryInput>(pillars));
+    auto r = buildDividendYieldCurveFromParity(S, *yc, pillars);
     ASSERT_TRUE(r.has_value());
     EXPECT_EQ(r->pillars.size(), 2u);
     EXPECT_NEAR(r->pillars[0].q, qShort, 1e-5);

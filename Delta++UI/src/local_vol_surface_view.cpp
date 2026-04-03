@@ -1,5 +1,7 @@
 #include "local_vol_surface_view.h"
 
+#include "shared_curve_cache.h"
+
 #include <imgui.h>
 #include <implot.h>
 #include <implot_internal.h>
@@ -127,7 +129,7 @@ void LocalVolSurfaceWindow::OnUIRender()
     if (ImGui::Button("Show Call 3D"))
         m_showCall3d = true;
 
-    const auto& data = m_state.data();
+    const auto& data = m_state.localVolInputData();
     const auto& surfOpt = m_state.surface();
     const bool haveSurf = surfOpt.has_value();
     const bool haveIv = !data.texp_years.empty();
@@ -136,104 +138,23 @@ void LocalVolSurfaceWindow::OnUIRender()
     if (!m_state.status().empty())
         ImGui::TextWrapped("%s", m_state.status().c_str());
 
-    const auto& py = m_state.parityYields();
-    if (!py.empty() && ImGui::CollapsingHeader("Implied dividend yield q(T) (put-call parity)", ImGuiTreeNodeFlags_DefaultOpen))
+    const auto& divCurveOpt = DPPUI::g_lastBuiltDividendYieldCurve;
+    if (divCurveOpt.has_value() && !divCurveOpt->tenors().empty() &&
+        ImGui::CollapsingHeader("Implied dividend yield q(T) (put-call parity)", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Text("q(T) curve build time: %lld ms", m_state.parityCurveMs());
 
-        // Plot q(T)
-        std::vector<double> Ts;
-        std::vector<double> qs;
-        Ts.reserve(py.size());
-        qs.reserve(py.size());
-        for (const auto& row : py)
-        {
-            Ts.push_back(row.texp_years);
-            qs.push_back(row.q);
-        }
-        if (Ts.size() >= 2 && ImPlot::BeginPlot("q(T)", ImVec2(-1, 220)))
+        const auto& Ts = divCurveOpt->tenors();
+        const auto& qs = divCurveOpt->qKnots();
+        if (ImPlot::BeginPlot("q(T)", ImVec2(-1, 220)))
         {
             ImPlot::SetupAxes("T (years)", "q");
-            ImPlot::PlotLine("q", Ts.data(), qs.data(), static_cast<int>(Ts.size()));
+            const int n = static_cast<int>(Ts.size());
+            if (n >= 2)
+                ImPlot::PlotLine("q", Ts.data(), qs.data(), n);
+            else
+                ImPlot::PlotScatter("q", Ts.data(), qs.data(), n);
             ImPlot::EndPlot();
-        }
-
-        if (ImGui::BeginTable("lv_parity_yields", 8, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
-        {
-            ImGui::TableSetupColumn("Expiry");
-            ImGui::TableSetupColumn("T (years)");
-            ImGui::TableSetupColumn("r");
-            ImGui::TableSetupColumn("q");
-            ImGui::TableSetupColumn("F");
-            ImGui::TableSetupColumn("A");
-            ImGui::TableSetupColumn("B");
-            ImGui::TableSetupColumn("RMSE / n");
-            ImGui::TableHeadersRow();
-
-            for (const auto& row : py)
-            {
-                ImGui::TableNextRow();
-                ImGui::TableSetColumnIndex(0);
-                ImGui::TextUnformatted(row.expirationDate.c_str());
-                ImGui::TableSetColumnIndex(1);
-                ImGui::Text("%.6f", row.texp_years);
-                ImGui::TableSetColumnIndex(2);
-                ImGui::Text("%.6f", row.r);
-                ImGui::TableSetColumnIndex(3);
-                ImGui::Text("%.6f", row.q);
-                ImGui::TableSetColumnIndex(4);
-                if (std::isfinite(row.forward))
-                    ImGui::Text("%.6f", row.forward);
-                else
-                    ImGui::TextDisabled("-");
-                ImGui::TableSetColumnIndex(5);
-                if (std::isfinite(row.A))
-                    ImGui::Text("%.6f", row.A);
-                else
-                    ImGui::TextDisabled("-");
-                ImGui::TableSetColumnIndex(6);
-                if (std::isfinite(row.B))
-                    ImGui::Text("%.6f", row.B);
-                else
-                    ImGui::TextDisabled("-");
-                ImGui::TableSetColumnIndex(7);
-                if (std::isfinite(row.rmse))
-                    ImGui::Text("%.6g / %d", row.rmse, row.nUsed);
-                else
-                    ImGui::TextDisabled("- / %d", row.nUsed);
-            }
-
-            ImGui::EndTable();
-        }
-    }
-
-    if (!data.texp_years.empty())
-    {
-        if (ImGui::CollapsingHeader("Preview (first 25 rows)", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            if (ImGui::BeginTable("lv_preview", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
-            {
-                ImGui::TableSetupColumn("T (years)");
-                ImGui::TableSetupColumn("Strike");
-                ImGui::TableSetupColumn("Call mid");
-                ImGui::TableSetupColumn("IV");
-                ImGui::TableHeadersRow();
-
-                const int n = (std::min)(25, static_cast<int>(data.texp_years.size()));
-                for (int i = 0; i < n; ++i)
-                {
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::Text("%.6f", data.texp_years[i]);
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::Text("%.6f", data.strikes[i]);
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::Text("%.6f", data.call_mids[i]);
-                    ImGui::TableSetColumnIndex(3);
-                    ImGui::Text("%.6f", data.implied_vol[i]);
-                }
-                ImGui::EndTable();
-            }
         }
     }
 

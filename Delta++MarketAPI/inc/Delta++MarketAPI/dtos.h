@@ -1,12 +1,22 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
-#include <optional>
 
 namespace DPP
 {
+    /// One strike with paired call/put mids (e.g. aggregated from EOD quotes). Used by parity / local-vol bootstrap.
+    struct PutCallMidPoint
+    {
+        std::string expirationDate; // YYYY-MM-DD
+        double yearsToExpiry{};
+        double strike{};
+        std::optional<double> callMid{};
+        std::optional<double> putMid{};
+    };
+
     struct OptionChainEntry
     {
         std::string expiry;

@@ -13,11 +13,11 @@
 namespace
 {
     constexpr double kSigmaMin = 0.01;
-    constexpr double kSigmaMax = 3.0;
+    constexpr double kSigmaMax = 1.5;
     constexpr double kVarMin = kSigmaMin * kSigmaMin;
     constexpr double kVarMax = kSigmaMax * kSigmaMax;
     constexpr double kDupireEps = 1e-14;
-    constexpr int kMaxIter = 80;
+    constexpr int kMaxIter = 100;
     constexpr double kTol = 1e-7;
     constexpr int kMinGridPoints = 32;
 

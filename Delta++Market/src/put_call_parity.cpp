@@ -2,8 +2,12 @@
 
 #include <Delta++Math/regression.h>
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
+#include <numeric>
+#include <ranges>
+#include <vector>
 
 namespace
 {
@@ -15,27 +19,31 @@ namespace DPP
     std::expected<PutCallParityFit, std::string> inferDividendYieldFromPutCallParity(
         const double spot,
         const double tYears,
-        const std::vector<double>& strikes,
-        const std::vector<double>& callMids,
-        const std::vector<double>& putMids)
+        const std::span<const PutCallMidPoint> rows)
     {
         if (!(spot > 0.0))
             return std::unexpected("spot must be > 0");
         if (!(tYears > 0.0))
             return std::unexpected("tYears must be > 0");
-        if (strikes.size() != callMids.size() || strikes.size() != putMids.size())
-            return std::unexpected("strikes/callMids/putMids must have same size");
+        if (rows.empty())
+            return std::unexpected("no parity rows");
 
-        // Build regression vectors: y = (C-P), x = K
+        std::vector<size_t> idx(rows.size());
+        std::iota(idx.begin(), idx.end(), 0);
+        std::ranges::sort(idx, {}, [&](const size_t i) { return rows[i].strike; });
+
         std::vector<double> xs;
         std::vector<double> ys;
-        xs.reserve(strikes.size());
-        ys.reserve(strikes.size());
-        for (size_t i = 0; i < strikes.size(); ++i)
+        xs.reserve(rows.size());
+        ys.reserve(rows.size());
+        for (const size_t i : idx)
         {
-            const double K = strikes[i];
-            const double C = callMids[i];
-            const double P = putMids[i];
+            const auto& r = rows[i];
+            const double K = r.strike;
+            if (!r.callMid.has_value() || !r.putMid.has_value())
+                continue;
+            const double C = *r.callMid;
+            const double P = *r.putMid;
             if (!(K > 0.0) || !finite(C) || !finite(P))
                 continue;
             const double y = C - P;
@@ -67,5 +75,29 @@ namespace DPP
         out.rmse = fit->rmse;
         return out;
     }
-}
 
+    std::expected<PutCallParityFit, std::string> inferDividendYieldFromPutCallParity(
+        const double spot,
+        const double tYears,
+        const std::vector<double>& strikes,
+        const std::vector<double>& callMids,
+        const std::vector<double>& putMids)
+    {
+        if (strikes.size() != callMids.size() || strikes.size() != putMids.size())
+            return std::unexpected("strikes/callMids/putMids must have same size");
+
+        std::vector<PutCallMidPoint> tmp;
+        tmp.reserve(strikes.size());
+        for (size_t i = 0; i < strikes.size(); ++i)
+        {
+            tmp.push_back(PutCallMidPoint{
+                .expirationDate = {},
+                .yearsToExpiry = tYears,
+                .strike = strikes[i],
+                .callMid = callMids[i],
+                .putMid = putMids[i],
+            });
+        }
+        return inferDividendYieldFromPutCallParity(spot, tYears, std::span<const PutCallMidPoint>(tmp.data(), tmp.size()));
+    }
+}

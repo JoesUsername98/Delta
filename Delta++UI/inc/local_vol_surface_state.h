@@ -1,12 +1,12 @@
 #pragma once
 
 #include <Delta++DB/market_db.h>
+#include <Delta++Market/dividend_yield_curve.h>
 #include <Delta++Market/local_vol_surface.h>
 #include <Delta++Market/yield_curve.h>
 
 #include <expected>
 #include <filesystem>
-#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -38,7 +38,7 @@ namespace DPP
 
         const std::vector<std::string>& underlyings() const { return m_underlyings; }
         const std::optional<double>& lastPrice() const { return m_lastPrice; }
-        const LocalVolBootstrapInput& data() const { return m_data; }
+        const LocalVolBootstrapInput& localVolInputData() const { return m_LocalVolBootstrapInput; }
         const std::optional<LocalVolSurface>& surface() const { return m_surface; }
         const std::vector<double>& sliceK() const { return m_sliceK; }
         const std::vector<double>& sliceT() const { return m_sliceT; }
@@ -47,19 +47,6 @@ namespace DPP
         const std::optional<LocalVolGrid3D>& ivGrid3d() const { return m_ivGrid3d; }
         const std::optional<LocalVolGrid3D>& lvGrid3d() const { return m_lvGrid3d; }
         const std::optional<LocalVolGrid3D>& callGrid3d() const { return m_callGrid3d; }
-        struct ParityYieldRow
-        {
-            std::string expirationDate;
-            double texp_years{};
-            double r{};
-            double q{};
-            double A{};
-            double B{};
-            double forward{};
-            int nUsed{};
-            double rmse{};
-        };
-        const std::vector<ParityYieldRow>& parityYields() const { return m_parityYields; }
         long long parityCurveMs() const { return m_parityCurveMs; }
         const std::string& status() const { return m_status; }
 
@@ -71,30 +58,34 @@ namespace DPP
         int m_underlyingIdx = 0;
 
     private:
-        /// Per-expiry option chain buckets for local-vol bootstrap (AH input).
-        struct AhExpiryBucket
+        /// Lazy `chunk_by` on `chain` (contiguous rows per expiry; see DB `ORDER BY expiration`).
+        auto bucketOptionChain(const std::vector<DB::Market::PutCallMidPoint>& chain) const;
+
+        struct ImpliedVolBuildStats
         {
-            std::string expirationDate;
-            double T{};
-            double q{};
-            std::vector<double> strikesPaired;
-            std::vector<double> callsPaired;
-            std::vector<double> putsPaired;
-            std::vector<double> strikesCalls;
-            std::vector<double> callsOnly;
+            int nIvOk = 0;
+            int nIvErr = 0;
+            int nCallUsed = 0;
+            long long ivMs = 0;
         };
+
+        ImpliedVolBuildStats buildImpliedVolData(const std::vector<DB::Market::PutCallMidPoint>& chain,
+                                                 double spot,
+                                                 const YieldCurve& curve);
 
         std::filesystem::path dbPath() const;
         std::string selectedUnderlying() const;
-        void tryBootstrapAndreasenHugeFromBuckets(const std::map<std::string, AhExpiryBucket>& buckets,
-                                                  double spot,
-                                                  const YieldCurve& curve);
-        /// Fills slice K/T/IV/LV and optional 3D grids from `m_data` and `m_surface` after bootstrap.
+        /// Clears bootstrap-derived IV/LV data, surfaces, and status before a new run.
+        void resetState();
+        void tryBootstrapAndreasenHugeFromChain(const std::vector<DB::Market::PutCallMidPoint>& chain,
+                                                double spot,
+                                                const YieldCurve& curve);
+        /// Fills slice K/T/IV/LV and optional 3D grids from `m_LocalVolBootstrapInput` and `m_surface` after bootstrap.
         void recomputeSliceAndGridsFromBootstrap();
 
         std::vector<std::string> m_underlyings;
         std::optional<double> m_lastPrice;
-        LocalVolBootstrapInput m_data;
+        LocalVolBootstrapInput m_LocalVolBootstrapInput;
         std::optional<LocalVolSurface> m_surface;
         std::vector<double> m_sliceK;
         std::vector<double> m_sliceT;
@@ -103,7 +94,6 @@ namespace DPP
         std::optional<LocalVolGrid3D> m_ivGrid3d;
         std::optional<LocalVolGrid3D> m_lvGrid3d;
         std::optional<LocalVolGrid3D> m_callGrid3d;
-        std::vector<ParityYieldRow> m_parityYields;
         long long m_parityCurveMs = 0;
         std::string m_status;
     };
