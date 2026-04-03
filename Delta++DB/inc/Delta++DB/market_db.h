@@ -68,14 +68,8 @@ namespace DPP::DB::Market
         double mid{};
     };
 
-    struct PutCallMidPoint
-    {
-        std::string expirationDate; // YYYY-MM-DD
-        double yearsToExpiry{};
-        double strike{};
-        std::optional<double> callMid{};
-        std::optional<double> putMid{};
-    };
+    /// Alias for `DPP::PutCallMidPoint`; `queryPutCallMidsForDateUnderlying` returns paired positive rows per SQL HAVING.
+    using PutCallMidPoint = DPP::PutCallMidPoint;
 
     std::expected<std::vector<std::string>, std::string>
     queryDistinctUnderlyingsForDate(const std::filesystem::path& dbPath, std::string_view quoteDate);

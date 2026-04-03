@@ -505,6 +505,7 @@ SELECT expiration_date, strike_price, bid, ask
 FROM options_eod_quotes
 WHERE quote_date = ?
   AND underlying_ticker = ?
+  AND DATE(expiration_date) > DATE(quote_date)
   AND contract_type = 'call'
   AND bid IS NOT NULL
   AND ask IS NOT NULL
@@ -567,10 +568,14 @@ SELECT
 FROM options_eod_quotes
 WHERE quote_date = ?
   AND underlying_ticker = ?
+  AND DATE(expiration_date) > DATE(quote_date)
   AND contract_type IN ('call','put')
   AND bid IS NOT NULL
   AND ask IS NOT NULL
+  AND strike_price > 0
 GROUP BY expiration_date, strike_price
+HAVING MAX(CASE WHEN contract_type = 'call' THEN 0.5 * (bid + ask) END) > 0
+   AND MAX(CASE WHEN contract_type = 'put'  THEN 0.5 * (bid + ask) END) > 0
 ORDER BY expiration_date, strike_price
 )SQL";
 
@@ -602,10 +607,8 @@ ORDER BY expiration_date, strike_price
             row.expirationDate = exp;
             row.yearsToExpiry = yf.value();
             row.strike = strike;
-            if (sqlite3_column_type(stmt.get(), 2) != SQLITE_NULL)
-                row.callMid = sqlite3_column_double(stmt.get(), 2);
-            if (sqlite3_column_type(stmt.get(), 3) != SQLITE_NULL)
-                row.putMid = sqlite3_column_double(stmt.get(), 3);
+            row.callMid = sqlite3_column_double(stmt.get(), 2);
+            row.putMid = sqlite3_column_double(stmt.get(), 3);
             out.push_back(std::move(row));
         }
         if (rc != SQLITE_DONE)

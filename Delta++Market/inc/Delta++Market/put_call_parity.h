@@ -1,7 +1,10 @@
 #pragma once
 
+#include <Delta++MarketAPI/dtos.h>
+
 #include <expected>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -22,7 +25,13 @@ namespace DPP
     };
 
     // Infer (A,B) via OLS fit of (C-P) = A - B*K, then compute forward and q(T).
-    // Inputs must be in consistent units. Strikes must be > 0. Call/put mids must be finite.
+    /// Rows sorted by strike (caller may rely on SQL ORDER BY). Strikes > 0, mids finite.
+    std::expected<PutCallParityFit, std::string> inferDividendYieldFromPutCallParity(
+        double spot,
+        double tYears,
+        std::span<const PutCallMidPoint> rows);
+
+    /// Convenience: same as span overload after zipping the three vectors (same length).
     std::expected<PutCallParityFit, std::string> inferDividendYieldFromPutCallParity(
         double spot,
         double tYears,
