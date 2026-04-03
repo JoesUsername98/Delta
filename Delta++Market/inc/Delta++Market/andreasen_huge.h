@@ -22,3 +22,26 @@ namespace DPP
     std::expected<LocalVolSurface, std::string> bootstrapAndreasenHuge(const AHInput& in);
 }
 
+/// Dupire forward FD helpers used by `bootstrapAndreasenHuge` and gap-filled `LocalVolSurface` queries.
+namespace DPP::AhDupireFd
+{
+    constexpr double kSigmaMin = 0.01;
+    constexpr double kSigmaMax = 1.5;
+    constexpr double kVarMin = kSigmaMin * kSigmaMin;
+    constexpr double kVarMax = kSigmaMax * kSigmaMax;
+    constexpr double kDupireEps = 1e-14;
+    constexpr int kMinGridPoints = 32;
+
+    void laplacianTimes(const std::vector<double>& K, const std::vector<double>& c, std::vector<double>& out);
+
+    bool implicitStep(const std::vector<double>& K,
+                      const std::vector<double>& cOld,
+                      const std::vector<double>& cBdry,
+                      double dT,
+                      const std::vector<double>& w,
+                      std::vector<double>& cNew);
+
+    std::vector<double> buildLogStrikeGrid(const std::vector<double>& expiries,
+                                           const std::vector<std::vector<double>>& strikes);
+}
+

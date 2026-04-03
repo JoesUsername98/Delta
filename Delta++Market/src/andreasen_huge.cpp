@@ -12,14 +12,8 @@
 
 namespace
 {
-    constexpr double kSigmaMin = 0.01;
-    constexpr double kSigmaMax = 1.5;
-    constexpr double kVarMin = kSigmaMin * kSigmaMin;
-    constexpr double kVarMax = kSigmaMax * kSigmaMax;
-    constexpr double kDupireEps = 1e-14;
     constexpr int kMaxIter = 100;
     constexpr double kTol = 1e-7;
-    constexpr int kMinGridPoints = 32;
 
     bool isStrictlyIncreasing(const std::vector<double>& xs)
     {
@@ -29,7 +23,47 @@ namespace
         return true;
     }
 
-    // (L*c)_j for interior j: second central difference on non-uniform K (three-point stencil).
+    void laplacianRowCoeffs(size_t j, const std::vector<double>& K, double& Lm, double& Ljj, double& Ljp)
+    {
+        const double hl = K[j] - K[j - 1];
+        const double hr = K[j + 1] - K[j];
+        Lm = 2.0 / (hl * (hl + hr));
+        Ljj = -2.0 / (hl * hr);
+        Ljp = 2.0 / (hr * (hl + hr));
+    }
+
+    bool thomasSolve(const std::vector<double>& lower,
+                     std::vector<double> diag,
+                     const std::vector<double>& upper,
+                     std::vector<double> rhs,
+                     std::vector<double>& x,
+                     double diagEps)
+    {
+        const int n = static_cast<int>(diag.size());
+        if (n <= 0 || static_cast<int>(lower.size()) != n || static_cast<int>(upper.size()) != n ||
+            static_cast<int>(rhs.size()) != n)
+            return false;
+        x.assign(n, 0.0);
+
+        for (int i = 1; i < n; ++i)
+        {
+            if (std::abs(diag[i - 1]) < diagEps)
+                return false;
+            const double m = lower[i] / diag[i - 1];
+            diag[i] -= m * upper[i - 1];
+            rhs[i] -= m * rhs[i - 1];
+        }
+        if (std::abs(diag[n - 1]) < diagEps)
+            return false;
+        x[n - 1] = rhs[n - 1] / diag[n - 1];
+        for (int i = n - 2; i >= 0; --i)
+            x[i] = (rhs[i] - upper[i] * x[i + 1]) / diag[i];
+        return true;
+    }
+}
+
+namespace DPP::AhDupireFd
+{
     void laplacianTimes(const std::vector<double>& K, const std::vector<double>& c, std::vector<double>& out)
     {
         const size_t n = K.size();
@@ -45,49 +79,10 @@ namespace
         }
     }
 
-    // Coefficients for row j of discrete Laplacian (same as laplacianTimes).
-    void laplacianRowCoeffs(size_t j, const std::vector<double>& K, double& Lm, double& Ljj, double& Ljp)
-    {
-        const double hl = K[j] - K[j - 1];
-        const double hr = K[j + 1] - K[j];
-        Lm = 2.0 / (hl * (hl + hr));
-        Ljj = -2.0 / (hl * hr);
-        Ljp = 2.0 / (hr * (hl + hr));
-    }
-
-    bool thomasSolve(const std::vector<double>& lower,
-                     std::vector<double> diag,
-                     const std::vector<double>& upper,
-                     std::vector<double> rhs,
-                     std::vector<double>& x)
-    {
-        const int n = static_cast<int>(diag.size());
-        if (n <= 0 || static_cast<int>(lower.size()) != n || static_cast<int>(upper.size()) != n ||
-            static_cast<int>(rhs.size()) != n)
-            return false;
-        x.assign(n, 0.0);
-
-        for (int i = 1; i < n; ++i)
-        {
-            if (std::abs(diag[i - 1]) < kDupireEps)
-                return false;
-            const double m = lower[i] / diag[i - 1];
-            diag[i] -= m * upper[i - 1];
-            rhs[i] -= m * rhs[i - 1];
-        }
-        if (std::abs(diag[n - 1]) < kDupireEps)
-            return false;
-        x[n - 1] = rhs[n - 1] / diag[n - 1];
-        for (int i = n - 2; i >= 0; --i)
-            x[i] = (rhs[i] - upper[i] * x[i + 1]) / diag[i];
-        return true;
-    }
-
-    // Implicit step: (I - 0.5*dT*K_j^2*w_j*L) c_new = c_old on interior; Dirichlet c_target at edges.
     bool implicitStep(const std::vector<double>& K,
                       const std::vector<double>& cOld,
                       const std::vector<double>& cBdry,
-                      double dT,
+                      const double dT,
                       const std::vector<double>& w,
                       std::vector<double>& cNew)
     {
@@ -111,7 +106,6 @@ namespace
             rhs[k] = cOld[j];
         }
 
-        // Move fixed boundary values to RHS: M[j,j-1]*c0 and M[j,j+1]*c_{n-1}.
         {
             double Lm = 0.0, Ljj = 0.0, Ljp = 0.0;
             laplacianRowCoeffs(1, K, Lm, Ljj, Ljp);
@@ -127,7 +121,7 @@ namespace
         }
 
         std::vector<double> z;
-        if (!thomasSolve(lower, diag, upper, std::move(rhs), z))
+        if (!thomasSolve(lower, diag, upper, std::move(rhs), z, kDupireEps))
             return false;
 
         cNew.resize(n);
@@ -152,7 +146,7 @@ namespace
         if (!(kMin > 0.0) || !(kMax > kMin))
             return {};
 
-        const double pad = 0.02 * (std::log(kMax) - std::log(kMin) + 1e-12);
+        const double pad = 0.005 * (std::log(kMax) - std::log(kMin) + 1e-12);
         const double logMin = std::log(kMin) - pad;
         const double logMax = std::log(kMax) + pad;
 
@@ -173,6 +167,15 @@ namespace DPP
 {
     std::expected<LocalVolSurface, std::string> bootstrapAndreasenHuge(const AHInput& in)
     {
+        using DPP::AhDupireFd::buildLogStrikeGrid;
+        using DPP::AhDupireFd::implicitStep;
+        using DPP::AhDupireFd::kDupireEps;
+        using DPP::AhDupireFd::kSigmaMax;
+        using DPP::AhDupireFd::kSigmaMin;
+        using DPP::AhDupireFd::kVarMax;
+        using DPP::AhDupireFd::kVarMin;
+        using DPP::AhDupireFd::laplacianTimes;
+
         if (!(in.spot > 0.0))
             return std::unexpected("spot must be > 0");
         if (in.expiries.size() < 2)
@@ -221,6 +224,7 @@ namespace DPP
         }
 
         std::vector<std::vector<double>> localVarGrid(nT, std::vector<double>(nK, kVarMin));
+        std::vector<std::vector<double>> cFwdOnGrid(nT, std::vector<double>(nK));
 
         std::vector<double> LcBuf(nK);
         std::vector<double> cOld(nK), cNew(nK), w(nK, kVarMin);
@@ -258,7 +262,7 @@ namespace DPP
                     continue;
                 }
                 const double denom = dT * Kgrid[j] * Kgrid[j] * std::max(LcBuf[j], kDupireEps);
-                double num = 2.0 * (cTarget[j] - cOld[j]);
+                const double num = 2.0 * (cTarget[j] - cOld[j]);
                 if (denom > kDupireEps)
                     w[j] = std::clamp(num / denom, kVarMin, kVarMax);
                 else
@@ -292,6 +296,7 @@ namespace DPP
 
             for (size_t j = 0; j < nK; ++j)
                 localVarGrid[i][j] = w[j];
+            cFwdOnGrid[i] = cNew;
         }
 
         // Map local vol to each expiry's market strikes (piecewise linear in K).
@@ -309,6 +314,13 @@ namespace DPP
                 localVolsOut[i][j] = li(Km[j]);
         }
 
-        return LocalVolSurface::build(in.expiries, in.strikes, in.callPrices, std::move(localVolsOut));
+        AhForwardSurfaceData ahData{
+            .curve = in.curve,
+            .kGrid = Kgrid,
+            .cFwd = std::move(cFwdOnGrid),
+            .localVariance = std::move(localVarGrid),
+        };
+
+        return LocalVolSurface::build(in.expiries, in.strikes, in.callPrices, std::move(localVolsOut), std::move(ahData));
     }
 }
