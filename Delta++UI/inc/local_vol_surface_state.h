@@ -2,7 +2,7 @@
 
 #include <Delta++DB/market_db.h>
 #include <Delta++Market/dividend_yield_curve.h>
-#include <Delta++Market/local_vol_surface.h>
+#include <Delta++Market/andreasen_huge.h>
 #include <Delta++Market/yield_curve.h>
 
 #include <expected>
@@ -39,7 +39,7 @@ namespace DPP
         const std::vector<std::string>& underlyings() const { return m_underlyings; }
         const std::optional<double>& lastPrice() const { return m_lastPrice; }
         const LocalVolBootstrapInput& localVolInputData() const { return m_LocalVolBootstrapInput; }
-        const std::optional<LocalVolSurface>& surface() const { return m_surface; }
+        const std::optional<AHInterpolator>& surface() const { return m_surface; }
         const std::vector<double>& sliceK() const { return m_sliceK; }
         const std::vector<double>& sliceT() const { return m_sliceT; }
         const std::vector<std::vector<double>>& sliceIv() const { return m_sliceIv; } // [iT][iK]
@@ -86,7 +86,7 @@ namespace DPP
         std::vector<std::string> m_underlyings;
         std::optional<double> m_lastPrice;
         LocalVolBootstrapInput m_LocalVolBootstrapInput;
-        std::optional<LocalVolSurface> m_surface;
+        std::optional<AHInterpolator> m_surface;
         std::vector<double> m_sliceK;
         std::vector<double> m_sliceT;
         std::vector<std::vector<double>> m_sliceIv;

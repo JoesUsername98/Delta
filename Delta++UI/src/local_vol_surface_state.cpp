@@ -454,7 +454,7 @@ namespace DPP
         if (!std::isfinite(minK) || !std::isfinite(maxK) || !std::isfinite(minT) || !std::isfinite(maxT))
             return;
 
-        const int nK = 60;
+        const int nK = 30;
         const int nT = 30;
         const auto KsGrid = DPPMath::linspace(minK, maxK, nK);
         const auto TsGrid = DPPMath::linspace(minT, maxT, nT);
