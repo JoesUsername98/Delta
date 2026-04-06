@@ -6,6 +6,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
+#include <ranges>
+#include <span>
 #include <vector>
 
 namespace DPP
@@ -48,10 +51,7 @@ namespace DPP
 
         bool AHBootstrapper::isStrictlyIncreasing(const std::vector<double>& xs)
         {
-            for (size_t i = 1; i < xs.size(); ++i)
-                if (!(xs[i] > xs[i - 1]))
-                    return false;
-            return true;
+            return std::ranges::is_sorted(xs, std::ranges::less{});
         }
 
         std::expected<AHInterpolator, std::string> AHBootstrapper::bootstrap()
@@ -89,6 +89,8 @@ namespace DPP
                 return std::unexpected("spot must be > 0");
             if (m_in.expiries.size() < 2)
                 return std::unexpected("Need >=2 expiries");
+            if (!(m_in.expiries.front() > 0.0))
+                return std::unexpected("first expiry must be > 0");
             if (!isStrictlyIncreasing(m_in.expiries))
                 return std::unexpected("expiries must be strictly increasing");
             if (m_in.strikes.size() != m_in.expiries.size() || m_in.callPrices.size() != m_in.expiries.size())
@@ -96,15 +98,12 @@ namespace DPP
             if (!m_in.dividendYields.empty() && m_in.dividendYields.size() != m_in.expiries.size())
                 return std::unexpected("dividendYields must be empty or match expiries size");
 
-            for (size_t i = 0; i < m_in.expiries.size(); ++i)
+            for (const auto& [Ks, Cs] : std::views::zip(m_in.strikes, m_in.callPrices))
             {
-                const auto& Ks = m_in.strikes[i];
-                const auto& Cs = m_in.callPrices[i];
                 if (Ks.size() < 3 || Cs.size() != Ks.size())
                     return std::unexpected("Each expiry must have >=3 strikes and matching callPrices");
-                for (size_t j = 1; j < Ks.size(); ++j)
-                    if (!(Ks[j] > Ks[j - 1]))
-                        return std::unexpected("strikes must be strictly increasing within each expiry");
+                if (!isStrictlyIncreasing(Ks))
+                    return std::unexpected("strikes must be strictly increasing within each expiry");
             }
             return {};
         }
@@ -112,7 +111,7 @@ namespace DPP
         std::expected<void, std::string> AHBootstrapper::buildStrikeGrid()
         {
             m_Kgrid = AhDupireFd::buildLogStrikeGrid(m_in.expiries, m_in.strikes);
-            if (m_Kgrid.size() < 3)
+            if (m_Kgrid.empty())
                 return std::unexpected("Could not build strike grid");
             m_nK = m_Kgrid.size();
             m_nT = m_in.expiries.size();
@@ -122,20 +121,19 @@ namespace DPP
 
         std::expected<void, std::string> AHBootstrapper::forwardCallSlices()
         {
-            for (size_t t_idx = 0; t_idx < m_nT; ++t_idx)
+            for (size_t t_idx : std::views::iota(0uz, m_nT))
             {
                 const double T = m_in.expiries[t_idx];
                 const double df = m_in.curve.discount(T);
                 if (!(df > 0.0))
                     return std::unexpected("invalid discount factor");
 
-                std::vector<double> cfwd(m_in.strikes[t_idx].size());
-                for (size_t k_idx = 0; k_idx < m_in.strikes[t_idx].size(); ++k_idx)
-                    cfwd[k_idx] = m_in.callPrices[t_idx][k_idx] / df;
+                const auto& prices = m_in.callPrices[t_idx];
+                std::vector<double> cfwd(prices.size());
+                std::ranges::transform(prices, cfwd.begin(), [df](double c) { return c / df; });
 
                 LinearInterpolator li(m_in.strikes[t_idx], cfwd);
-                for (size_t k_idx = 0; k_idx < m_nK; ++k_idx)
-                    m_cMarket[t_idx][k_idx] = li(m_Kgrid[k_idx]);
+                std::ranges::transform(m_Kgrid, m_cMarket[t_idx].begin(), [&](double K) { return li(K); });
             }
             return {};
         }
@@ -143,20 +141,18 @@ namespace DPP
         void AHBootstrapper::initialGuessW(const std::vector<double>& cTarget, double dT)
         {
             AhDupireFd::dupireXOperatorTimes(m_Kgrid, cTarget, m_dupOpBuf);
-            for (size_t k_idx = 0; k_idx < m_nK; ++k_idx)
-            {
-                if (k_idx == 0 || k_idx + 1 == m_nK)
-                {
-                    m_w[k_idx] = AhDupireFd::kVarMin;
-                    continue;
-                }
-                const double denom = dT * std::max(m_dupOpBuf[k_idx], AhDupireFd::kDupireEps);
-                const double num = 2.0 * (cTarget[k_idx] - m_cOld[k_idx]);
-                if (denom > AhDupireFd::kDupireEps)
-                    m_w[k_idx] = std::clamp(num / denom, AhDupireFd::kVarMin, AhDupireFd::kVarMax);
-                else
-                    m_w[k_idx] = AhDupireFd::kVarMin;
-            }
+            std::ranges::transform(
+                std::views::iota(0uz, m_nK),
+                m_w.begin(),
+                [&](size_t k_idx) -> double {
+                    if (k_idx == 0 || k_idx + 1 == m_nK)
+                        return AhDupireFd::kVarMin;
+                    const double denom = dT * std::max(m_dupOpBuf[k_idx], AhDupireFd::kDupireEps);
+                    const double num = 2.0 * (cTarget[k_idx] - m_cOld[k_idx]);
+                    if (denom > AhDupireFd::kDupireEps)
+                        return std::clamp(num / denom, AhDupireFd::kVarMin, AhDupireFd::kVarMax);
+                    return AhDupireFd::kVarMin;
+                });
         }
 
         std::expected<void, std::string> AHBootstrapper::solveSlice(const std::vector<double>& cTarget, double dT)
@@ -180,10 +176,17 @@ namespace DPP
                 m_w[m_nK - 1] = m_w[m_nK - 2];
 
                 err = 0.0;
-                for (size_t k_idx = 1; k_idx + 1 < m_nK; ++k_idx)
+                if (m_nK > 2)
                 {
-                    const double scale = std::max(1.0, std::abs(cTarget[k_idx]));
-                    err = std::max(err, std::abs(m_cNew[k_idx] - cTarget[k_idx]) / scale);
+                    const auto ctIn = std::span<const double>(cTarget).subspan(1, m_nK - 2);
+                    const auto cnIn = std::span<const double>(m_cNew).subspan(1, m_nK - 2);
+                    err = std::ranges::max(
+                        std::views::zip(ctIn, cnIn)
+                        | std::views::transform([](const auto& z) {
+                              const auto& [ct, cn] = z;
+                              const double scale = std::max(1.0, std::abs(ct));
+                              return std::abs(cn - ct) / scale;
+                          }));
                 }
             }
             return {};
@@ -196,14 +199,12 @@ namespace DPP
                 const double Tprev = (t_idx == 0) ? 0.0 : m_in.expiries[t_idx - 1];
                 const double Tcur = m_in.expiries[t_idx];
                 const double dT = Tcur - Tprev;
-                if (!(dT > 0.0))
-                    return std::unexpected("non-positive time step");
 
                 const std::vector<double>& cTarget = m_cMarket[t_idx];
 
                 if (t_idx == 0)
-                    std::transform(m_Kgrid.begin(), m_Kgrid.end(), m_cOld.begin(),
-                                   [spot = m_in.spot](double K) { return std::max(spot - K, 0.0); });
+                    std::ranges::transform(m_Kgrid, m_cOld.begin(),
+                                           [spot = m_in.spot](double K) { return std::max(spot - K, 0.0); });
                 else
                     std::copy(m_cMarket[t_idx - 1].begin(), m_cMarket[t_idx - 1].end(), m_cOld.begin());
 
