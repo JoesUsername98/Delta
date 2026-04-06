@@ -30,6 +30,9 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+# Benchmark's bundled output-comparison tests are fragile on MSVC Debug (threaded runs can print
+# 0.000 ns / inf/s, failing golden regexes and aborting). We only need the library for Delta++_Bench.
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
   benchmark
   GIT_REPOSITORY https://github.com/google/benchmark/
