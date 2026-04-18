@@ -15,12 +15,15 @@ namespace DPP
         double localVol(double T, double K) const;
         double callPrice(double T, double K) const;
 
+        /// Calendar-time routing only (same as `localVol(T,·)`). Hoist once per MC timestep; then use `localVolOnPillar`.
+        /// Fails if expiries are empty (cannot route pillars).
+        std::expected<size_t, std::string> localVolPillarIndexForTime(double T) const;
+        /// σ(K) on a fixed pillar slice (matches `localVol(T,K)` when T maps to `pillarIdx`).
+        double localVolOnPillar(size_t pillarIdx, double K) const;
+
         const std::vector<double>& expiries() const { return m_expiries; }
         const std::vector<std::vector<double>>& strikes() const { return m_strikes; }
         const std::vector<std::vector<double>>& callPrices() const { return m_callPrices; }
-
-        /// σ(K) on each expiry’s quoted strikes, projected from `localVariance` on the FD grid (for UI / export).
-        std::vector<std::vector<double>> projectLocalVolsAtQuotedStrikes() const;
 
         static std::expected<AHInterpolator, std::string>
         build(std::vector<double> expiries,
@@ -38,9 +41,13 @@ namespace DPP
         /// σ(K) from pillar slice `localVariance[pillarIdx]` on kGrid (linear in K to match bootstrap projection).
         double localVolFromVarianceSlice(size_t pillarIdx, double K) const;
 
+        // Fast per-pillar cached sigma grids to avoid allocations and repeated conversions from variance
+        double interpSigK(size_t pillarIdx, double K) const;
+
         std::vector<double> m_expiries;
         std::vector<std::vector<double>> m_strikes;
         std::vector<std::vector<double>> m_callPrices;
         AhForwardSurfaceData m_ahForward;
+        std::vector<std::vector<double>> m_sigK; // cached sigma per pillar (aligned with m_ahForward.kGrid)
     };
 }
