@@ -21,5 +21,5 @@ target_link_libraries(${DPP_DATASYNC_EXE_NAME} PUBLIC
     Delta++DB
 )
 
-set_target_properties(${DPP_DATASYNC_EXE_NAME} PROPERTIES FOLDER "Delta++")
+set_target_properties(${DPP_DATASYNC_EXE_NAME} PROPERTIES FOLDER "Executables")
 

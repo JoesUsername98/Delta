@@ -9,11 +9,6 @@
 #include <ranges>
 #include <vector>
 
-namespace
-{
-    bool finite(double x) { return std::isfinite(x); }
-}
-
 namespace DPP
 {
     std::expected<PutCallParityFit, std::string> inferDividendYieldFromPutCallParity(
@@ -44,10 +39,10 @@ namespace DPP
                 continue;
             const double C = *r.callMid;
             const double P = *r.putMid;
-            if (!(K > 0.0) || !finite(C) || !finite(P))
+            if (!(K > 0.0) || !std::isfinite(C) || !std::isfinite(P))
                 continue;
             const double y = C - P;
-            if (!finite(y))
+            if (!std::isfinite(y))
                 continue;
             xs.push_back(K);
             ys.push_back(y);
@@ -59,7 +54,7 @@ namespace DPP
 
         const double A = fit->intercept;
         const double B = -fit->slope;
-        if (!(finite(A) && finite(B)))
+        if (!(std::isfinite(A) && std::isfinite(B)))
             return std::unexpected("non-finite regression result");
         if (!(A > 0.0))
             return std::unexpected("parity fit A must be > 0 to infer q");

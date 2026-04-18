@@ -42,6 +42,8 @@ namespace DPP
         double rmse{};
     };
 
+    struct DividendYieldCurveBuildResult;
+
     /// Interpolated dividend yield q(T) from put–call parity pillars (cubic spline on knots; flat if one knot).
     class DividendYieldCurve
     {
@@ -51,19 +53,16 @@ namespace DPP
         const std::vector<double>& tenors() const { return m_tenors; }
         const std::vector<double>& qKnots() const { return m_qKnots; }
 
-    private:
-        struct Internal
-        {
-        };
-
+        /// For each pillar: fit parity on row spans, then build q(T) on sorted unique tenors.
+        /// Fails if `pillars` is empty (no inputs to process).
         template<std::ranges::forward_range R>
         requires std::same_as<std::remove_cv_t<std::ranges::range_value_t<R>>, ParityExpiryPillar>
-        friend std::expected<struct DividendYieldCurveBuildResult, std::string> buildDividendYieldCurveFromParity(
-            double spot,
-            const YieldCurve& rates,
-            R&& pillars);
+        static std::expected<DividendYieldCurveBuildResult, std::string> buildFromParity(double spot,
+                                                                                           const YieldCurve& rates,
+                                                                                           R&& pillars);
 
-        explicit DividendYieldCurve(Internal) {}
+    private:
+        DividendYieldCurve() = default;
 
         std::vector<double> m_tenors;
         std::vector<double> m_qKnots;
@@ -78,19 +77,17 @@ namespace DPP
         std::vector<DividendYieldPillarDiag> pillars;
     };
 
-    /// For each pillar: fit parity on row spans, then build q(T) on sorted unique tenors.
-    /// Fails if `pillars` is empty (no inputs to process).
     template<std::ranges::forward_range R>
     requires std::same_as<std::remove_cv_t<std::ranges::range_value_t<R>>, ParityExpiryPillar>
-    std::expected<DividendYieldCurveBuildResult, std::string> buildDividendYieldCurveFromParity(
-        const double spot,
+    inline std::expected<DividendYieldCurveBuildResult, std::string> DividendYieldCurve::buildFromParity(
+        double spot,
         const YieldCurve& rates,
         R&& pillars)
     {
         if (std::ranges::empty(pillars))
             return std::unexpected("No put/call parity pillars provided for dividend yield curve");
 
-        DividendYieldCurveBuildResult out{DividendYieldCurve(DividendYieldCurve::Internal{}), {}};
+        DividendYieldCurveBuildResult out{DividendYieldCurve{}, {}};
         if constexpr (std::ranges::sized_range<std::remove_cvref_t<R>>)
         {
             const auto n = std::ranges::size(pillars);

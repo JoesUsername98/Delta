@@ -5,7 +5,12 @@
             "label": "Configure (win-debug)",
             "type": "shell",
             "command": "cmake",
-            "args": ["--preset", "win-debug"],
+            "args": [
+                "-U",
+                "CMAKE_GENERATOR_INSTANCE",
+                "--preset",
+                "win-debug"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -15,7 +20,12 @@
             "label": "Configure (win-release)",
             "type": "shell",
             "command": "cmake",
-            "args": ["--preset", "win-release"],
+            "args": [
+                "-U",
+                "CMAKE_GENERATOR_INSTANCE",
+                "--preset",
+                "win-release"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },

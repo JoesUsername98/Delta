@@ -30,10 +30,20 @@ namespace DPP
         /// GET /fed/v1/treasury-yields with `date` filter; returns the row for that calendar date.
         std::expected<TreasuryYieldRow, std::string> getTreasuryYieldsForDate(std::string_view ymd) const;
 
+        /// GET /fed/v1/treasury-yields with `date.gte` / `date.lte` (Massive max limit 50000 per page).
+        std::expected<TreasuryYieldsEnvelope, std::string>
+        getTreasuryYieldsRange(std::string_view fromYmd, std::string_view toYmd, int limit) const;
+
+        /// GET a `next_url` from a prior treasury-yields response (full URL; typically includes apiKey).
+        std::expected<TreasuryYieldsEnvelope, std::string> getTreasuryYieldsNextUrl(std::string_view absoluteUrl) const;
+
         /// GET /v3/reference/options/contracts — pass `underlying_ticker`, `limit`, `expiration_date`, etc.
         /// `apiKey` is injected from `MASSIVE_API_KEY`.
         std::expected<OptionsContractsEnvelope, std::string>
         getOptionsContracts(const std::map<std::string, std::string>& queryParams = {}) const;
+
+        /// GET a `next_url` from a prior options contracts response (full URL; typically includes apiKey).
+        std::expected<OptionsContractsEnvelope, std::string> getOptionsContractsNextUrl(std::string_view absoluteUrl) const;
 
         /// GET /v2/aggs/ticker/{optionsTicker}/range/{multiplier}/{timespan}/{from}/{to}
         /// Path segments are URL-encoded; optional `adjusted`, `sort`, `limit` as query params per Massive docs.
