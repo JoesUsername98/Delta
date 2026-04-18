@@ -6,8 +6,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <expected>
 #include <limits>
+#include <optional>
 #include <ranges>
+#include <string>
 #include <vector>
 
 namespace
@@ -85,6 +88,24 @@ namespace
         r.i1 = i1;
         return r;
     }
+
+    std::optional<size_t> pillarIndexForLocalVolTime(const PillarTimeRoute& r)
+    {
+        switch (r.kind)
+        {
+        case PillarTimeKind::Empty:
+            return std::nullopt;
+        case PillarTimeKind::BeforeOrAtFirst:
+            return size_t{0};
+        case PillarTimeKind::AfterOrAtLast:
+            return r.i0;
+        case PillarTimeKind::OnPillar:
+            return r.i0;
+        case PillarTimeKind::Between:
+            return r.i0;
+        }
+        return std::nullopt;
+    }
 }
 
 namespace DPP
@@ -98,6 +119,20 @@ namespace DPP
         , m_callPrices(std::move(callPrices))
         , m_ahForward(std::move(ahForward))
     {
+        // Cache per-pillar sigma grids to avoid repeated allocations and conversions during runtime.
+        const size_t nT = m_ahForward.localVariance.size();
+        const size_t nK = m_ahForward.kGrid.size();
+        m_sigK.clear();
+        m_sigK.reserve(nT);
+        for (const size_t t : std::views::iota(size_t{0}, nT))
+        {
+            std::vector<double> row(nK);
+            std::ranges::transform(
+                std::views::iota(size_t{0}, nK),
+                row.begin(),
+                [&](const size_t j) { return sigmaFromVariance(m_ahForward.localVariance[t][j]); });
+            m_sigK.push_back(std::move(row));
+        }
     }
 
     std::expected<AHInterpolator, std::string>
@@ -134,35 +169,19 @@ namespace DPP
         return AHInterpolator(std::move(expiries), std::move(strikes), std::move(callPrices), std::move(ahForward));
     }
 
-    double AHInterpolator::localVolFromVarianceSlice(size_t pillarIdx, double K) const
+    std::expected<size_t, std::string> AHInterpolator::localVolPillarIndexForTime(double T) const
     {
-        const auto& ah = m_ahForward;
-        const auto& Kg = ah.kGrid;
-        const auto& wRow = ah.localVariance[pillarIdx];
-        std::vector<double> sigK(Kg.size());
-        for (size_t j = 0; j < Kg.size(); ++j)
-            sigK[j] = sigmaFromVariance(wRow[j]);
-        LinearInterpolator li(Kg, sigK);
-        return li(K);
+        if (const auto idx = pillarIndexForLocalVolTime(routePillarTime(T, m_expiries)))
+            return *idx;
+        return std::unexpected(
+            std::string{"AHInterpolator: empty expiry list; cannot route local vol pillar for Monte Carlo"});
     }
 
-    std::vector<std::vector<double>> AHInterpolator::projectLocalVolsAtQuotedStrikes() const
+    double AHInterpolator::localVolOnPillar(size_t pillarIdx, double K) const { return localVolFromVarianceSlice(pillarIdx, K); }
+
+    double AHInterpolator::localVolFromVarianceSlice(size_t pillarIdx, double K) const
     {
-        const size_t nT = m_expiries.size();
-        const auto& Kg = m_ahForward.kGrid;
-        const size_t nK = Kg.size();
-        std::vector<std::vector<double>> out(nT);
-        for (size_t t_idx = 0; t_idx < nT; ++t_idx)
-        {
-            std::vector<double> sigK(nK);
-            for (size_t j = 0; j < nK; ++j)
-                sigK[j] = sigmaFromVariance(m_ahForward.localVariance[t_idx][j]);
-            LinearInterpolator li(Kg, sigK);
-            const auto& Km = m_strikes[t_idx];
-            out[t_idx].resize(Km.size());
-            std::ranges::transform(Km, out[t_idx].begin(), [&li](double Kq) { return li(Kq); });
-        }
-        return out;
+        return interpSigK(pillarIdx, K);
     }
 
     double AHInterpolator::callPriceGapBetween(double T, double K, size_t i0, size_t i1) const
@@ -233,12 +252,33 @@ namespace DPP
         case PillarTimeKind::BeforeOrAtFirst:
             return localVolFromVarianceSlice(0, K);
         case PillarTimeKind::AfterOrAtLast:
-            return localVolFromVarianceSlice(m_expiries.size() - 1, K);
+            return localVolFromVarianceSlice(m_expiries.size() - 1uz, K);
         case PillarTimeKind::OnPillar:
             return localVolFromVarianceSlice(r.i0, K);
         case PillarTimeKind::Between:
             return localVolFromVarianceSlice(r.i0, K);
         }
         return 0.0;
+    }
+
+    double AHInterpolator::interpSigK(size_t pillarIdx, double K) const
+    {
+        const auto& Kg = m_ahForward.kGrid;
+        const auto& sig = m_sigK[pillarIdx];
+        if (Kg.size() < 2)
+            return sig.empty() ? 0.0 : sig.front();
+        if (K <= Kg.front())
+            return sig.front();
+        if (K >= Kg.back())
+            return sig.back();
+        const auto it = std::ranges::upper_bound(Kg, K);
+        const size_t i1 = static_cast<size_t>(it - Kg.begin());
+        const size_t i0 = i1 - 1;
+        const double x0 = Kg[i0];
+        const double x1 = Kg[i1];
+        const double y0 = sig[i0];
+        const double y1 = sig[i1];
+        const double t = (K - x0) / (x1 - x0);
+        return y0 + t * (y1 - y0);
     }
 }

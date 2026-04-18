@@ -139,12 +139,16 @@ namespace DPP::mc_dispatch
 
     /// Static dispatch: no runtime polymorphism on the hot path; `std::visit` selects the 3×2×2 instantiation.
     template <typename SchemeKind, typename ExerciseKind, typename PayoffKind>
-    inline double monteCarloPV(const TradeData& trd, const MarketData& mkt, const CalcData& calc, double dt,
-                               VectorDebugMap& debugResults)
+    inline CalculationResult monteCarloPV(const TradeData& trd, const MarketData& mkt, const CalcData& calc, double dt,
+                                          VectorDebugMap& debugResults)
     {
         using Scheme = typename MonteCarloSchemeFor<std::decay_t<SchemeKind>>::type;
         Scheme scheme{};
-        std::vector<double> sims = scheme.simPaths(mkt, calc, dt);
+        auto simPathsRes = scheme.simPaths(mkt, calc, dt);
+        if (!simPathsRes)
+            return std::unexpected(std::move(simPathsRes.error()));
+
+        std::vector<double> sims = std::move(*simPathsRes);
 
         using Payoff = typename MonteCarloPayoffFor<std::decay_t<PayoffKind>>::type;
         using Exercise = typename MonteCarloExerciseFor<std::decay_t<ExerciseKind>, Payoff>::type;

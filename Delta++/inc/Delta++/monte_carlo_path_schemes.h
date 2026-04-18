@@ -1,5 +1,8 @@
 #pragma once
 #include <cmath>
+#include <cstddef>
+#include <expected>
+#include <string>
 #include <thread>
 #include <algorithm>
 #include <ranges>
@@ -14,7 +17,8 @@ namespace DPP
     template <typename Derived>
     struct PathSchemeCRTP
     {
-        std::vector<double> simPaths(const MarketData& mkt, const CalcData& calc, const double dt) const
+        std::expected<std::vector<double>, std::string> simPaths(const MarketData& mkt, const CalcData& calc,
+                                                                 const double dt) const
         {
             const auto sqrt_dt = std::sqrt(dt);
 
@@ -30,7 +34,24 @@ namespace DPP
                 dividendYieldsByStep.begin(),
                 [&](size_t step) { return mkt.dividendYield(static_cast<double>(step) * dt); });
 
-			std::vector<double> unif_rands(calc.m_sims * ( calc.m_steps - 1 ), 2);
+            // Hoist pillar routing (binary search on expiries) once per calendar time step; inner loop only σ(K).
+            // Validate all timesteps before allocating RNG / spawning workers.
+            const bool use_local_vol = mkt.hasLocalVolSurface() && calc.m_steps > 1;
+            std::vector<size_t> lvPillarByTimeStep;
+            if (use_local_vol)
+            {
+                lvPillarByTimeStep.resize(calc.m_steps - 1);
+                for (size_t i = 0; i + 1 < calc.m_steps; ++i)
+                {
+                    const double t = static_cast<double>(i) * dt;
+                    const auto pillarRes = mkt.m_localVolSurface->localVolPillarIndexForTime(t);
+                    if (!pillarRes)
+                        return std::unexpected(pillarRes.error());
+                    lvPillarByTimeStep[i] = *pillarRes;
+                }
+            }
+
+            std::vector<double> unif_rands(calc.m_sims * (calc.m_steps - 1), 2);
             std::seed_seq seq{ calc.m_seed };
             std::mt19937_64 rng{ seq };
             std::uniform_real_distribution<double> unif(0.0, 1.0);
@@ -48,10 +69,14 @@ namespace DPP
                         const auto& u = unif_rands[(sim_idx * (calc.m_steps - 1)) + (step_index - 1)];
                         const double z = DPPMath::invCumDensity(u);
                         const double dW = sqrt_dt * z;
-                        const double t = static_cast<double>(step_index - 1) * dt;
                         const double r = zeroRatesByStep[step_index - 1];
                         const double q = dividendYieldsByStep[step_index - 1];
-                        const double sigma = mkt.localVolAt(t, s);
+                        double sigma = mkt.m_vol;
+                        if (use_local_vol)
+                        {
+                            const size_t pillarIdx = lvPillarByTimeStep[step_index - 1];
+                            sigma = mkt.m_localVolSurface->localVolOnPillar(pillarIdx, s);
+                        }
                         self.updatePrice(s, dW, r, q, sigma, dt);
                         sims[idx] = s;
                     }
