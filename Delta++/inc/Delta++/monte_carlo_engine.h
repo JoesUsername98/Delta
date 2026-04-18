@@ -34,6 +34,10 @@ namespace DPP
             if (!magic_enum::enum_contains(trd.m_optionExerciseType))
                 return std::unexpected("Unsupported option exercise type");
 
+            if (!mkt.hasLocalVolSurface())
+                return std::unexpected(
+                    "Monte Carlo requires m_localVolSurface; use MarketData::withFlatConstantVol for flat σ.");
+
             return std::unique_ptr<MonteCarloEngine>(new MonteCarloEngine(mkt, trd, calc));
         }
 

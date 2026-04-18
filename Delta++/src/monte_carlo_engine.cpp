@@ -145,8 +145,10 @@ namespace DPP
 
     CalculationResult MonteCarloEngine::calcVega( const CalcData& calc ) const
     {
-        if (m_mkt.hasLocalVolSurface())
-            return std::unexpected("Vega is not supported when a bootstrapped local volatility surface is attached.");
+        if (!m_mkt.isEssentiallyConstantVolSurface())
+            return std::unexpected(
+                "Monte Carlo vega bumping requires constant σ(T,K) (e.g. MarketData::withFlatConstantVol); general "
+                "local vol surfaces are not supported.");
 
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;

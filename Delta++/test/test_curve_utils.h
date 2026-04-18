@@ -5,6 +5,7 @@
 #include <cmath>
 #include <vector>
 
+#include <Delta++/market.h>
 #include <Delta++Market/yield_curve.h>
 
 namespace DPPTest
@@ -20,6 +21,19 @@ namespace DPPTest
         auto yc = DPP::YieldCurve::build(quotes);
         EXPECT_TRUE(yc.has_value()) << yc.error();
         return yc.value();
+    }
+
+    /// Flat Black–Scholes σ via `AHInterpolator` stub (`MarketData::withFlatConstantVol`).
+    inline DPP::MarketData makeFlatMarket(const double spot, const double sigma, const DPP::YieldCurve& yieldCurve)
+    {
+        auto mkt = DPP::MarketData::withFlatConstantVol(spot, sigma, yieldCurve);
+        EXPECT_TRUE(mkt.has_value()) << mkt.error();
+        return std::move(mkt.value());
+    }
+
+    inline DPP::MarketData makeFlatMarket(const double spot, const double sigma, const double flatZeroRate)
+    {
+        return makeFlatMarket(spot, sigma, makeFlatCurve(flatZeroRate));
     }
 }
 

@@ -31,6 +31,9 @@ namespace DPP
               std::vector<std::vector<double>> callPrices,
               AhForwardSurfaceData ahForward);
 
+        /// Minimal AH surface with constant σ(T,K) (flat Black–Scholes in local-vol form). For engines/tests without a bootstrap.
+        static std::expected<AHInterpolator, std::string> buildFlatConstant(double sigma, const YieldCurve& curve);
+
     private:
         AHInterpolator(std::vector<double> expiries,
                        std::vector<std::vector<double>> strikes,

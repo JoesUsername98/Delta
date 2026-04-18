@@ -40,7 +40,7 @@ PricerState::PricerState()
             .m_optionPayoffType = OptionPayoffType::Call,
             .m_strike = 100.,
             .m_maturity = 1.0},
-      m_mkt{.m_vol = 0.2, .m_underlyingPrice = 100., .m_yieldCurve = makeFlatYieldCurve(0.05)}
+      m_mkt(MarketData::withFlatConstantVol(100.0, 0.2, makeFlatYieldCurve(0.05)).value())
 {
     m_yieldCurveTenors = m_mkt.m_yieldCurve.tenors();
     m_yieldCurveZeroRates = m_mkt.m_yieldCurve.zeroRates();
@@ -151,6 +151,17 @@ void PricerState::applyFlatYieldCurve()
     m_yieldCurveTenors = m_mkt.m_yieldCurve.tenors();
     m_yieldCurveZeroRates = m_mkt.m_yieldCurve.zeroRates();
     ++m_yieldCurvePlotEpoch;
+    rebuildFlatVolSurfaceFromUi();
+}
+
+void PricerState::rebuildFlatVolSurfaceFromUi()
+{
+    if (m_volSource != PricerVolSource::Flat)
+        return;
+    if (const auto built =
+            MarketData::withFlatConstantVol(m_mkt.m_underlyingPrice, m_flatVolSigma, m_mkt.m_yieldCurve,
+                                            m_mkt.m_dividendYieldCurve))
+        m_mkt = std::move(*built);
 }
 
 bool PricerState::tryLoadTreasuryYieldFromDb()
@@ -182,6 +193,7 @@ bool PricerState::tryLoadTreasuryYieldFromDb()
     m_yieldCurveZeroRates = m_mkt.m_yieldCurve.zeroRates();
     ++m_yieldCurvePlotEpoch;
     m_marketStatus = "Loaded treasury yield curve for " + std::string(m_asof);
+    rebuildFlatVolSurfaceFromUi();
     return true;
 }
 
@@ -189,6 +201,7 @@ void PricerState::applyFlatDividendCurve()
 {
     m_mkt.m_dividendYieldCurve = DividendYieldCurve::flat(m_flatDividendStub);
     ++m_dividendPlotEpoch;
+    rebuildFlatVolSurfaceFromUi();
 }
 
 bool PricerState::tryLoadImpliedDividendFromDb()

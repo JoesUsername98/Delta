@@ -10,10 +10,7 @@ namespace DPP
     CalculationResult BinomialEngine::calcPV( const CalcData& calc ) const
     {
         const double dt = m_trd.m_maturity / calc.m_steps;
-        const double sigmaTree =
-            m_mkt.hasLocalVolSurface()
-                ? m_mkt.localVolAt(m_trd.m_maturity, m_trd.m_strike)
-                : m_mkt.m_vol;
+        const double sigmaTree = m_mkt.localVolAt(m_trd.m_maturity, m_trd.m_strike);
 
         TriMatrixBuilder build_result = TriMatrixBuilder::create(calc.m_steps, dt)
             .withUnderlyingValueAndVolatility(m_mkt.m_underlyingPrice, sigmaTree);
@@ -159,8 +156,10 @@ namespace DPP
 
     CalculationResult BinomialEngine::calcVega( const CalcData& calc ) const
     {
-        if (m_mkt.hasLocalVolSurface())
-            return std::unexpected("Vega is not supported when a bootstrapped local volatility surface is attached.");
+        if (!m_mkt.isEssentiallyConstantVolSurface())
+            return std::unexpected(
+                "Binomial vega bumping requires constant σ(T,K) (e.g. MarketData::withFlatConstantVol); general local "
+                "vol surfaces are not supported.");
 
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;

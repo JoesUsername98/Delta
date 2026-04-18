@@ -26,7 +26,7 @@ TEST(YieldCurvePricers, FlatCurveMatchesConstantRate_BlackScholesPV)
                   .m_strike = 105.0,
                   .m_maturity = 1.0};
 
-    MarketData mkt{.m_vol = 0.2, .m_underlyingPrice = 100.0, .m_yieldCurve = DPPTest::makeFlatCurve(0.05)};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 0.2, DPPTest::makeFlatCurve(0.05));
     MarketData mktCurve = mkt;
 
     CalcData calc{.m_calc = Calculation::PV, .m_steps = 10};
@@ -50,7 +50,7 @@ TEST(YieldCurvePricers, FlatCurveMatchesConstantRate_BinomialPV)
                   .m_strike = 105.0,
                   .m_maturity = 1.0};
 
-    MarketData mkt{.m_vol = 1.2, .m_underlyingPrice = 100.0, .m_yieldCurve = DPPTest::makeFlatCurve(0.05)};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     MarketData mktCurve = mkt;
 
     CalcData calc{.m_calc = Calculation::PV, .m_steps = 25};
@@ -74,7 +74,7 @@ TEST(YieldCurvePricers, FlatCurveMatchesConstantRate_MonteCarloPV)
                   .m_strike = 105.0,
                   .m_maturity = 1.0};
 
-    MarketData mkt{.m_vol = 0.2, .m_underlyingPrice = 100.0, .m_yieldCurve = DPPTest::makeFlatCurve(0.05)};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 0.2, DPPTest::makeFlatCurve(0.05));
     MarketData mktCurve = mkt;
 
     CalcData calc{.m_calc = Calculation::PV, .m_pathSchemeType = PathSchemeType::Exact, .m_steps = 500, .m_sims = 20'000, .m_seed = 7};
@@ -98,7 +98,7 @@ TEST(YieldCurvePricers, KeyRateRhoReturnsVector_BlackScholes)
                   .m_strike = 105.0,
                   .m_maturity = 1.0};
 
-    MarketData mkt{.m_vol = 0.2, .m_underlyingPrice = 100.0, .m_yieldCurve = DPPTest::makeFlatCurve(0.05)};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 0.2, DPPTest::makeFlatCurve(0.05));
 
     CalcData calc{.m_calc = Calculation::Rho, .m_steps = 10};
 

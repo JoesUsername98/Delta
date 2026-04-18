@@ -183,8 +183,11 @@ void PricerView::renderMarketParams()
     ImGui::Separator();
     ImGui::TextUnformatted("Spot");
     ImGui::SameLine();
-    m_state.m_valueChanged |=
+    const bool spotEdited =
         ImGui::InputDouble("Underlying Value", &m_state.m_mkt.m_underlyingPrice, 0.01, 1.0, "%.2f");
+    m_state.m_valueChanged |= spotEdited;
+    if (spotEdited && m_state.m_volSource == PricerVolSource::Flat)
+        m_state.rebuildFlatVolSurfaceFromUi();
     ImGui::SameLine();
     HelpMarker("Spot used for pricing and for parity / local vol when loading from the DB");
     ImGui::SameLine();
@@ -207,6 +210,8 @@ void PricerView::renderMarketParams()
                 const double last = **px;
                 m_state.m_mkt.m_underlyingPrice = last;
                 m_state.m_trd.m_strike = last;
+                if (m_state.m_volSource == PricerVolSource::Flat)
+                    m_state.rebuildFlatVolSurfaceFromUi();
                 m_state.m_marketStatus = "Loaded equity last for " + m_state.m_trd.m_underlyingTicker
                     + "; strike set to spot (ATM)";
                 m_state.m_valueChanged = true;
@@ -350,21 +355,26 @@ void PricerView::renderMarketParams()
     if (ImGui::RadioButton("Flat vol##vol", m_state.m_volSource == PricerVolSource::Flat))
     {
         m_state.m_volSource = PricerVolSource::Flat;
-        m_state.m_mkt.m_localVolSurface.reset();
+        m_state.rebuildFlatVolSurfaceFromUi();
         m_state.m_valueChanged = true;
     }
     ImGui::SameLine();
     if (ImGui::RadioButton("DB local vol (AH bootstrap)##vol", m_state.m_volSource == PricerVolSource::LocalVolBootstrap))
     {
         m_state.m_volSource = PricerVolSource::LocalVolBootstrap;
+        m_state.m_mkt.m_localVolSurface.reset();
         m_state.m_valueChanged = true;
     }
 
     if (m_state.m_volSource == PricerVolSource::Flat)
     {
-        m_state.m_valueChanged |= ImGui::InputDouble("Volatility", &m_state.m_mkt.m_vol, 0.01, 1.0, "%.2f");
+        if (ImGui::InputDouble("Volatility", &m_state.m_flatVolSigma, 0.01, 1.0, "%.2f"))
+        {
+            m_state.rebuildFlatVolSurfaceFromUi();
+            m_state.m_valueChanged = true;
+        }
         ImGui::SameLine();
-        HelpMarker("Constant Black–Scholes volatility when no local vol surface is attached");
+        HelpMarker("Constant σ implemented as a minimal AHInterpolator stub (MarketData::withFlatConstantVol)");
     }
     else
     {
