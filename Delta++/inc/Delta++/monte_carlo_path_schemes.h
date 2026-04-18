@@ -24,6 +24,12 @@ namespace DPP
                 zeroRatesByStep.begin(),
                 [&](size_t step) { return mkt.zeroRate(static_cast<double>(step) * dt); });
 
+            std::vector<double> dividendYieldsByStep(calc.m_steps);
+            std::ranges::transform(
+                std::views::iota(size_t{0}, calc.m_steps),
+                dividendYieldsByStep.begin(),
+                [&](size_t step) { return mkt.dividendYield(static_cast<double>(step) * dt); });
+
 			std::vector<double> unif_rands(calc.m_sims * ( calc.m_steps - 1 ), 2);
             std::seed_seq seq{ calc.m_seed };
             std::mt19937_64 rng{ seq };
@@ -42,8 +48,11 @@ namespace DPP
                         const auto& u = unif_rands[(sim_idx * (calc.m_steps - 1)) + (step_index - 1)];
                         const double z = DPPMath::invCumDensity(u);
                         const double dW = sqrt_dt * z;
+                        const double t = static_cast<double>(step_index - 1) * dt;
                         const double r = zeroRatesByStep[step_index - 1];
-                        self.updatePrice(s, dW, r, dt, mkt);
+                        const double q = dividendYieldsByStep[step_index - 1];
+                        const double sigma = mkt.localVolAt(t, s);
+                        self.updatePrice(s, dW, r, q, sigma, dt);
                         sims[idx] = s;
                     }
                 }
@@ -68,25 +77,25 @@ namespace DPP
 
     struct ExactScheme : PathSchemeCRTP<ExactScheme>
     {
-        void updatePrice(double& S, double dW, double r, double dt, const MarketData& mkt) const
+        void updatePrice(double& S, double dW, double r, double q, double sigma, double dt) const
         {
-            S = S * std::exp((r - 0.5 * mkt.m_vol * mkt.m_vol) * dt + mkt.m_vol * dW);
+            S = S * std::exp((r - q - 0.5 * sigma * sigma) * dt + sigma * dW);
         }
     };
 
     struct EulerScheme : PathSchemeCRTP<EulerScheme>
     {
-        void updatePrice(double& S, double dW, double r, double dt, const MarketData& mkt) const
+        void updatePrice(double& S, double dW, double r, double q, double sigma, double dt) const
         {
-            S = S * (1 + r * dt + mkt.m_vol * dW);
+            S = S * (1.0 + (r - q) * dt + sigma * dW);
         }
     };
 
     struct MilsteinScheme : PathSchemeCRTP<MilsteinScheme>
     {
-        void updatePrice(double& S, double dW, double r, double dt, const MarketData& mkt) const
+        void updatePrice(double& S, double dW, double r, double q, double sigma, double dt) const
         {
-            S = S * (1 + r * dt + mkt.m_vol * dW + 0.5 * mkt.m_vol * mkt.m_vol * (dW * dW - dt));
+            S = S * (1.0 + (r - q) * dt + sigma * dW + 0.5 * sigma * sigma * (dW * dW - dt));
         }
     };
 }

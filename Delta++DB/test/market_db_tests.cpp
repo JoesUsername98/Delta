@@ -2,6 +2,8 @@
 
 #include <Delta++DB/market_db.h>
 
+#include <sqlite3.h>
+
 #include <filesystem>
 #include <random>
 #include <string>
@@ -126,3 +128,33 @@ TEST(DeltaPP_MarketDB, DistinctUnderlyingsAndEquityLastAndCallMids)
     std::filesystem::remove(path, ec);
 }
 
+TEST(DeltaPP_MarketDB, DistinctEquityTickers)
+{
+    const auto path = makeTempDbPath();
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
+
+    auto empty = DB::Market::queryDistinctEquityTickers(path);
+    ASSERT_TRUE(empty.has_value()) << empty.error();
+    EXPECT_TRUE(empty->empty());
+
+    sqlite3* db = nullptr;
+    ASSERT_EQ(SQLITE_OK, sqlite3_open(path.string().c_str(), &db));
+    char* err = nullptr;
+    const char* sql =
+        "CREATE TABLE IF NOT EXISTS equities (quote_date DATE NOT NULL, ticker TEXT NOT NULL, last REAL NOT NULL, "
+        "UNIQUE (quote_date, ticker));"
+        "INSERT INTO equities (quote_date, ticker, last) VALUES ('2024-01-02', 'ZZZ', 1), ('2024-01-02', 'AAA', 2), "
+        "('2024-01-03', 'AAA', 3);";
+    ASSERT_EQ(SQLITE_OK, sqlite3_exec(db, sql, nullptr, nullptr, &err)) << (err ? err : "");
+    sqlite3_free(err);
+    sqlite3_close(db);
+
+    auto tickers = DB::Market::queryDistinctEquityTickers(path);
+    ASSERT_TRUE(tickers.has_value()) << tickers.error();
+    ASSERT_EQ(tickers->size(), 2u);
+    EXPECT_EQ((*tickers)[0], "AAA");
+    EXPECT_EQ((*tickers)[1], "ZZZ");
+
+    std::filesystem::remove(path, ec);
+}

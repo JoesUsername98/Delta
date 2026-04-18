@@ -61,6 +61,9 @@ namespace DPP
                                                                                            const YieldCurve& rates,
                                                                                            R&& pillars);
 
+        /// Constant dividend yield for all maturities (e.g. tests and flat market mode).
+        static DividendYieldCurve flat(double q);
+
     private:
         DividendYieldCurve() = default;
 

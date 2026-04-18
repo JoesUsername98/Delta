@@ -77,6 +77,10 @@ namespace DPP::DB::Market
     std::expected<std::optional<double>, std::string>
     queryEquityLast(const std::filesystem::path& dbPath, std::string_view quoteDate, std::string_view ticker);
 
+    /// All distinct tickers present in `equities` (any quote_date), ordered by ticker.
+    std::expected<std::vector<std::string>, std::string>
+    queryDistinctEquityTickers(const std::filesystem::path& dbPath);
+
     std::expected<std::vector<CallMidPoint>, std::string>
     queryCallMidsForDateUnderlying(const std::filesystem::path& dbPath,
                                    std::string_view quoteDate,

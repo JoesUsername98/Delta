@@ -145,6 +145,9 @@ namespace DPP
 
     CalculationResult MonteCarloEngine::calcVega( const CalcData& calc ) const
     {
+        if (m_mkt.hasLocalVolSurface())
+            return std::unexpected("Vega is not supported when a bootstrapped local volatility surface is attached.");
+
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
         pv_only.m_collectDebugPaths = false;

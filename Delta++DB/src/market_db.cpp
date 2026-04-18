@@ -456,6 +456,43 @@ LIMIT 1
         return std::optional<double>{sqlite3_column_double(stmt.get(), 0)};
     }
 
+    std::expected<std::vector<std::string>, std::string>
+    queryDistinctEquityTickers(const std::filesystem::path& dbPath)
+    {
+        auto dbResult = openDb(dbPath);
+        if (!dbResult.has_value())
+            return std::unexpected(dbResult.error());
+        sqlite3* db = dbResult.value().get();
+
+        auto schemaResult = initSchema(db);
+        if (!schemaResult.has_value())
+            return std::unexpected(schemaResult.error());
+
+        static constexpr const char* kSql = R"SQL(
+SELECT DISTINCT ticker
+FROM equities
+ORDER BY ticker
+)SQL";
+
+        sqlite3_stmt* stmtRaw = nullptr;
+        int rc = sqlite3_prepare_v2(db, kSql, static_cast<int>(std::strlen(kSql)), &stmtRaw, nullptr);
+        if (rc != SQLITE_OK)
+            return std::unexpected(std::string("prepare: ") + sqlite3_errmsg(db));
+        Sqlite3StmtPtr stmt(stmtRaw);
+
+        std::vector<std::string> out;
+        while ((rc = sqlite3_step(stmt.get())) == SQLITE_ROW)
+        {
+            const char* s = reinterpret_cast<const char*>(sqlite3_column_text(stmt.get(), 0));
+            if (s && *s)
+                out.emplace_back(s);
+        }
+        if (rc != SQLITE_DONE)
+            return std::unexpected(std::string("step: ") + sqlite3_errmsg(db));
+
+        return out;
+    }
+
     std::expected<std::vector<CallMidPoint>, std::string>
     queryCallMidsForDateUnderlying(const std::filesystem::path& dbPath,
                                    const std::string_view quoteDate,

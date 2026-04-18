@@ -15,6 +15,7 @@
 #include <ranges>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <cmath>
 
 #include <Delta++Solver/interpolation.h>
@@ -152,41 +153,57 @@ namespace DPP
         return stats;
     }
 
-    bool LocalVolSurfaceState::bootstrap()
+    bool LocalVolSurfaceState::bootstrap(const YieldCurve* yieldCurveOverride,
+                                         std::optional<double> spotOverride,
+                                         const std::string_view underlyingTickerOverride,
+                                         const DividendYieldCurve* dividendForIvOverride)
     {
         resetState();
 
-        const std::string underlyingTicker = selectedUnderlying();
+        const std::string underlyingTicker = underlyingTickerOverride.empty()
+                                                 ? selectedUnderlying()
+                                                 : std::string(underlyingTickerOverride);
         if (underlyingTicker.empty())
         {
             m_status = "No underlying selected";
             return false;
         }
-        if (!m_lastPrice.has_value() || !(*m_lastPrice > 0.0))
+
+        const std::optional<double> spotUsed = spotOverride.has_value() ? spotOverride : m_lastPrice;
+        if (!spotUsed.has_value() || !(*spotUsed > 0.0))
         {
-            m_status = "Missing equity last price; run loader with --load equities";
-            return false;
-        }
-        const auto rowRes = DPP::DB::Market::queryTreasuryYieldRow(dbPath(), m_asof);
-        if (!rowRes.has_value())
-        {
-            m_status = rowRes.error();
-            return false;
-        }
-        if (!rowRes.value().has_value())
-        {
-            m_status = "No treasury_yields row for this AsOf date";
+            m_status = "Missing equity last price; run loader with --load equities or set underlying value";
             return false;
         }
 
-        const auto quotes = DPP::massiveTreasuryRowToRateQuotes(*rowRes.value());
-        const auto curveRes = DPP::YieldCurve::build(quotes);
-        if (!curveRes.has_value())
+        if (yieldCurveOverride != nullptr)
         {
-            m_status = curveRes.error();
-            return false;
+            DPPUI::g_lastBuiltYieldCurve = *yieldCurveOverride;
         }
-        DPPUI::g_lastBuiltYieldCurve = curveRes.value();
+        else
+        {
+            const auto rowRes = DPP::DB::Market::queryTreasuryYieldRow(dbPath(), m_asof);
+            if (!rowRes.has_value())
+            {
+                m_status = rowRes.error();
+                return false;
+            }
+            if (!rowRes.value().has_value())
+            {
+                m_status = "No treasury_yields row for this AsOf date";
+                return false;
+            }
+
+            const auto quotes = DPP::massiveTreasuryRowToRateQuotes(*rowRes.value());
+            const auto curveRes = DPP::YieldCurve::build(quotes);
+            if (!curveRes.has_value())
+            {
+                m_status = curveRes.error();
+                return false;
+            }
+            DPPUI::g_lastBuiltYieldCurve = curveRes.value();
+        }
+
         const DPP::YieldCurve& curve = *DPPUI::g_lastBuiltYieldCurve;
         
         auto chainRes = DPP::DB::Market::queryPutCallMidsForDateUnderlying(dbPath(), m_asof, underlyingTicker);
@@ -202,28 +219,37 @@ namespace DPP
             m_status = "No parity inputs found";
             return false;
         }
-        const double S = *m_lastPrice;
+        const double S = *spotUsed;
 
-        const auto tParityStart = std::chrono::steady_clock::now();
-        // q(T) from put–call parity (interpolated curve) + parity table rows
-        auto pillars = bucketOptionChain(chain) | std::views::transform([](auto&& chunk) {
-            const auto& r0 = *std::ranges::begin(chunk);
-            return ParityExpiryPillar{
-                .tYears = r0.yearsToExpiry,
-                .expirationDate = r0.expirationDate,
-                .rows = std::span<const PutCallMidPoint>(std::ranges::data(chunk), std::ranges::size(chunk)),
-            };
-        });
-
-        auto divBuilt = DPP::DividendYieldCurve::buildFromParity(S, curve, std::move(pillars));
-        if (!divBuilt.has_value())
+        if (dividendForIvOverride != nullptr)
         {
-            m_status = divBuilt.error();
-            return false;
+            DPPUI::g_lastBuiltDividendYieldCurve = *dividendForIvOverride;
+            m_parityCurveMs = 0;
         }
-        DPPUI::g_lastBuiltDividendYieldCurve = std::move(divBuilt->curve);
-        const auto tParityEnd = std::chrono::steady_clock::now();
-        m_parityCurveMs = std::chrono::duration_cast<std::chrono::milliseconds>(tParityEnd - tParityStart).count();
+        else
+        {
+            const auto tParityStart = std::chrono::steady_clock::now();
+            // q(T) from put–call parity (interpolated curve) + parity table rows
+            auto pillars = bucketOptionChain(chain) | std::views::transform([](auto&& chunk) {
+                const auto& r0 = *std::ranges::begin(chunk);
+                return ParityExpiryPillar{
+                    .tYears = r0.yearsToExpiry,
+                    .expirationDate = r0.expirationDate,
+                    .rows = std::span<const PutCallMidPoint>(std::ranges::data(chunk), std::ranges::size(chunk)),
+                };
+            });
+
+            auto divBuilt = DPP::DividendYieldCurve::buildFromParity(S, curve, std::move(pillars));
+            if (!divBuilt.has_value())
+            {
+                m_status = divBuilt.error();
+                return false;
+            }
+            DPPUI::g_lastBuiltDividendYieldCurve = std::move(divBuilt->curve);
+            const auto tParityEnd = std::chrono::steady_clock::now();
+            m_parityCurveMs =
+                std::chrono::duration_cast<std::chrono::milliseconds>(tParityEnd - tParityStart).count();
+        }
 
         const auto ivStats = buildImpliedVolData(chain, S, curve);
 
