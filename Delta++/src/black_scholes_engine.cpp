@@ -13,20 +13,27 @@ namespace DPP
         {
             return mkt.dividendYield(trd.m_maturity);
         }
+
+        double sigmaAtStrike(const MarketData& mkt, const TradeData& trd)
+        {
+            return mkt.localVolAt(trd.m_maturity, trd.m_strike);
+        }
     }
 
     double BlackScholesEngine::getD1() const
     {
         const double r = m_mkt.zeroRate(m_trd.m_maturity);
         const double q = qAtMaturity(m_mkt, m_trd);
-        return BlackScholes::d1(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q, m_mkt.m_vol);
+        return BlackScholes::d1(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q,
+                               sigmaAtStrike(m_mkt, m_trd));
     }
 
     double BlackScholesEngine::getD2() const
     {
         const double r = m_mkt.zeroRate(m_trd.m_maturity);
         const double q = qAtMaturity(m_mkt, m_trd);
-        return BlackScholes::d2(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q, m_mkt.m_vol);
+        return BlackScholes::d2(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q,
+                               sigmaAtStrike(m_mkt, m_trd));
     }
 
     double BlackScholesEngine::callPrice() const
@@ -36,7 +43,7 @@ namespace DPP
         const double T = m_trd.m_maturity;
         const double r = m_mkt.zeroRate(T);
         const double q = qAtMaturity(m_mkt, m_trd);
-        const double sigma = m_mkt.m_vol;
+        const double sigma = sigmaAtStrike(m_mkt, m_trd);
         const double df = m_mkt.discount(T);
         if (T <= 0.0)
             return std::max(0.0, S - K);
@@ -57,7 +64,7 @@ namespace DPP
         const double T = m_trd.m_maturity;
         const double r = m_mkt.zeroRate(T);
         const double q = qAtMaturity(m_mkt, m_trd);
-        const double sigma = m_mkt.m_vol;
+        const double sigma = sigmaAtStrike(m_mkt, m_trd);
         const double df = m_mkt.discount(T);
         if (T <= 0.0)
             return std::max(0.0, K - S);
@@ -94,9 +101,11 @@ namespace DPP
         switch ( m_trd.m_optionPayoffType )
         {
         case OptionPayoffType::Call:
-            return BlackScholes::callDelta(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q, m_mkt.m_vol);
+            return BlackScholes::callDelta(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q,
+                                           sigmaAtStrike(m_mkt, m_trd));
         case OptionPayoffType::Put:
-            return BlackScholes::putDelta(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q, m_mkt.m_vol);
+            return BlackScholes::putDelta(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q,
+                                           sigmaAtStrike(m_mkt, m_trd));
         default:
             return std::unexpected("Only Call and Put are supported PayoffTypes");
         }
@@ -148,8 +157,10 @@ namespace DPP
 
     CalculationResult BlackScholesEngine::calcVega(const CalcData& calc) const
     {
-        if (m_mkt.hasLocalVolSurface())
-            return std::unexpected("Vega is not supported when a bootstrapped local volatility surface is attached.");
+        if (!m_mkt.isEssentiallyConstantVolSurface())
+            return std::unexpected(
+                "Analytical vega requires constant σ(T,K) (e.g. MarketData::withFlatConstantVol); general local vol "
+                "surfaces are not supported.");
 
         const double r = m_mkt.zeroRate(m_trd.m_maturity);
         const double q = qAtMaturity(m_mkt, m_trd);
@@ -157,7 +168,8 @@ namespace DPP
         {
         case OptionPayoffType::Call:
         case OptionPayoffType::Put:
-            return BlackScholes::vega(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q, m_mkt.m_vol);
+            return BlackScholes::vega(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q,
+                                      sigmaAtStrike(m_mkt, m_trd));
         default:
             return std::unexpected("Only Call and Put are supported PayoffTypes" );
         }
@@ -165,8 +177,10 @@ namespace DPP
 
     CalculationResult BlackScholesEngine::calcGamma(const CalcData& calc) const
     {
-        if (m_mkt.hasLocalVolSurface())
-            return std::unexpected("Gamma is not supported when a bootstrapped local volatility surface is attached.");
+        if (!m_mkt.isEssentiallyConstantVolSurface())
+            return std::unexpected(
+                "Analytical gamma requires constant σ(T,K) (e.g. MarketData::withFlatConstantVol); general local vol "
+                "surfaces are not supported.");
 
         const double r = m_mkt.zeroRate(m_trd.m_maturity);
         const double q = qAtMaturity(m_mkt, m_trd);
@@ -174,7 +188,8 @@ namespace DPP
         {
         case OptionPayoffType::Call:
         case OptionPayoffType::Put:
-            return BlackScholes::gamma(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q, m_mkt.m_vol);
+            return BlackScholes::gamma(m_mkt.m_underlyingPrice, m_trd.m_strike, m_trd.m_maturity, r, q,
+                                       sigmaAtStrike(m_mkt, m_trd));
         default:
             return std::unexpected("Only Call and Put are supported PayoffTypes" );
         }

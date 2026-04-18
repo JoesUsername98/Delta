@@ -80,6 +80,8 @@ struct PricerState
     uint32_t m_dividendPlotEpoch = 0;
 
     PricerVolSource m_volSource = PricerVolSource::Flat;
+    /// Flat-vol UI input; applied via `rebuildFlatVolSurfaceFromUi` (`AHInterpolator::buildFlatConstant`).
+    double m_flatVolSigma{0.2};
     /// Scratch state for last local-vol bootstrap (slices, 3D grids); surface copy lives on `m_mkt`.
     LocalVolSurfaceState m_lvState;
 
@@ -91,6 +93,8 @@ struct PricerState
     void syncTradeUnderlyingTicker();
     void applyFlatYieldCurve();
     bool tryLoadTreasuryYieldFromDb();
+    /// Rebuilds `m_mkt` with `MarketData::withFlatConstantVol` when `m_volSource == Flat` (no-op in bootstrap mode).
+    void rebuildFlatVolSurfaceFromUi();
     void applyFlatDividendCurve();
     bool tryLoadImpliedDividendFromDb();
     bool tryBootstrapLocalVolSurface();

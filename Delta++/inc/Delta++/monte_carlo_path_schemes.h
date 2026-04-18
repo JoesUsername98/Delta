@@ -34,21 +34,21 @@ namespace DPP
                 dividendYieldsByStep.begin(),
                 [&](size_t step) { return mkt.dividendYield(static_cast<double>(step) * dt); });
 
+            if (!mkt.hasLocalVolSurface())
+                return std::unexpected("Monte Carlo requires m_localVolSurface");
+            
+            if (calc.m_steps <= 1)
+                return std::unexpected("Monte Carlo needs at least 2 time steps when using a vol surface.");
+
             // Hoist pillar routing (binary search on expiries) once per calendar time step; inner loop only σ(K).
-            // Validate all timesteps before allocating RNG / spawning workers.
-            const bool use_local_vol = mkt.hasLocalVolSurface() && calc.m_steps > 1;
-            std::vector<size_t> lvPillarByTimeStep;
-            if (use_local_vol)
+            std::vector<size_t> lvPillarByTimeStep(calc.m_steps - 1);
+            for (size_t i = 0; i + 1 < calc.m_steps; ++i)
             {
-                lvPillarByTimeStep.resize(calc.m_steps - 1);
-                for (size_t i = 0; i + 1 < calc.m_steps; ++i)
-                {
-                    const double t = static_cast<double>(i) * dt;
-                    const auto pillarRes = mkt.m_localVolSurface->localVolPillarIndexForTime(t);
-                    if (!pillarRes)
-                        return std::unexpected(pillarRes.error());
-                    lvPillarByTimeStep[i] = *pillarRes;
-                }
+                const double t = static_cast<double>(i) * dt;
+                const auto pillarRes = mkt.m_localVolSurface->localVolPillarIndexForTime(t);
+                if (!pillarRes)
+                    return std::unexpected(pillarRes.error());
+                lvPillarByTimeStep[i] = *pillarRes;
             }
 
             std::vector<double> unif_rands(calc.m_sims * (calc.m_steps - 1), 2);
@@ -71,12 +71,8 @@ namespace DPP
                         const double dW = sqrt_dt * z;
                         const double r = zeroRatesByStep[step_index - 1];
                         const double q = dividendYieldsByStep[step_index - 1];
-                        double sigma = mkt.m_vol;
-                        if (use_local_vol)
-                        {
-                            const size_t pillarIdx = lvPillarByTimeStep[step_index - 1];
-                            sigma = mkt.m_localVolSurface->localVolOnPillar(pillarIdx, s);
-                        }
+                        const size_t pillarIdx = lvPillarByTimeStep[step_index - 1];
+                        const double sigma = mkt.m_localVolSurface->localVolOnPillar(pillarIdx, s);
                         self.updatePrice(s, dW, r, q, sigma, dt);
                         sims[idx] = s;
                     }

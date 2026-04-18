@@ -169,6 +169,20 @@ namespace DPP
         return AHInterpolator(std::move(expiries), std::move(strikes), std::move(callPrices), std::move(ahForward));
     }
 
+    std::expected<AHInterpolator, std::string> AHInterpolator::buildFlatConstant(double sigma, const YieldCurve& curve)
+    {
+        const double sig = std::clamp(sigma, AhDupireFd::kSigmaMin, AhDupireFd::kSigmaMax);
+        const double w = sig * sig;
+        std::vector<double> expiries{0.25, 1.0};
+        std::vector<std::vector<double>> strikes(2, std::vector<double>{50.0, 100.0, 150.0});
+        std::vector<std::vector<double>> callPrices(2, std::vector<double>{5.0, 10.0, 20.0});
+        AhForwardSurfaceData ah{.curve = curve,
+                                .kGrid = strikes[0],
+                                .cFwd = {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
+                                .localVariance = {{w, w, w}, {w, w, w}}};
+        return build(std::move(expiries), std::move(strikes), std::move(callPrices), std::move(ah));
+    }
+
     std::expected<size_t, std::string> AHInterpolator::localVolPillarIndexForTime(double T) const
     {
         if (const auto idx = pillarIndexForLocalVolTime(routePillarTime(T, m_expiries)))

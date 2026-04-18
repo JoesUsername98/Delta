@@ -3,6 +3,7 @@
 #include <Delta++/engine_factory.h>
 #include <Delta++/tri_matrix_builder.h>
 #include <Delta++/abstract_engine.h>
+#include <Delta++/market.h>
 #include <Delta++Market/yield_curve.h>
 
 using namespace DPP;
@@ -59,11 +60,8 @@ static void BM_MC_AmerPut_TimeSteps(benchmark::State& state) {
 			.m_strike = 100.0, 
 			.m_maturity = 1.0 
 		};
-        MarketData mkt{ 
-			.m_vol = 0.2, 
-			.m_underlyingPrice = 100.0, 
-            .m_yieldCurve = DPP::YieldCurve::build({{1.0, 5.0}, {30.0, 5.0}}).value()
-		};
+        const auto yc = DPP::YieldCurve::build({{1.0, 5.0}, {30.0, 5.0}}).value();
+        DPP::MarketData mkt = DPP::MarketData::withFlatConstantVol(100.0, 0.2, yc).value();
         CalcData calc{ 
 			.m_calc = Calculation::PV, 
 			.m_steps = static_cast<size_t>(stepsIn), 

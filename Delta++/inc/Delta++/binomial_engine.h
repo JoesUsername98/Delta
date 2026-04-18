@@ -13,6 +13,9 @@ namespace DPP
 
         static EngineCreationResult create(const MarketData& mkt, const TradeData& trd, const std::vector<CalcData>& calc)
         {
+            if (!mkt.hasLocalVolSurface())
+                return std::unexpected(
+                    "Binomial pricing requires m_localVolSurface; use MarketData::withFlatConstantVol for flat σ.");
             return std::unique_ptr<BinomialEngine>(new BinomialEngine(mkt, trd, calc));
         }
 

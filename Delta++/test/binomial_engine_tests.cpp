@@ -26,11 +26,7 @@ TEST( engine, EuroCallPV )
     .m_strike = 105.,
     .m_maturity = 1.
 };
-	MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+	MarketData mkt = DPPTest::makeFlatMarket(100., 1.2, DPPTest::makeFlatCurve(0.05));
 	CalcData calc {
     .m_calc = Calculation::PV,
     .m_steps= 3
@@ -54,11 +50,7 @@ TEST( engine, EuroPutPV )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::PV,
     .m_steps = 3
@@ -82,11 +74,7 @@ TEST( engine, AmerCallPV )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::PV,
     .m_steps = 3
@@ -110,11 +98,7 @@ TEST( engine, AmerPutPV )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::PV,
     .m_steps = 3
@@ -140,11 +124,7 @@ TEST( engine, EuroCallDelta )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Delta,
     .m_steps = 3
@@ -168,11 +148,7 @@ TEST( engine, EuroPutDelta )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Delta,
     .m_steps = 3
@@ -196,11 +172,7 @@ TEST( engine, AmerCallDelta )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Delta,
     .m_steps = 3
@@ -224,11 +196,7 @@ TEST( engine, AmerPutDelta )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Delta,
     .m_steps = 3
@@ -254,11 +222,7 @@ TEST( engine, EuroCallGamma )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Gamma,
     .m_steps = 3
@@ -282,11 +246,7 @@ TEST( engine, EuroPutGamma )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Gamma,
     .m_steps = 3
@@ -310,11 +270,7 @@ TEST( engine, AmerCallGamma )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Gamma,
     .m_steps = 3
@@ -338,11 +294,7 @@ TEST( engine, AmerPutGamma )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Gamma,
     .m_steps = 3
@@ -368,11 +320,7 @@ TEST( engine, EuroCallRho )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::RhoParallel,
     .m_steps = 3
@@ -396,11 +344,7 @@ TEST( engine, EuroPutRho )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::RhoParallel,
     .m_steps = 3
@@ -424,11 +368,7 @@ TEST( engine, AmerCallRho )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::RhoParallel,
     .m_steps = 3
@@ -452,11 +392,7 @@ TEST( engine, AmerPutRho )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::RhoParallel,
     .m_steps = 3
@@ -482,11 +418,7 @@ TEST( engine, EuroCallVega )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Vega,
     .m_steps = 3
@@ -510,11 +442,7 @@ TEST( engine, EuroPutVega )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Vega,
     .m_steps = 3
@@ -538,11 +466,7 @@ TEST( engine, AmerCallVega )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Vega,
     .m_steps = 3
@@ -566,11 +490,7 @@ TEST( engine, AmerPutVega )
     .m_strike = 105.0,
     .m_maturity = 1.0
 };
-    MarketData mkt {
-    .m_vol = 1.2,
-    .m_underlyingPrice = 100.0,
-    .m_yieldCurve = DPPTest::makeFlatCurve(0.05)
-};
+    MarketData mkt = DPPTest::makeFlatMarket(100.0, 1.2, DPPTest::makeFlatCurve(0.05));
     CalcData calc {
     .m_calc = Calculation::Vega,
     .m_steps = 3

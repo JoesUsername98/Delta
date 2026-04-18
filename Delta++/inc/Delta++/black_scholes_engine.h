@@ -15,9 +15,13 @@ namespace DPP
         {
             if (trd.m_optionExerciseType != OptionExerciseType::European)
                 return std::unexpected("BlackScholes can only handle European Exercise");
-            if (mkt.hasLocalVolSurface())
+            if (!mkt.hasLocalVolSurface())
                 return std::unexpected(
-                    "Black-Scholes is not available when a bootstrapped local volatility surface is attached.");
+                    "Black-Scholes requires m_localVolSurface; use MarketData::withFlatConstantVol for flat σ.");
+            if (!mkt.isEssentiallyConstantVolSurface())
+                return std::unexpected(
+                    "Black-Scholes analytic engine requires constant σ(T,K) (flat AH stub); general local vol smiles "
+                    "are not supported.");
 
             return std::unique_ptr<BlackScholesEngine>(new BlackScholesEngine(mkt, trd, calc));
         }
