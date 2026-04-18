@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace DPP
@@ -52,7 +53,14 @@ namespace DPP
 
         bool refreshUnderlyings();
         bool refreshLastPrice();
-        bool bootstrap();
+        /// If `yieldCurveOverride` is non-null, uses that curve instead of loading `treasury_yields` from the DB.
+        /// If `spotOverride` is set, uses it as spot instead of `m_lastPrice`.
+        /// If `underlyingTickerOverride` is non-empty, uses it instead of `selectedUnderlying()`.
+        /// If `dividendForIvOverride` is non-null, skips parity rebuild and uses that curve for IV (must match spot/chain).
+        bool bootstrap(const YieldCurve* yieldCurveOverride = nullptr,
+                         std::optional<double> spotOverride = std::nullopt,
+                         std::string_view underlyingTickerOverride = {},
+                         const DividendYieldCurve* dividendForIvOverride = nullptr);
 
         char m_asof[11] = "2023-01-04";
         int m_underlyingIdx = 0;

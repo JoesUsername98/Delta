@@ -2,6 +2,17 @@
 
 namespace DPP
 {
+    DividendYieldCurve DividendYieldCurve::flat(const double q)
+    {
+        DividendYieldCurve c;
+        c.m_constantOnly = true;
+        c.m_constantQ = q;
+        c.m_tenors.clear();
+        c.m_qKnots.clear();
+        c.m_spline.reset();
+        return c;
+    }
+
     double DividendYieldCurve::q(const double tYears) const
     {
         if (m_constantOnly)

@@ -15,6 +15,9 @@ namespace DPP
         {
             if (trd.m_optionExerciseType != OptionExerciseType::European)
                 return std::unexpected("BlackScholes can only handle European Exercise");
+            if (mkt.hasLocalVolSurface())
+                return std::unexpected(
+                    "Black-Scholes is not available when a bootstrapped local volatility surface is attached.");
 
             return std::unique_ptr<BlackScholesEngine>(new BlackScholesEngine(mkt, trd, calc));
         }

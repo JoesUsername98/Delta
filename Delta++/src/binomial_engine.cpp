@@ -10,10 +10,15 @@ namespace DPP
     CalculationResult BinomialEngine::calcPV( const CalcData& calc ) const
     {
         const double dt = m_trd.m_maturity / calc.m_steps;
-        TriMatrixBuilder build_result = TriMatrixBuilder::create(calc.m_steps, dt)
-            .withUnderlyingValueAndVolatility(m_mkt.m_underlyingPrice, m_mkt.m_vol);
+        const double sigmaTree =
+            m_mkt.hasLocalVolSurface()
+                ? m_mkt.localVolAt(m_trd.m_maturity, m_trd.m_strike)
+                : m_mkt.m_vol;
 
-        const double u = std::exp(m_mkt.m_vol * std::sqrt(dt));
+        TriMatrixBuilder build_result = TriMatrixBuilder::create(calc.m_steps, dt)
+            .withUnderlyingValueAndVolatility(m_mkt.m_underlyingPrice, sigmaTree);
+
+        const double u = std::exp(sigmaTree * std::sqrt(dt));
         const double d = 1.0 / u;
 
         std::vector<double> discountRatesByStep;
@@ -24,9 +29,10 @@ namespace DPP
         {
             const double t0 = static_cast<double>(step) * dt;
             const double r = m_mkt.zeroRate(t0);
+            const double q = m_mkt.dividendYield(t0);
             const double interest_rate = std::pow(1. + r, dt) - 1.;
             const double discountRate = 1. / (1. + interest_rate);
-            const double growthFactor = std::exp(r * dt);
+            const double growthFactor = std::exp((r - q) * dt);
             const double p = (growthFactor - d) / (u - d);
 
             if (!std::isfinite(discountRate) || discountRate <= 0.0)
@@ -153,6 +159,9 @@ namespace DPP
 
     CalculationResult BinomialEngine::calcVega( const CalcData& calc ) const
     {
+        if (m_mkt.hasLocalVolSurface())
+            return std::unexpected("Vega is not supported when a bootstrapped local volatility surface is attached.");
+
         CalcData pv_only = calc;
         pv_only.m_calc = Calculation::PV;
 
