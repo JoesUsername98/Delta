@@ -40,6 +40,8 @@ namespace DPP
     {
         if (j.contains("status"))
             e.status = j["status"].get<std::string>();
+        if (j.contains("next_url") && !j["next_url"].is_null())
+            e.next_url = j["next_url"].get<std::string>();
         if (j.contains("results") && j["results"].is_array())
         {
             e.results.clear();

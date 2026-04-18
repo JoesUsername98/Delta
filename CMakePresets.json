@@ -29,14 +29,14 @@
     {
       "name": "win-debug",
       "displayName": "Windows Debug (Visual Studio 2026)",
-      "description": "Configure Debug build for Windows with VS 2022",
+      "description": "Configure Debug for Windows (VS 18 2026). Run cmake with -U CMAKE_GENERATOR_INSTANCE so the install is re-detected (Community vs Insiders, etc.).",
       "generator": "Visual Studio 18 2026",
       "binaryDir": "${sourceDir}/build/win/vs2026-debug"
     },
     {
       "name": "win-release",
       "displayName": "Windows Release (Visual Studio 2026)",
-      "description": "Configure Release build for Windows with VS 2022",
+      "description": "Configure Release for Windows (VS 18 2026). Run cmake with -U CMAKE_GENERATOR_INSTANCE so the install is re-detected (Community vs Insiders, etc.).",
       "generator": "Visual Studio 18 2026",
       "binaryDir": "${sourceDir}/build/win/vs2026-release"
     }

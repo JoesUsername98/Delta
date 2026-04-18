@@ -79,7 +79,7 @@ TEST(Market_DividendYieldCurve, EmptyPillarsError)
     ASSERT_TRUE(yc.has_value());
 
     std::vector<ParityExpiryPillar> empty;
-    auto r = buildDividendYieldCurveFromParity(100.0, *yc, empty);
+    auto r = DividendYieldCurve::buildFromParity(100.0, *yc, empty);
     EXPECT_FALSE(r.has_value());
 }
 
@@ -95,7 +95,7 @@ TEST(Market_DividendYieldCurve, SinglePillarConstantQ)
     std::vector<ParityExpiryPillar> pillars;
     addSyntheticPillar(backing, pillars, "2025-01-01", 1.0, S, qIn);
 
-    auto r = buildDividendYieldCurveFromParity(S, *yc, pillars);
+    auto r = DividendYieldCurve::buildFromParity(S, *yc, pillars);
     ASSERT_TRUE(r.has_value());
     EXPECT_EQ(r->pillars.size(), 1u);
     EXPECT_NEAR(r->pillars[0].q, qIn, 1e-6);
@@ -119,7 +119,7 @@ TEST(Market_DividendYieldCurve, TwoPillarsSplineInterpolates)
     addSyntheticPillar(backing, pillars, "2025-01-01", 0.5, S, qShort);
     addSyntheticPillar(backing, pillars, "2026-01-01", 2.0, S, qLong);
 
-    auto r = buildDividendYieldCurveFromParity(S, *yc, pillars);
+    auto r = DividendYieldCurve::buildFromParity(S, *yc, pillars);
     ASSERT_TRUE(r.has_value());
     EXPECT_EQ(r->pillars.size(), 2u);
     EXPECT_NEAR(r->pillars[0].q, qShort, 1e-5);

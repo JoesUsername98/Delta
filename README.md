@@ -29,8 +29,8 @@ cmake --build --preset wsl-debug-build
 ```
 
 ```bash
-# Windows Debug (Visual Studio 2026)
-cmake --preset win-debug
+# Windows Debug (Visual Studio 2026) — see "Windows (Visual Studio 2026)" for -U when switching VS channels
+cmake -U CMAKE_GENERATOR_INSTANCE --preset win-debug
 cmake --build --preset win-debug-build
 ```
 
@@ -56,6 +56,11 @@ ctest --preset win-debug-test
 Anything that calls Massive.com via `Delta++MarketAPI` needs an API key in the process environment:
 
 - Set `MASSIVE_API_KEY` before running the API tester / `Delta++DataSync` jobs that fetch from Massive.
+
+Run
+```bash
+<BUILD_DIR>\Delta++DataSync.exe --job yield_curve --db C:\repos\Delta\data\marketDB.sqlite --from_asof 2023-01-01 --to_asof 2026-04-16
+```
 
 **UV (required for the Python flat-file loader)**  
 The flat-file loader under `data/flat_files/loader` is managed with [uv](https://docs.astral.sh/uv/).
@@ -193,5 +198,4 @@ Good luck making money off this demo project, have at it!
 ## Acknowledgments
 
 * Thanks to Jack O'Mahoney for giving me my first shot as a quant with no experience.
-* Thanks to Julien Hok, Xiaoqing Zhang for taking time to walk me through the maths and UI issues I was having, respectively.
-* Thanks to all my other colleagues and friends in the Quant space for motivating me to love what I do and learn more everyday.
+* Thanks to all my colleagues and friends in the Quant space for motivating me to love what I do and learn more everyday.

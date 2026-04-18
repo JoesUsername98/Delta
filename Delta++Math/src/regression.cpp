@@ -3,11 +3,6 @@
 #include <cmath>
 #include <limits>
 
-namespace
-{
-    bool finite(double x) { return std::isfinite(x); }
-}
-
 namespace DPPMath
 {
     std::expected<OlsLineFit, std::string> olsFitLine(
@@ -26,7 +21,7 @@ namespace DPPMath
         {
             const double x = xs[i];
             const double y = ys[i];
-            if (!finite(x) || !finite(y))
+            if (!std::isfinite(x) || !std::isfinite(y))
                 continue;
             ++n;
             sumX += x;
@@ -51,7 +46,7 @@ namespace DPPMath
         {
             const double x = xs[i];
             const double y = ys[i];
-            if (!finite(x) || !finite(y))
+            if (!std::isfinite(x) || !std::isfinite(y))
                 continue;
             const double yhat = intercept + slope * x;
             const double e = y - yhat;

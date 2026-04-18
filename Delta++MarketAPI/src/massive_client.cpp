@@ -2,6 +2,7 @@
 #include "Delta++MarketAPI/massive_options_json.h"
 #include "Delta++MarketAPI/massive_treasury_json.h"
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 
@@ -80,6 +81,58 @@ namespace DPP
         return std::unexpected("No treasury yield row matching date " + dateStr);
     }
 
+    std::expected<TreasuryYieldsEnvelope, std::string>
+    MassiveClient::getTreasuryYieldsRange(const std::string_view fromYmd, const std::string_view toYmd, const int limit) const
+    {
+        auto keyResult = m_keys->getKey("MASSIVE_API_KEY");
+        if (!keyResult.has_value())
+            return std::unexpected(keyResult.error());
+
+        const int cap = std::clamp(limit, 1, 50000);
+        std::map<std::string, std::string> params = {
+            {"apiKey", keyResult.value()},
+            {"date.gte", std::string(fromYmd)},
+            {"date.lte", std::string(toYmd)},
+            {"limit", std::to_string(cap)},
+            {"sort", "date.asc"},
+        };
+
+        auto resp = m_http->get("https://api.massive.com/fed/v1/treasury-yields", params);
+        if (!resp.has_value())
+            return std::unexpected(resp.error());
+
+        auto env = parseTreasuryYieldsJson(resp.value());
+        if (!env.has_value())
+            return std::unexpected(env.error());
+
+        if (!env->status.empty() && env->status != "OK")
+            return std::unexpected("Massive API status: " + env->status);
+
+        return env;
+    }
+
+    std::expected<TreasuryYieldsEnvelope, std::string>
+    MassiveClient::getTreasuryYieldsNextUrl(const std::string_view absoluteUrl) const
+    {
+        auto keyResult = m_keys->getKey("MASSIVE_API_KEY");
+        if (!keyResult.has_value())
+            return std::unexpected(keyResult.error());
+
+        const std::string url(absoluteUrl);
+        auto resp = m_http->get(url, {});
+        if (!resp.has_value())
+            return std::unexpected(resp.error());
+
+        auto env = parseTreasuryYieldsJson(resp.value());
+        if (!env.has_value())
+            return std::unexpected(env.error());
+
+        if (!env->status.empty() && env->status != "OK")
+            return std::unexpected("Massive API status: " + env->status);
+
+        return env;
+    }
+
     std::expected<OptionsContractsEnvelope, std::string>
     MassiveClient::getOptionsContracts(const std::map<std::string, std::string>& queryParams) const
     {
@@ -91,6 +144,28 @@ namespace DPP
         params["apiKey"] = keyResult.value();
 
         auto resp = m_http->get("https://api.massive.com/v3/reference/options/contracts", params);
+        if (!resp.has_value())
+            return std::unexpected(resp.error());
+
+        auto env = parseOptionsContractsJson(resp.value());
+        if (!env.has_value())
+            return std::unexpected(env.error());
+
+        if (!env->status.empty() && env->status != "OK")
+            return std::unexpected("Massive API status: " + env->status);
+
+        return env;
+    }
+
+    std::expected<OptionsContractsEnvelope, std::string>
+    MassiveClient::getOptionsContractsNextUrl(const std::string_view absoluteUrl) const
+    {
+        auto keyResult = m_keys->getKey("MASSIVE_API_KEY");
+        if (!keyResult.has_value())
+            return std::unexpected(keyResult.error());
+
+        const std::string url(absoluteUrl);
+        auto resp = m_http->get(url, {});
         if (!resp.has_value())
             return std::unexpected(resp.error());
 

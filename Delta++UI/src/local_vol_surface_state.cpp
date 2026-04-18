@@ -215,7 +215,7 @@ namespace DPP
             };
         });
 
-        auto divBuilt = DPP::buildDividendYieldCurveFromParity(S, curve, std::move(pillars));
+        auto divBuilt = DPP::DividendYieldCurve::buildFromParity(S, curve, std::move(pillars));
         if (!divBuilt.has_value())
         {
             m_status = divBuilt.error();
